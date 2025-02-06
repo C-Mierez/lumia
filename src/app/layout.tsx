@@ -30,18 +30,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <style>
-                    {`
-                      :root {
-                        --font-brand: ${agenorSans.style.fontFamily};
-                        --font-sans: ${geistSans.style.fontFamily};
-                      }
-                    `}
-                </style>
-                {children}
-            </body>
+        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${agenorSans.variable} antialiased`}>
+            <body>{children}</body>
         </html>
     );
 }
