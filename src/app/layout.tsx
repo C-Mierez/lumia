@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -30,8 +31,13 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${agenorSans.variable} antialiased`}>
-            <body>{children}</body>
-        </html>
+        <ClerkProvider afterSignOutUrl={"/"}>
+            <html
+                lang="en"
+                className={`${geistSans.variable} ${geistMono.variable} ${agenorSans.variable} antialiased`}
+            >
+                <body>{children}</body>
+            </html>
+        </ClerkProvider>
     );
 }
