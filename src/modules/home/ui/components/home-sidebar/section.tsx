@@ -1,6 +1,5 @@
 "use client";
 
-import { FlameIcon, HomeIcon, PlaySquareIcon } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -11,27 +10,18 @@ import {
     SidebarMenuItem,
 } from "@components/ui/sidebar";
 
+import { useClerk } from "@clerk/nextjs";
+import { useAuth } from "@clerk/clerk-react";
 import { SidebarItem } from "../types";
 
-const items: SidebarItem[] = [
-    {
-        title: "Home",
-        href: "/",
-        icon: HomeIcon,
-    },
-    {
-        title: "Subscriptions",
-        href: "/feed/subscriptions",
-        icon: PlaySquareIcon,
-    },
-    {
-        title: "Trending",
-        href: "/feed/trending",
-        icon: FlameIcon,
-    },
-];
+interface SectionProps {
+    items: SidebarItem[];
+}
 
-export default function MainSection() {
+export default function Section({ items }: SectionProps) {
+    const clerk = useClerk();
+    const { isSignedIn } = useAuth();
+
     return (
         <SidebarGroup>
             <SidebarGroupContent>
@@ -41,7 +31,12 @@ export default function MainSection() {
                             <SidebarMenuButton
                                 tooltip={item.title}
                                 isActive={false} // TODO Make it look at current pathname
-                                onClick={() => {}}
+                                onClick={(e) => {
+                                    if (!isSignedIn && item.needsAuth) {
+                                        e.preventDefault();
+                                        return clerk.openSignIn();
+                                    }
+                                }}
                                 asChild
                             >
                                 <Link href={item.href}>

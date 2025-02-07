@@ -1,18 +1,18 @@
 import { Sidebar, SidebarContent } from "@components/ui/sidebar";
-import MainSection from "./main-section";
-import PersonalSection from "./personal-section";
 import { Separator } from "@components/ui/separator";
+import Section from "./section";
+import { mainItems, personalItems } from "./content";
 
 export default function HomeSidebar() {
     return (
         <Sidebar className="pt-16" collapsible="icon">
             <SidebarContent>
-                <MainSection />
+                <Section items={mainItems} />
                 <Separator />
-                <PersonalSection />
+                <Section items={personalItems} />
                 <Separator />
                 {/* TODO Subscriptions section */}
-                <MainSection />
+                <Section items={mainItems} />
             </SidebarContent>
         </Sidebar>
     );
