@@ -12,7 +12,7 @@ export function HomeLayout({ children }: HomeLayoutProps) {
             <HomeNavbar />
             <div className="flex shrink-0">
                 <HomeSidebar />
-                <main className="bg-brand-900 flex-1 overflow-y-auto">{children}</main>
+                <main className="flex-1 overflow-y-auto">{children}</main>
             </div>
         </SidebarProvider>
     );
