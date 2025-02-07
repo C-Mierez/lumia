@@ -3,7 +3,13 @@
 @plugin 'tailwindcss-animate';
 
 @theme {
-    --color-background: hsl(var(--background));
+    --color-brand-950: #121118;
+    --color-brand-800: #1f1d28;
+    --color-brand-700: #373347;
+
+    --color-accent-600: #3f2058;
+
+    --color-background: var(--color-brand-950);
     --color-foreground: hsl(var(--foreground));
 
     --color-card: hsl(var(--card));
@@ -37,11 +43,11 @@
     --color-chart-4: hsl(var(--chart-4));
     --color-chart-5: hsl(var(--chart-5));
 
-    --color-sidebar: hsl(var(--sidebar-background));
-    --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+    --color-sidebar: var(--color-brand-950);
+    --color-sidebar-foreground: var(--color-muted-foreground);
     --color-sidebar-primary: hsl(var(--sidebar-primary));
     --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-    --color-sidebar-accent: hsl(var(--sidebar-accent));
+    --color-sidebar-accent: var(--color-accent-600);
     --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
     --color-sidebar-border: hsl(var(--sidebar-border));
     --color-sidebar-ring: hsl(var(--sidebar-ring));
@@ -98,6 +104,7 @@
     }
 
     :root {
+        /* --------------------------------- Shadcn --------------------------------- */
         --background: 0 0% 100%;
         --foreground: 0 0% 3.9%;
         --card: 0 0% 100%;
@@ -135,7 +142,7 @@
 
     @media (prefers-color-scheme: dark) {
         :root {
-            --background: 0 0% 3.9%;
+            --background: 251, 16%, 14%;
             --foreground: 0 0% 98%;
             --card: 0 0% 3.9%;
             --card-foreground: 0 0% 98%;
@@ -146,7 +153,7 @@
             --secondary: 0 0% 14.9%;
             --secondary-foreground: 0 0% 98%;
             --muted: 0 0% 14.9%;
-            --muted-foreground: 0 0% 63.9%;
+            --muted-foreground: 0 0% 83.9%;
             --accent: 0 0% 14.9%;
             --accent-foreground: 0 0% 98%;
             --destructive: 0 62.8% 30.6%;
