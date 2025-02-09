@@ -11,6 +11,7 @@ A Youtube-inspired video-sharing website.
 - Neon DB
 - Mux
 - Clerk Auth
+- Svix Webhook
 - Tailwind V4
 
 --- Local:
@@ -27,4 +28,4 @@ A Youtube-inspired video-sharing website.
 - [ ] Video playlist creation and management
 - [ ] Channel subscriptions
 - [ ] Video comments and likes system
-- [ ] Auth and protected routes
+- [ ] Clerk Auth synchronization to local own db though Webhooks
