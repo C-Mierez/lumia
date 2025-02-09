@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import { TRPCProvider } from "@/trpc/client";
 import { ClerkProvider } from "@clerk/nextjs";
 
 import type { Metadata } from "next";
@@ -36,7 +37,9 @@ export default function RootLayout({
                 lang="en"
                 className={`${geistSans.variable} ${geistMono.variable} ${agenorSans.variable} antialiased`}
             >
-                <body>{children}</body>
+                <body>
+                    <TRPCProvider>{children}</TRPCProvider>
+                </body>
             </html>
         </ClerkProvider>
     );
