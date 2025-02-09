@@ -13,6 +13,11 @@ A Youtube-inspired video-sharing website.
 - Clerk Auth
 - Tailwind V4
 
+--- Local:
+
+- Ngrok: Local development tunnel for Clerk webhooks
+- [Concurrently](https://github.com/open-cli-tools/concurrently): Run multiple commands concurrently (NexJS + Ngrok)
+
 ### Features
 
 - [ ] User-uploaded videos
