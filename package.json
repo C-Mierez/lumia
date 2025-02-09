@@ -3,7 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
+        "dev:all": "concurrently \"bun run dev:webhook\" \"bun run dev\"",
         "dev": "next dev --turbopack",
+        "dev:webhook": "ngrok http --url=$NGROK_URL 3000",
         "build": "next build",
         "start": "next start",
         "lint": "next lint"
@@ -34,6 +36,7 @@
         "@types/node": "^20",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "concurrently": "^9.1.2",
         "drizzle-kit": "^0.30.4",
         "eslint": "^9",
         "eslint-config-next": "15.1.6",
