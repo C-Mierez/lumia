@@ -21,10 +21,10 @@ export const env = createEnv({
     client: {
         // NEXT_PUBLIC_CLIENTVAR: z.string(),
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
-        NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().url(),
-        NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().url(),
-        NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string().url(),
-        NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string().url(),
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string(),
+        NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
+        NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string(),
+        NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string(),
     },
 
     /**
