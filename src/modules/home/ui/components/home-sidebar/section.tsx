@@ -26,7 +26,7 @@ export default function Section({ items }: SectionProps) {
         <SidebarGroup>
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item, index) => (
+                    {items.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 tooltip={item.title}
