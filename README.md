@@ -7,11 +7,14 @@ A Youtube-inspired video-sharing website.
 ### Tech
 
 - NextJS
+- React 19
+- tRPC v11
 - Drizzle
 - Neon DB
 - Mux
 - Clerk Auth
 - Svix Webhook
+- Upstash Redis + Ratelimit
 - Tailwind V4
 
 --- Local:
@@ -28,4 +31,9 @@ A Youtube-inspired video-sharing website.
 - [ ] Video playlist creation and management
 - [ ] Channel subscriptions
 - [ ] Video comments and likes system
-- [ ] Clerk Auth synchronization to local own db though Webhooks
+
+--- Tech
+
+- [ ] Clerk Auth synchronization to local own db though Webhooks (Svix verification)
+- [ ] Authenticated server component prefetching through tRPC v11's support for server-side calls
+- [ ] Vercel KV (Upstash) Redis service for request rate limiting
