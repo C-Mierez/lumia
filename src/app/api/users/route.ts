@@ -62,7 +62,7 @@ export async function POST(req: Request) {
             name = !name ? evt.data.email_addresses[0].email_address : name;
             await db.insert(usersTable).values({
                 clerkId: evt.data.id,
-                name: `${evt.data.first_name} ${evt.data.last_name}`,
+                name,
                 imageUrl: evt.data.image_url,
             });
             break;
