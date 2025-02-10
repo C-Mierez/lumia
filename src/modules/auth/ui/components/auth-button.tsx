@@ -2,14 +2,23 @@
 
 import { UserCircleIcon } from "lucide-react";
 
-import { SignedIn, SignedOut, SignInButton, UserButton, ClerkLoading } from "@clerk/nextjs";
+import { ClerkLoading, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 
 export default function AuthButton() {
     return (
         <>
             <SignedIn>
-                <UserButton />
+                <UserButton>
+                    {/* TODO: Use the Clerk menu to give access to user profile instead */}
+                    {/* <UserButton.MenuItems>
+                        <UserButton.Link
+                            label="Studio"
+                            href="/studio"
+                            labelIcon={<ClapperboardIcon className="size-4" />}
+                        />
+                    </UserButton.MenuItems> */}
+                </UserButton>
             </SignedIn>
             <SignedOut>
                 <SignInButton mode="modal">
