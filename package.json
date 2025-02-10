@@ -31,6 +31,7 @@
         "client-only": "^0.0.1",
         "clsx": "^2.1.1",
         "drizzle-orm": "^0.39.2",
+        "embla-carousel-react": "^8.5.2",
         "lucide-react": "^0.474.0",
         "next": "15.1.6",
         "react": "^19.0.0",
