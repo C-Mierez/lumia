@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 /* @custom-variant dark (&:is(.dark *)); */
 
 @plugin 'tailwindcss-animate';
 
 @theme {
+    --screen-max: 2400px;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
@@ -110,6 +114,7 @@
     --color-main-50: #fafafb;
 
     --color-accent-400: #473597;
+    --color-accent-500: #403088;
     --color-accent-600: #2b205a;
 
     --radius: 0.6rem;
@@ -169,13 +174,13 @@
         --primary: var(--color-main-50);
         --primary-foreground: var(--color-main-950);
 
-        --secondary: var(--color-accent-600);
+        --secondary: var(--color-accent-500);
         --secondary-foreground: var(--color-main-50);
 
         --muted: var(--color-main-800);
         --muted-foreground: var(--color-main-200);
 
-        --accent: var(--color-accent-600);
+        --accent: var(--color-accent-500);
         --accent-foreground: var(--color-main-50);
 
         --destructive: hsl(0 62.8% 30.6%);
@@ -201,7 +206,7 @@
         --sidebar-foreground: var(--muted-foreground);
         --sidebar-primary: var(--color-main-800);
         --sidebar-primary-foreground: var(--color-main-50);
-        --sidebar-accent: var(--color-accent-600);
+        --sidebar-accent: var(--color-accent-500);
         --sidebar-accent-foreground: var(--color-main-50);
         --sidebar-border: var(--muted);
         --sidebar-ring: var(--ring);
