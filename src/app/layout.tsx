@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import { TRPCProvider } from "@/trpc/client";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@components/ui/sonner";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -39,6 +40,7 @@ export default function RootLayout({
             >
                 <body>
                     <TRPCProvider>{children}</TRPCProvider>
+                    <Toaster />
                 </body>
             </html>
         </ClerkProvider>
