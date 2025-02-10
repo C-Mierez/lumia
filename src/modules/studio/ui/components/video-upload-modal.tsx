@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@components/ui/button";
+import ResponsiveModal from "@components/responsive-modal";
 
 export default function VideoUploadModal() {
     const utils = trpc.useUtils();
@@ -18,16 +19,27 @@ export default function VideoUploadModal() {
     });
 
     return (
-        <Button
-            variant={"muted"}
-            className="[&_svg]:size-4"
-            onClick={() => {
-                create.mutate();
-            }}
-            disabled={create.isPending}
-        >
-            <CirclePlusIcon />
-            Create
-        </Button>
+        <>
+            <ResponsiveModal
+                isOpen={!!create.data}
+                title={"Create video"}
+                onOpenChange={() => {
+                    create.reset();
+                }}
+            >
+                <div>Modal content</div>
+            </ResponsiveModal>
+            <Button
+                variant={"muted"}
+                className="[&_svg]:size-4"
+                onClick={() => {
+                    create.mutate();
+                }}
+                disabled={create.isPending}
+            >
+                <CirclePlusIcon />
+                Create
+            </Button>
+        </>
     );
 }
