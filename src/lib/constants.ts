@@ -1,0 +1,1 @@
+export const DEFAULT_INFINITE_PREFETCH_LIMIT = 5;
