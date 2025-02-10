@@ -1,0 +1,20 @@
+@reference "../../styles/globals.css";
+
+.customSonner {
+}
+
+.customToast {
+    @apply text-accent-foreground border-foreground/5 bg-accent shadow-lg;
+}
+
+.customDescription {
+    @apply text-muted;
+}
+
+.customActionButton {
+    @apply bg-primary text-primary-foreground;
+}
+
+.customCancelButton {
+    @apply bg-muted text-muted-foreground;
+}
