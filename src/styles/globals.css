@@ -2,8 +2,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* @custom-variant dark (&:is(.dark *)); */
-
 @plugin 'tailwindcss-animate';
 
 @theme {
@@ -109,6 +107,7 @@
     --color-main-800: #1e2029;
     --color-main-700: #343746;
     --color-main-600: #45495e;
+    --color-main-200-75: #e9ebedb7;
     --color-main-200: #e9ebed;
     --color-main-100: #f4f4f6;
     --color-main-50: #fafafb;
@@ -178,7 +177,7 @@
         --secondary-foreground: var(--color-main-50);
 
         --muted: var(--color-main-800);
-        --muted-foreground: var(--color-main-200);
+        --muted-foreground: var(--color-main-200-75);
 
         --accent: var(--color-accent-500);
         --accent-foreground: var(--color-main-50);
