@@ -7,6 +7,7 @@
         "dev": "next dev --turbopack",
         "dev:webhook": "bun --env-file=.env.local run dev:ngrok",
         "dev:ngrok": "ngrok http --url=$NGROK_URL 3000",
+        "dev:seed-categories": "NODE_ENV=development bun src/scripts/add-video-categories.ts",
         "build": "next build",
         "start": "next start",
         "lint": "next lint"
