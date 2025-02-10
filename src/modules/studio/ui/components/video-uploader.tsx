@@ -15,7 +15,7 @@ interface VideoUploaderProps {
 
 const UPLOADER_ID = "video-uploader";
 
-export default function VideoUploader({ endpoint, onSuccess }: VideoUploaderProps) {
+export default function VideoUploader({ endpoint }: VideoUploaderProps) {
     return (
         <div>
             <MuxUploader id={UPLOADER_ID} endpoint={endpoint} className="group/uploader hidden" />

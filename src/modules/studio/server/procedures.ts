@@ -2,7 +2,7 @@ import { and, desc, eq, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { usersTable, videosTable } from "@/db/schema";
+import { videosTable } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
 
 export const studioRouter = createTRPCRouter({

@@ -1,15 +1,16 @@
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
+
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
 import { env } from "@/env";
 import { mux } from "@lib/mux";
-import {
+import type {
     VideoAssetCreatedWebhookEvent,
     VideoAssetErroredWebhookEvent,
     VideoAssetReadyWebhookEvent,
     VideoAssetTrackReadyWebhookEvent,
 } from "@mux/mux-node/resources/webhooks.mjs";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
 
 type WebhookEvent =
     | VideoAssetCreatedWebhookEvent
@@ -17,13 +18,13 @@ type WebhookEvent =
     | VideoAssetErroredWebhookEvent
     | VideoAssetTrackReadyWebhookEvent;
 
-export async function POST(req: Request) {
+export const POST = async (request: Request) => {
     const headersPayload = await headers();
     const muxSignature = headersPayload.get("mux-signature");
 
-    if (!muxSignature) return { status: 401, body: "No signature provided" };
+    if (!muxSignature) return new Response("No Upload ID received", { status: 400 });
 
-    const payload = await req.json();
+    const payload = await request.json();
     const body = JSON.stringify(payload);
 
     mux.webhooks.verifySignature(
@@ -52,4 +53,4 @@ export async function POST(req: Request) {
     }
 
     return new Response("Webhook received", { status: 200 });
-}
+};
