@@ -15,6 +15,9 @@ export const env = createEnv({
         KV_REST_API_READ_ONLY_TOKEN: z.string(),
         KV_REST_API_TOKEN: z.string(),
         KV_REST_API_URL: z.string().url(),
+        MUX_TOKEN_ID: z.string(),
+        MUX_TOKEN_SECRET: z.string(),
+        MUX_WEBHOOK_SECRET: z.string(),
     },
 
     /**
@@ -45,6 +48,9 @@ export const env = createEnv({
         KV_REST_API_READ_ONLY_TOKEN: process.env.KV_REST_API_READ_ONLY_TOKEN,
         KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
         KV_REST_API_URL: process.env.KV_REST_API_URL,
+        MUX_TOKEN_ID: process.env.MUX_TOKEN_ID,
+        MUX_TOKEN_SECRET: process.env.MUX_TOKEN_SECRET,
+        MUX_WEBHOOK_SECRET: process.env.MUX_WEBHOOK_SECRET,
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
         NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
         NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
