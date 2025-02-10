@@ -1,10 +1,11 @@
 "use client";
-import { CirclePlusIcon } from "lucide-react";
+import { CirclePlusIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@components/ui/button";
 import ResponsiveModal from "@components/responsive-modal";
+import VideoUploader from "./video-uploader";
 
 export default function VideoUploadModal() {
     const utils = trpc.useUtils();
@@ -27,7 +28,11 @@ export default function VideoUploadModal() {
                     create.reset();
                 }}
             >
-                <div>Modal content</div>
+                {!!create.data?.url ? (
+                    <VideoUploader endpoint={create.data?.url} onSuccess={() => {}} />
+                ) : (
+                    <Loader2Icon className="animate-spin" />
+                )}
             </ResponsiveModal>
             <Button
                 variant={"muted"}
