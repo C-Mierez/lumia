@@ -15,6 +15,20 @@
       "when": 1739147936250,
       "tag": "0001_fixed_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739205487877,
+      "tag": "0002_high_squadron_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739205709351,
+      "tag": "0003_pink_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

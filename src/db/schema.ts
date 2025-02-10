@@ -1,5 +1,7 @@
+import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
+/* -------------------------------- Entities -------------------------------- */
 export const usersTable = pgTable(
     "users",
     {
@@ -24,3 +26,18 @@ export const categoriesTable = pgTable(
     },
     (t) => [uniqueIndex("name_idx").on(t.name)],
 );
+
+export const videosTable = pgTable("videos", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    /* --------------------------------- Foreign -------------------------------- */
+    userId: uuid("user_id")
+        .references(() => usersTable.id, { onDelete: "cascade" })
+        .notNull(),
+    categoryId: uuid("category_id").references(() => categoriesTable.id, {
+        onDelete: "set null",
+    }),
+});
