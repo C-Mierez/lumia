@@ -1,10 +1,12 @@
+import { ClapperboardIcon } from "lucide-react";
 import Link from "next/link";
 
 import SVG from "@components/svg/logo";
+import { Button } from "@components/ui/button";
 import { SidebarTrigger } from "@components/ui/sidebar";
+import AuthButton from "@modules/auth/ui/components/auth-button";
 
 import SearchInput from "./search-input";
-import AuthButton from "@modules/auth/ui/components/auth-button";
 
 export default function HomeNavbar() {
     return (
@@ -15,7 +17,7 @@ export default function HomeNavbar() {
                 {/* Branding */}
                 <Link href={"/"} className="-ml-1 flex items-end gap-0.5">
                     <SVG.BrandLogo className="fill-foreground h-4" />
-                    <h1 className="text-xl leading-3.5 font-medium tracking-tighter">Lumia</h1>
+                    <h1 className="text-xl leading-3.75 font-medium tracking-tighter">Lumia</h1>
                 </Link>
             </div>
 
@@ -26,6 +28,15 @@ export default function HomeNavbar() {
 
             {/* Auth or User Profile */}
             <div className="flex items-center gap-4">
+                {/* Studio Link */}
+                <Link href="/studio">
+                    <Button variant={"muted"} className="[&_svg]:size-4">
+                        <ClapperboardIcon />
+                        Studio
+                    </Button>
+                </Link>
+
+                {/* Auth  */}
                 <AuthButton />
             </div>
         </nav>
