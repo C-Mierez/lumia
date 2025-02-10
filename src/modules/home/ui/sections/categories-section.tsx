@@ -6,7 +6,6 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
 import CarouselFilter from "@components/carousel-filter";
-import { useRouter } from "next/navigation";
 
 interface CategoriesSectionProps {
     categoryId?: string;
@@ -24,8 +23,6 @@ export default function CategoriesSection({ categoryId }: CategoriesSectionProps
 
 function CategoriesSectionSuspense({ categoryId }: CategoriesSectionProps) {
     const [categories] = trpc.categories.getMany.useSuspenseQuery();
-    const router = useRouter();
-    // return <div>{JSON.stringify(categories)}</div>;
 
     const data = categories.map(({ id, name }) => ({
         id: id,

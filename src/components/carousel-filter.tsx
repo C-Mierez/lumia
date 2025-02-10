@@ -99,9 +99,13 @@ interface CategoryBadgeProps {
 
 function CategoryBadge({ label, id, value, isDefault }: CategoryBadgeProps) {
     const [clicked, setClicked] = useState(false);
+    const [currentValue, setCurrentValue] = useState(value);
 
     useEffect(() => {
-        if (clicked) setClicked(false);
+        if (currentValue !== value && clicked) {
+            setCurrentValue(value);
+            setClicked(false);
+        }
     }, [value]);
 
     return (
