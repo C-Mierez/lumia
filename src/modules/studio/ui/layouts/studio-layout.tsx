@@ -12,7 +12,7 @@ export default function StudioLayout({ children }: StudioLayoutProps) {
             <StudioNavbar />
             <div className="flex shrink-0">
                 <StudioSidebar />
-                <main className="flex-1 overflow-y-auto">{children}</main>
+                <main className="flex flex-1 flex-col gap-y-6 overflow-y-auto p-6">{children}</main>
             </div>
         </SidebarProvider>
     );
