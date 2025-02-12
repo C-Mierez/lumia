@@ -1,11 +1,13 @@
 import "@/styles/globals.css";
-import { TRPCProvider } from "@/trpc/client";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from "@components/ui/sonner";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
+import { TRPCProvider } from "@/trpc/client";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@components/ui/sonner";
 
 const agenorSans = localFont({
     src: "../styles/fonts/AgenorNeue-Regular.otf",
@@ -39,8 +41,10 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} ${agenorSans.variable} antialiased`}
             >
                 <body>
-                    <TRPCProvider>{children}</TRPCProvider>
-                    <Toaster />
+                    <NuqsAdapter>
+                        <TRPCProvider>{children}</TRPCProvider>
+                        <Toaster />
+                    </NuqsAdapter>
                 </body>
             </html>
         </ClerkProvider>
