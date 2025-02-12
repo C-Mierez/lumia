@@ -1,7 +1,7 @@
 import { ClapperboardIcon } from "lucide-react";
 import Link from "next/link";
 
-import SVG from "@components/svg/logo";
+import SVG from "@components/svg/svg";
 import { Button } from "@components/ui/button";
 import { SidebarTrigger } from "@components/ui/sidebar";
 import AuthButton from "@modules/auth/ui/components/auth-button";
