@@ -9,15 +9,24 @@ interface ResponsiveModalProps {
     isOpen: boolean;
     title: string;
     onOpenChange: (isOpen: boolean) => void;
+    className?: string;
+    hideClose?: boolean;
 }
 
-export default function ResponsiveModal({ children, isOpen, title, onOpenChange }: ResponsiveModalProps) {
+export default function ResponsiveModal({
+    children,
+    isOpen,
+    title,
+    onOpenChange,
+    className,
+    hideClose,
+}: ResponsiveModalProps) {
     const isMobile = useIsMobile();
 
     if (isMobile)
         return (
             <Drawer open={isOpen} onOpenChange={onOpenChange}>
-                <DrawerContent>
+                <DrawerContent className={className}>
                     <DrawerHeader>
                         <DrawerTitle>{title}</DrawerTitle>
                     </DrawerHeader>
@@ -28,7 +37,7 @@ export default function ResponsiveModal({ children, isOpen, title, onOpenChange 
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className={className} hideClose={hideClose}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>

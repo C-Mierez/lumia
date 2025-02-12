@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import { format } from "date-fns";
 import { GlobeIcon, LockIcon } from "lucide-react";
-import Link from "next/link";
+import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { formatMuxStatus, range } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+
+import VideoFormModal from "../components/video-form-modal";
 
 export default function VideosSection() {
     return (
@@ -35,8 +37,19 @@ function VideosSectionSuspense() {
         },
     );
 
+    const videos = data.pages.flatMap((page) => page.items);
+
+    const [editVideo, setEditVideo] = useQueryState("edit");
+
+    const onOpenChange = (isOpen: boolean) => {
+        if (!isOpen) {
+            setEditVideo(null);
+        }
+    };
+
     return (
         <div>
+            <VideoFormModal video={videos.find((video) => video.id === editVideo)} onOpenChange={onOpenChange} />
             <Table className="border-y">
                 <TableHeader>
                     <TableRow>
@@ -53,51 +66,56 @@ function VideosSectionSuspense() {
                     {data.pages.flatMap((page) =>
                         page.items.map((video) => {
                             return (
-                                <Link href={`/studio/videos/${video.id}`} key={video.id} legacyBehavior>
-                                    <TableRow className="cursor-pointer [&_td]:text-center">
-                                        <TableCell className="px-6 py-4">
-                                            <div className="flex items-stretch gap-4">
-                                                <div className="relative aspect-video w-full max-w-26 shrink-0">
-                                                    <VideoThumbnail
-                                                        imageUrl={video.thumbnailUrl}
-                                                        previewUrl={video.previewUrl}
-                                                        title={video.title}
-                                                        duration={video.duration || 0}
-                                                    />
-                                                </div>
-                                                <div className="flex flex-1 flex-col items-start justify-start">
-                                                    <p className="font-brand">{video.title}</p>
-                                                    <p className="text-muted-foreground text-xs">
-                                                        {video.description ?? "No video description"}
-                                                    </p>
-                                                </div>
+                                // <Link href={`/studio/videos/${video.id}`} key={video.id} legacyBehavior>
+                                <TableRow
+                                    key={video.id}
+                                    className="cursor-pointer [&_td]:text-center"
+                                    onClick={() => {
+                                        setEditVideo(video.id);
+                                    }}
+                                >
+                                    <TableCell className="px-6 py-4">
+                                        <div className="flex items-stretch gap-4">
+                                            <div className="relative aspect-video w-full max-w-26 shrink-0">
+                                                <VideoThumbnail
+                                                    imageUrl={video.thumbnailUrl}
+                                                    previewUrl={video.previewUrl}
+                                                    title={video.title}
+                                                    duration={video.duration || 0}
+                                                />
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="px-6 py-4">
-                                            <div className="flex flex-col items-center justify-center gap-1">
-                                                {video.visibility === "private" ? (
-                                                    <LockIcon className="size-4" />
-                                                ) : (
-                                                    <GlobeIcon className="size-4" />
-                                                )}
-                                                <span className="text-muted-foreground text-xs">
-                                                    {/* // Capitalize visibility */}
-                                                    {video.visibility.charAt(0).toUpperCase() +
-                                                        video.visibility.slice(1)}
-                                                </span>
+                                            <div className="flex flex-1 flex-col items-start justify-start">
+                                                <p className="font-brand">{video.title}</p>
+                                                <p className="text-muted-foreground text-xs">
+                                                    {video.description ?? "No video description"}
+                                                </p>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="px-6 py-4">
-                                            <div>{formatMuxStatus(video.muxStatus)}</div>
-                                        </TableCell>
-                                        <TableCell className="truncate px-6 py-4 text-xs">
-                                            <div>{format(new Date(video.createdAt), "d MMM yyyy")}</div>
-                                        </TableCell>
-                                        <TableCell className="px-6 py-4 text-xs">views</TableCell>
-                                        <TableCell className="px-6 py-4 text-xs">comments</TableCell>
-                                        <TableCell className="px-6 py-4 text-xs">likes</TableCell>
-                                    </TableRow>
-                                </Link>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <div className="flex flex-col items-center justify-center gap-1">
+                                            {video.visibility === "private" ? (
+                                                <LockIcon className="size-4" />
+                                            ) : (
+                                                <GlobeIcon className="size-4" />
+                                            )}
+                                            <span className="text-muted-foreground text-xs">
+                                                {/* // Capitalize visibility */}
+                                                {video.visibility.charAt(0).toUpperCase() + video.visibility.slice(1)}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <div>{formatMuxStatus(video.muxStatus)}</div>
+                                    </TableCell>
+                                    <TableCell className="truncate px-6 py-4 text-xs">
+                                        <div>{format(new Date(video.createdAt), "d MMM yyyy")}</div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-xs">views</TableCell>
+                                    <TableCell className="px-6 py-4 text-xs">comments</TableCell>
+                                    <TableCell className="px-6 py-4 text-xs">likes</TableCell>
+                                </TableRow>
+                                // </Link>
                             );
                         }),
                     )}

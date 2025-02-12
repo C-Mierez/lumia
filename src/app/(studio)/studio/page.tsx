@@ -9,6 +9,8 @@ export default function StudioPage() {
         limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
     });
 
+    void trpc.categories.getMany.prefetch();
+
     return (
         <HydrateClient>
             <StudioView />

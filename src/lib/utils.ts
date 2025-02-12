@@ -13,12 +13,9 @@ export function range(n: number) {
 
 // Video duration formatting
 export function formatVideoDuration(durationMilliseconds: number) {
-    console.log("formatVideoDuration", durationMilliseconds);
-
     const seconds = Math.floor((durationMilliseconds / 1000) % 60);
     const minutes = Math.floor((durationMilliseconds / (1000 * 60)) % 60);
 
-    console.log("formatVideoDuration", minutes, seconds);
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
