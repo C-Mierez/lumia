@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
+import { TRPCError } from "@trpc/server";
 
 export const studioRouter = createTRPCRouter({
     getMany: authedProcedure
@@ -54,5 +55,25 @@ export const studioRouter = createTRPCRouter({
                 items,
                 nextCursor,
             };
+        }),
+    getOne: authedProcedure
+        .input(
+            z.object({
+                id: z.string().uuid(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            const { id } = input;
+            const { user } = ctx;
+
+            const [video] = await db
+                .select()
+                .from(videosTable)
+                .where(and(eq(videosTable.id, id), eq(videosTable.userId, user.id)))
+                .limit(1);
+
+            if (!video) throw new TRPCError({ code: "NOT_FOUND" });
+
+            return video;
         }),
 });
