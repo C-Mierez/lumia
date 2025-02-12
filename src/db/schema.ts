@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /* -------------------------------- Entities -------------------------------- */
 export const usersTable = pgTable(
@@ -26,12 +26,18 @@ export const categoriesTable = pgTable(
     (t) => [uniqueIndex("name_idx").on(t.name)],
 );
 
+export const videoVisibilityEnum = pgEnum("video_visibility", ["public", "private"]);
+
 export const videosTable = pgTable("videos", {
     id: uuid("id").primaryKey().defaultRandom(),
     title: text("title").notNull(),
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    thumbnailUrl: text("thumbnail_url"),
+    previewUrl: text("preview_url"),
+    duration: integer("duration"),
+    visibility: videoVisibilityEnum("visibility").default("private").notNull(),
     /* ----------------------------------- Mux ---------------------------------- */
     muxStatus: text("mux_status"),
     muxAssetId: text("mux_asset_id").unique(),

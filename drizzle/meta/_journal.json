@@ -36,6 +36,34 @@
       "when": 1739219421444,
       "tag": "0004_wide_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739295252263,
+      "tag": "0005_wandering_miracleman",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1739296305725,
+      "tag": "0006_worthless_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1739296804708,
+      "tag": "0007_pink_jean_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1739299595382,
+      "tag": "0008_soft_human_torch",
+      "breakpoints": true
     }
   ]
 }
