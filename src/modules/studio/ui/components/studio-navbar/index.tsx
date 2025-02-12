@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import SVG from "@components/svg/logo";
+import SVG from "@components/svg/svg";
 import { SidebarTrigger } from "@components/ui/sidebar";
 
 import AuthButton from "@modules/auth/ui/components/auth-button";

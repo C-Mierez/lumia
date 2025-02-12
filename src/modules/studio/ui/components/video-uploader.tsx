@@ -26,7 +26,7 @@ export default function VideoUploader({ endpoint }: VideoUploaderProps) {
                     </div>
                     <div className="flex flex-col gap-2 text-center">
                         <p className="text-foreground text-sm">Drag and drop video to upload</p>
-                        <p className="text-muted-foreground/75 text-xs">
+                        <p className="text-muted-foreground text-xs">
                             Your videos will be private until you publish them
                         </p>
                     </div>

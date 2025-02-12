@@ -10,7 +10,7 @@ export default function SearchInput() {
         <form className="flex h-full w-full transition-colors">
             <Input
                 placeholder="Search for videos"
-                className="focus:bg-accent-600/20 focus:border-foreground/75 h-9 rounded-l-md rounded-r-none border-r-0 bg-transparent focus:outline-none focus-visible:ring-0"
+                className="focus:bg-accent-600/20 focus:border-foreground h-9 rounded-l-md rounded-r-none border-r-0 bg-transparent focus:outline-none focus-visible:ring-0"
             />
             <Button
                 type="submit"

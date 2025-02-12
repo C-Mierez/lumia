@@ -51,8 +51,8 @@ export default function StudioSidebarHeader() {
             </Link>
 
             <div className="flex flex-col items-center text-center text-balance">
-                <h3 className="text-base font-semibold">Your Channel</h3>
-                <p className="text-muted-foreground/50 text-sm">{user?.fullName ?? "User"}</p>
+                <h3 className="text-foreground text-base font-semibold">Your Channel</h3>
+                <p className="text-muted-foreground text-sm">{user?.fullName ?? "User"}</p>
             </div>
         </div>
     );
