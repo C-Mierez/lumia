@@ -1,3 +1,4 @@
+import { createSelectSchema, createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /* -------------------------------- Entities -------------------------------- */
@@ -53,3 +54,7 @@ export const videosTable = pgTable("videos", {
         onDelete: "set null",
     }),
 });
+
+export const videoSelectSchema = createSelectSchema(videosTable);
+export const videoInsertSchema = createInsertSchema(videosTable);
+export const videoUpdateSchema = createUpdateSchema(videosTable);
