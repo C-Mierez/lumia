@@ -34,3 +34,13 @@ export function formatMuxStatus(status: string | null) {
             return "Unknown";
     }
 }
+
+// Get current URL in Vercel deployment
+export function getFullVideoUrl(videoId?: string) {
+    return `${process.env.VERCEL_URL || "http://localhost:3000"}/videos/${videoId ?? ""}`;
+}
+
+// Format string to uppercase first letter only
+export function formatUppercaseFirstLetter(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
