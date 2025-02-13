@@ -106,7 +106,7 @@ function CategoryBadge({ label, id, value, isDefault }: CategoryBadgeProps) {
             setCurrentValue(value);
             setClicked(false);
         }
-    }, [value]);
+    }, [value, clicked, currentValue]);
 
     return (
         <Link href={isDefault ? "/" : `?categoryId=${id}`} onClick={() => setClicked(true)}>

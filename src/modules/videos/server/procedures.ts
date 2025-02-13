@@ -57,11 +57,7 @@ export const videosRouter = createTRPCRouter({
 
             if (!upload.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-            const [updatedVideo] = await db
-                .update(videosTable)
-                .set({ muxUploadId: upload.id })
-                .where(eq(videosTable.id, videoId))
-                .returning();
+            await db.update(videosTable).set({ muxUploadId: upload.id }).where(eq(videosTable.id, videoId)).returning();
 
             return {
                 url: upload.url,
