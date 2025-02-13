@@ -10,30 +10,65 @@ import { TRPCError } from "@trpc/server";
 import { MuxStatus } from "../constants";
 
 export const videosRouter = createTRPCRouter({
+    requestUpload: authedProcedure
+        .input(
+            z.object({
+                videoId: z.string().uuid(),
+                currentUploadId: z.string().nullish(),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+            const { videoId, currentUploadId } = input;
+
+            if (!!currentUploadId) {
+                const check = await mux.video.uploads.retrieve(currentUploadId);
+                if (check.status === "waiting" || check.status === "asset_created") {
+                    console.log("Existing upload found");
+                    return {
+                        url: check.url,
+                    };
+                }
+            }
+
+            console.log("Creating new upload");
+
+            const upload = await mux.video.uploads.create({
+                new_asset_settings: {
+                    passthrough: user.id,
+                    playback_policy: ["public"],
+                    input: [
+                        {
+                            generated_subtitles: [
+                                {
+                                    language_code: "en",
+                                    name: "English",
+                                },
+                                {
+                                    language_code: "es",
+                                    name: "Español",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                cors_origin: "*", // TODO: Set this to the actual origin in production
+            });
+
+            if (!upload.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+            const [updatedVideo] = await db
+                .update(videosTable)
+                .set({ muxUploadId: upload.id })
+                .where(eq(videosTable.id, videoId))
+                .returning();
+
+            return {
+                url: upload.url,
+            };
+        }),
     create: authedProcedure.mutation(async ({ ctx }) => {
         const { user } = ctx;
-
-        const upload = await mux.video.uploads.create({
-            new_asset_settings: {
-                passthrough: user.id,
-                playback_policy: ["public"],
-                input: [
-                    {
-                        generated_subtitles: [
-                            {
-                                language_code: "en",
-                                name: "English",
-                            },
-                            {
-                                language_code: "es",
-                                name: "Español",
-                            },
-                        ],
-                    },
-                ],
-            },
-            cors_origin: "*", // TODO: Set this to the actual origin in production
-        });
 
         const [video] = await db
             .insert(videosTable)
@@ -41,14 +76,10 @@ export const videosRouter = createTRPCRouter({
                 userId: user.id,
                 title: "Untitled",
                 muxStatus: MuxStatus.Waiting,
-                muxUploadId: upload.id,
             })
             .returning();
 
-        return {
-            video,
-            url: upload.url,
-        };
+        return video;
     }),
     update: authedProcedure.input(videoUpdateSchema).mutation(async ({ ctx, input }) => {
         const { user } = ctx;
@@ -87,6 +118,8 @@ export const videosRouter = createTRPCRouter({
                 .returning();
 
             if (!deletedVideo) throw new TRPCError({ code: "NOT_FOUND" });
+
+            if (!!deletedVideo.muxAssetId) await mux.video.assets.delete(deletedVideo.muxAssetId);
 
             return deletedVideo;
         }),

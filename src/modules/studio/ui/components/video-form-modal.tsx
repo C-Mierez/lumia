@@ -23,9 +23,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { cn, formatUppercaseFirstLetter, getFullVideoUrl } from "@lib/utils";
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+
+import VideoUploader from "./video-uploader";
 
 interface VideoFormModalProps {
     video?: StudioGetOneOutput;
@@ -36,6 +39,15 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
     const utils = trpc.useUtils();
     const [categories] = trpc.categories.getMany.useSuspenseQuery();
     const [copyVideoLink, setCopyVideoLink] = useState(false);
+
+    const [_, query] = trpc.studio.getMany.useSuspenseInfiniteQuery(
+        {
+            limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
+        },
+        {
+            getNextPageParam: (lastPage) => lastPage.nextCursor,
+        },
+    );
 
     const updateVideo = trpc.videos.update.useMutation({
         onMutate: () => {
@@ -107,6 +119,15 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                             </p>
                                         </div>
                                         <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                disabled={query.isFetching || updateVideo.isPending}
+                                                onClick={() => {
+                                                    utils.studio.getMany.invalidate();
+                                                }}
+                                            >
+                                                Refresh
+                                            </Button>
                                             <DialogClose asChild disabled={updateVideo.isPending}>
                                                 <Button type="button" variant={"muted"}>
                                                     Cancel
@@ -138,7 +159,9 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                     </div>
                                     <Separator />
 
+                                    {/* Grid */}
                                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                                        {/* Left Column */}
                                         <div className="flex flex-col gap-4 lg:col-span-3">
                                             <h2 className="text-xl">Details</h2>
                                             <div className="flex flex-col gap-4">
@@ -262,71 +285,92 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                             <Separator />
                                             <h2 className="text-xl">Thumbnail</h2>
                                             <div className="flex flex-col gap-4">
-                                                <Button variant="muted" size="sm">
+                                                <Button type="button" variant="muted" size="sm">
                                                     Upload Thumbnail
                                                 </Button>
                                             </div>
                                         </div>
+
+                                        {/* Right Column */}
                                         <div className="flex flex-col gap-4 lg:col-span-2">
+                                            {/* Video Area */}
                                             <div className="bg-background-alt flex flex-col gap-4 rounded-md p-4">
-                                                {!!video.thumbnailUrl && !!video.previewUrl ? (
-                                                    <VideoPlayer
-                                                        playbackId={video.muxPlaybackId}
-                                                        thumbnailUrl={video.thumbnailUrl}
-                                                    />
-                                                ) : (
-                                                    <div className="relative aspect-video w-full shrink-0">
-                                                        <VideoThumbnail
-                                                            imageUrl={video.thumbnailUrl}
-                                                            previewUrl={video.previewUrl}
-                                                            title={video.title}
-                                                            duration={video.duration || 0}
+                                                {!video.muxUploadId ? (
+                                                    <>
+                                                        <VideoUploadIsland
+                                                            videoId={video.id}
+                                                            uploadId={video.muxUploadId ?? undefined}
                                                         />
-                                                    </div>
-                                                )}
-                                                <div className="flex flex-col gap-4">
-                                                    <div>
-                                                        <p className="text-muted-foreground text-xs">Video URL</p>
-                                                        <div className="flex items-end gap-2">
-                                                            <Button
-                                                                asChild
-                                                                type="button"
-                                                                variant={"link"}
-                                                                className="line-clamp-1 px-0"
-                                                            >
-                                                                <Link href={getFullVideoUrl(video.id)}>
-                                                                    {getFullVideoUrl(video.id)}
-                                                                </Link>
-                                                            </Button>
-                                                            <Button
-                                                                variant={"ghost"}
-                                                                size={"icon"}
-                                                                type="button"
-                                                                className="shrink-0"
-                                                                disabled={copyVideoLink}
-                                                                onClick={onCopyVideoLink}
-                                                            >
-                                                                {copyVideoLink ? <Check /> : <CopyIcon />}
-                                                            </Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {!!video.thumbnailUrl && !!video.previewUrl ? (
+                                                            <VideoPlayer
+                                                                playbackId={video.muxPlaybackId}
+                                                                thumbnailUrl={video.thumbnailUrl}
+                                                            />
+                                                        ) : (
+                                                            <div className="relative aspect-video w-full shrink-0">
+                                                                <VideoThumbnail
+                                                                    imageUrl={video.thumbnailUrl}
+                                                                    previewUrl={video.previewUrl}
+                                                                    title={video.title}
+                                                                    duration={video.duration || 0}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        <div className="flex flex-col gap-4">
+                                                            <div>
+                                                                <p className="text-muted-foreground text-xs">
+                                                                    Video URL
+                                                                </p>
+                                                                <div className="flex items-end gap-2">
+                                                                    <Button
+                                                                        asChild
+                                                                        type="button"
+                                                                        variant={"link"}
+                                                                        className="line-clamp-1 px-0"
+                                                                    >
+                                                                        <Link href={getFullVideoUrl(video.id)}>
+                                                                            {getFullVideoUrl(video.id)}
+                                                                        </Link>
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant={"ghost"}
+                                                                        size={"icon"}
+                                                                        type="button"
+                                                                        className="shrink-0"
+                                                                        disabled={copyVideoLink}
+                                                                        onClick={onCopyVideoLink}
+                                                                    >
+                                                                        {copyVideoLink ? <Check /> : <CopyIcon />}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-muted-foreground text-xs">Status</p>
+                                                                <p className="h-9 py-2 text-sm font-bold">
+                                                                    {formatUppercaseFirstLetter(
+                                                                        video.muxStatus || "Preparing",
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-muted-foreground text-xs">
+                                                                    Subtitles
+                                                                </p>
+                                                                <p className="h-9 py-2 text-sm font-bold">
+                                                                    {formatUppercaseFirstLetter(
+                                                                        video.muxTrackStatus || "No Subtitles",
+                                                                    )}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-muted-foreground text-xs">Status</p>
-                                                        <p className="h-9 py-2 text-sm font-bold">
-                                                            {formatUppercaseFirstLetter(video.muxStatus || "Preparing")}
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-muted-foreground text-xs">Subtitles</p>
-                                                        <p className="h-9 py-2 text-sm font-bold">
-                                                            {formatUppercaseFirstLetter(
-                                                                video.muxTrackStatus || "No Subtitles",
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                                    </>
+                                                )}
                                             </div>
 
+                                            {/* Other Actions */}
                                             <FormField
                                                 name="visibility"
                                                 control={form.control}
@@ -363,5 +407,33 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                 )}
             </ResponsiveModal>
         </>
+    );
+}
+
+function VideoUploadIsland({ videoId, uploadId }: { videoId: string; uploadId?: string }) {
+    const utils = trpc.useUtils();
+
+    const onSuccess = () => {
+        utils.studio.getMany.invalidate();
+        utils.studio.getOne.invalidate({ id: videoId });
+    };
+
+    const upload = trpc.videos.requestUpload.useMutation({
+        onSuccess: onSuccess,
+    });
+
+    const endpointFetch = async () => {
+        const { url } = await upload.mutateAsync({
+            videoId,
+            currentUploadId: uploadId,
+        });
+
+        return url;
+    };
+
+    return (
+        <div>
+            <VideoUploader onSuccess={onSuccess} endpoint={endpointFetch} />
+        </div>
     );
 }

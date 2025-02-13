@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import SVG from "@components/svg/svg";
 import { SidebarTrigger } from "@components/ui/sidebar";
-
 import AuthButton from "@modules/auth/ui/components/auth-button";
-import VideoUploadModal from "../video-upload-modal";
+
+import CreateVideoButton from "../create-video-button";
 
 export default function StudioNavbar() {
     return (
@@ -21,7 +21,7 @@ export default function StudioNavbar() {
 
             {/* Auth and Quick Actions */}
             <div className="flex items-center gap-4">
-                <VideoUploadModal />
+                <CreateVideoButton />
                 <AuthButton />
             </div>
         </nav>
