@@ -12,7 +12,7 @@ import InfiniteScroll from "@components/infinite-scroll";
 import { Skeleton } from "@components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
-import { formatMuxStatus, range } from "@lib/utils";
+import { formatUppercaseFirstLetter, range } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 
 import VideoFormModal from "../components/video-form-modal";
@@ -40,6 +40,7 @@ function VideosSectionSuspense() {
     const videos = data.pages.flatMap((page) => page.items);
 
     const [editVideo, setEditVideo] = useQueryState("edit");
+    const selectedVideo = videos.find((video) => video.id === editVideo);
 
     const onOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
@@ -49,7 +50,7 @@ function VideosSectionSuspense() {
 
     return (
         <div>
-            <VideoFormModal video={videos.find((video) => video.id === editVideo)} onOpenChange={onOpenChange} />
+            {!!selectedVideo && <VideoFormModal video={selectedVideo} onOpenChange={onOpenChange} />}
             <Table className="border-y">
                 <TableHeader>
                     <TableRow>
@@ -106,7 +107,7 @@ function VideosSectionSuspense() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        <div>{formatMuxStatus(video.muxStatus)}</div>
+                                        <div>{formatUppercaseFirstLetter(video.muxStatus || "Preparing")}</div>
                                     </TableCell>
                                     <TableCell className="truncate px-6 py-4 text-xs">
                                         <div>{format(new Date(video.createdAt), "d MMM yyyy")}</div>

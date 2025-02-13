@@ -1,7 +1,11 @@
 "use client";
 
-import { Check, ChevronsUpDown, MoreVerticalIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
+
+import { Check, ChevronsUpDown, CopyIcon, MoreVerticalIcon, Trash2Icon } from "lucide-react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { videoUpdateSchema } from "@/db/schema";
@@ -9,18 +13,19 @@ import { trpc } from "@/trpc/client";
 import { StudioGetOneOutput } from "@/trpc/types";
 import ResponsiveModal from "@components/responsive-modal";
 import { Button } from "@components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@components/ui/command";
 import { DialogClose } from "@components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@components/ui/form";
 import { Input } from "@components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
-import { useState } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@components/ui/command";
-import { cn } from "@lib/utils";
+import { cn, formatUppercaseFirstLetter, getFullVideoUrl } from "@lib/utils";
+import VideoPlayer from "@modules/videos/ui/components/video-player";
+import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 
 interface VideoFormModalProps {
     video?: StudioGetOneOutput;
@@ -28,6 +33,58 @@ interface VideoFormModalProps {
 }
 
 export default function VideoFormModal({ video, onOpenChange }: VideoFormModalProps) {
+    const utils = trpc.useUtils();
+    const [categories] = trpc.categories.getMany.useSuspenseQuery();
+    const [copyVideoLink, setCopyVideoLink] = useState(false);
+
+    const updateVideo = trpc.videos.update.useMutation({
+        onMutate: () => {
+            toast.info("Updating video...");
+        },
+        onSuccess: () => {
+            utils.studio.getMany.invalidate();
+            utils.studio.getOne.invalidate({ id: video?.id });
+            toast.success("Video updated successfully");
+        },
+        onError: () => {
+            toast.error("Failed to update video");
+        },
+    });
+
+    const deleteVideo = trpc.videos.delete.useMutation({
+        onMutate: () => {
+            toast.info("Deleting video...");
+        },
+        onSuccess: () => {
+            utils.studio.getMany.invalidate();
+            toast.success("Video deleted successfully");
+            onOpenChange(false);
+        },
+        onError: () => {
+            toast.error("Failed to delete video");
+        },
+    });
+
+    const form = useForm<z.infer<typeof videoUpdateSchema>>({
+        resolver: zodResolver(videoUpdateSchema),
+        defaultValues: video,
+    });
+
+    const [openCategories, setOpenCategories] = useState(false);
+
+    const onSubmit = (data: z.infer<typeof videoUpdateSchema>) => {
+        updateVideo.mutate(data);
+    };
+
+    const onCopyVideoLink = async () => {
+        await navigator.clipboard.writeText(getFullVideoUrl(video?.id));
+        setCopyVideoLink(true);
+
+        setTimeout(() => {
+            setCopyVideoLink(false);
+        }, 2000);
+    };
+
     return (
         <>
             <ResponsiveModal
@@ -39,171 +96,272 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
             >
                 {!!video && (
                     <>
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <h1 className="font-brand text-2xl font-bold">{video.title}</h1>
-                                    <p className="text-muted-foreground text-sm">
-                                        Manage your video&apos;s information
-                                    </p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <DialogClose asChild>
-                                        <Button variant={"muted"}>Cancel</Button>
-                                    </DialogClose>
-                                    <Button variant={"muted"} disabled>
-                                        Save
-                                    </Button>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant={"ghost"} size={"icon"}>
-                                                <MoreVerticalIcon />
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)}>
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <h1 className="font-brand text-2xl font-bold">{video.title}</h1>
+                                            <p className="text-muted-foreground text-sm">
+                                                Manage your video&apos;s information
+                                            </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <DialogClose asChild disabled={updateVideo.isPending}>
+                                                <Button type="button" variant={"muted"}>
+                                                    Cancel
+                                                </Button>
+                                            </DialogClose>
+                                            <Button
+                                                type="submit"
+                                                variant={"muted"}
+                                                disabled={updateVideo.isPending || !form.formState.isDirty}
+                                            >
+                                                Save
                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>
-                                                <Trash2Icon />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant={"ghost"} size={"icon"}>
+                                                        <MoreVerticalIcon />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={() => deleteVideo.mutate({ id: video.id })}
+                                                    >
+                                                        <Trash2Icon />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+                                    <Separator />
+
+                                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                                        <div className="flex flex-col gap-4 lg:col-span-3">
+                                            <h2 className="text-xl">Details</h2>
+                                            <div className="flex flex-col gap-4">
+                                                {/* Title */}
+                                                <FormField
+                                                    control={form.control}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className="text-muted-foreground font-normal">
+                                                                Title
+                                                            </FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    {...field}
+                                                                    placeholder="Add a title to your video"
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                    name="title"
+                                                />
+                                                {/* Description */}
+                                                <FormField
+                                                    control={form.control}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className="text-muted-foreground font-normal">
+                                                                Description
+                                                            </FormLabel>
+                                                            <FormControl>
+                                                                <Textarea
+                                                                    {...field}
+                                                                    placeholder="Describe the content of your video"
+                                                                    value={field.value ?? ""}
+                                                                    rows={8}
+                                                                    className="resize-none"
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                    name="description"
+                                                />
+                                                {/* Category */}
+                                                <FormField
+                                                    control={form.control}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className="text-muted-foreground font-normal">
+                                                                Category
+                                                            </FormLabel>
+                                                            <Popover
+                                                                open={openCategories}
+                                                                onOpenChange={setOpenCategories}
+                                                                modal
+                                                            >
+                                                                <FormControl>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            role="combobox"
+                                                                            aria-expanded={openCategories}
+                                                                            className="justify-between text-sm font-normal"
+                                                                        >
+                                                                            {field.value
+                                                                                ? categories.find(
+                                                                                      (cat) => cat.id === field.value,
+                                                                                  )?.name
+                                                                                : "Select Category..."}
+                                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                </FormControl>
+                                                                <PopoverContent className="p-0">
+                                                                    <Command
+                                                                        onValueChange={field.onChange}
+                                                                        defaultValue={field.value ?? undefined}
+                                                                        filter={(value, search) => {
+                                                                            if (search === "") return 1;
+
+                                                                            return !!categories
+                                                                                .find((cat) => cat.id === value)
+                                                                                ?.name.toLowerCase()
+                                                                                .includes(search.toLowerCase())
+                                                                                ? 1
+                                                                                : 0;
+                                                                        }}
+                                                                    >
+                                                                        <CommandInput placeholder="Search category..." />
+                                                                        <CommandList>
+                                                                            <CommandEmpty>
+                                                                                No framework found.
+                                                                            </CommandEmpty>
+                                                                            <CommandGroup>
+                                                                                {categories.map((cat) => (
+                                                                                    <CommandItem
+                                                                                        key={cat.id}
+                                                                                        value={cat.id}
+                                                                                        onSelect={field.onChange}
+                                                                                    >
+                                                                                        <Check
+                                                                                            className={cn(
+                                                                                                "mr-2 h-4 w-4",
+                                                                                                field.value === cat.id
+                                                                                                    ? "opacity-100"
+                                                                                                    : "opacity-0",
+                                                                                            )}
+                                                                                        />
+                                                                                        {cat.name}
+                                                                                    </CommandItem>
+                                                                                ))}
+                                                                            </CommandGroup>
+                                                                        </CommandList>
+                                                                    </Command>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </FormItem>
+                                                    )}
+                                                    name="categoryId"
+                                                />
+                                            </div>
+                                            <Separator />
+                                            <h2 className="text-xl">Thumbnail</h2>
+                                            <div className="flex flex-col gap-4">
+                                                <Button variant="muted" size="sm">
+                                                    Upload Thumbnail
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-4 lg:col-span-2">
+                                            <div className="bg-background-alt flex flex-col gap-4 rounded-md p-4">
+                                                {!!video.thumbnailUrl && !!video.previewUrl ? (
+                                                    <VideoPlayer
+                                                        playbackId={video.muxPlaybackId}
+                                                        thumbnailUrl={video.thumbnailUrl}
+                                                    />
+                                                ) : (
+                                                    <div className="relative aspect-video w-full shrink-0">
+                                                        <VideoThumbnail
+                                                            imageUrl={video.thumbnailUrl}
+                                                            previewUrl={video.previewUrl}
+                                                            title={video.title}
+                                                            duration={video.duration || 0}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-col gap-4">
+                                                    <div>
+                                                        <p className="text-muted-foreground text-xs">Video URL</p>
+                                                        <div className="flex items-end gap-2">
+                                                            <Button
+                                                                asChild
+                                                                type="button"
+                                                                variant={"link"}
+                                                                className="line-clamp-1 px-0"
+                                                            >
+                                                                <Link href={getFullVideoUrl(video.id)}>
+                                                                    {getFullVideoUrl(video.id)}
+                                                                </Link>
+                                                            </Button>
+                                                            <Button
+                                                                variant={"ghost"}
+                                                                size={"icon"}
+                                                                type="button"
+                                                                className="shrink-0"
+                                                                disabled={copyVideoLink}
+                                                                onClick={onCopyVideoLink}
+                                                            >
+                                                                {copyVideoLink ? <Check /> : <CopyIcon />}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground text-xs">Status</p>
+                                                        <p className="h-9 py-2 text-sm font-bold">
+                                                            {formatUppercaseFirstLetter(video.muxStatus || "Preparing")}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-muted-foreground text-xs">Subtitles</p>
+                                                        <p className="h-9 py-2 text-sm font-bold">
+                                                            {formatUppercaseFirstLetter(
+                                                                video.muxTrackStatus || "No Subtitles",
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <FormField
+                                                name="visibility"
+                                                control={form.control}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-muted-foreground font-normal">
+                                                            Visibility
+                                                        </FormLabel>
+
+                                                        <Select
+                                                            defaultValue={field.value ?? undefined}
+                                                            onValueChange={field.onChange}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Choose visibility..."></SelectValue>
+                                                                </SelectTrigger>
+                                                            </FormControl>
+
+                                                            <SelectContent>
+                                                                <SelectItem value={"public"}>Public</SelectItem>
+                                                                <SelectItem value={"private"}>Private</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <Separator />
-                            <VideoForm video={video} />
-                        </div>
+                            </form>
+                        </Form>
                     </>
                 )}
             </ResponsiveModal>
         </>
-    );
-}
-
-function VideoForm({ video }: { video: StudioGetOneOutput }) {
-    const [categories] = trpc.categories.getMany.useSuspenseQuery();
-
-    const form = useForm<z.infer<typeof videoUpdateSchema>>({
-        resolver: zodResolver(videoUpdateSchema),
-        defaultValues: video,
-    });
-
-    const onSubmit = async (data: z.infer<typeof videoUpdateSchema>) => {
-        console.log(data);
-    };
-
-    const [open, setOpen] = useState(false);
-
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-                    <div className="flex flex-col gap-4 lg:col-span-3">
-                        <h2 className="text-xl">Details</h2>
-                        <div className="flex flex-col gap-4">
-                            {/* Title */}
-                            <FormField
-                                control={form.control}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-muted-foreground font-normal">Title</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} placeholder="Add a title to your video" />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                                name="title"
-                            />
-                            {/* Description */}
-                            <FormField
-                                control={form.control}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-muted-foreground font-normal">Description</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                {...field}
-                                                placeholder="Describe the content of your video"
-                                                value={field.value ?? ""}
-                                                rows={8}
-                                                className="resize-none"
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                                name="description"
-                            />
-                            {/* Category */}
-                            <FormField
-                                control={form.control}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-muted-foreground font-normal">Category</FormLabel>
-                                        <Popover open={open} onOpenChange={setOpen} modal>
-                                            <FormControl>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        role="combobox"
-                                                        aria-expanded={open}
-                                                        className="justify-between text-sm font-normal"
-                                                    >
-                                                        {field.value
-                                                            ? categories.find((cat) => cat.id === field.value)?.name
-                                                            : "Select Category..."}
-                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                            </FormControl>
-                                            <PopoverContent className="p-0">
-                                                <Command
-                                                    onValueChange={field.onChange}
-                                                    defaultValue={field.value ?? undefined}
-                                                    filter={(value, search) => {
-                                                        if (search === "") return 1;
-
-                                                        return !!categories
-                                                            .find((cat) => cat.id === value)
-                                                            ?.name.toLowerCase()
-                                                            .includes(search.toLowerCase())
-                                                            ? 1
-                                                            : 0;
-                                                    }}
-                                                >
-                                                    <CommandInput placeholder="Search category..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No framework found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {categories.map((cat) => (
-                                                                <CommandItem
-                                                                    key={cat.id}
-                                                                    value={cat.id}
-                                                                    onSelect={field.onChange}
-                                                                >
-                                                                    <Check
-                                                                        className={cn(
-                                                                            "mr-2 h-4 w-4",
-                                                                            field.value === cat.id
-                                                                                ? "opacity-100"
-                                                                                : "opacity-0",
-                                                                        )}
-                                                                    />
-                                                                    {cat.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-                                    </FormItem>
-                                )}
-                                name="categoryId"
-                            />
-                        </div>
-                    </div>
-                    <div className="lg:col-span-2"></div>
-                </div>
-            </form>
-        </Form>
     );
 }
