@@ -51,7 +51,7 @@ function VideosSectionSuspense() {
     return (
         <div>
             {!!selectedVideo && <VideoFormModal video={selectedVideo} onOpenChange={onOpenChange} />}
-            <Table className="border-y">
+            <Table className="mt-4 border-y">
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-full px-6 text-start">Video</TableHead>
@@ -136,7 +136,7 @@ function VideosSectionSuspense() {
 
 function VideoSectionSkeleton() {
     return (
-        <Table className="border-y">
+        <Table className="mt-4 border-y">
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-full px-6 text-start">Video</TableHead>
