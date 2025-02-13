@@ -10,7 +10,6 @@ import MuxUploader, {
 
 interface VideoUploaderProps {
     endpoint?: string | null;
-    onSuccess: () => void;
 }
 
 const UPLOADER_ID = "video-uploader";

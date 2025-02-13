@@ -3,8 +3,9 @@ import { CirclePlusIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import { trpc } from "@/trpc/client";
-import { Button } from "@components/ui/button";
 import ResponsiveModal from "@components/responsive-modal";
+import { Button } from "@components/ui/button";
+
 import VideoUploader from "./video-uploader";
 
 export default function VideoUploadModal() {
@@ -29,7 +30,7 @@ export default function VideoUploadModal() {
                 }}
             >
                 {!!create.data?.url ? (
-                    <VideoUploader endpoint={create.data?.url} onSuccess={() => {}} />
+                    <VideoUploader endpoint={create.data?.url} />
                 ) : (
                     <Loader2Icon className="animate-spin" />
                 )}
