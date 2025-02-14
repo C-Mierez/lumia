@@ -1,7 +1,8 @@
-import { Sidebar, SidebarContent } from "@components/ui/sidebar";
 import { Separator } from "@components/ui/separator";
-import Section from "./section";
+import { Sidebar, SidebarContent } from "@components/ui/sidebar";
+
 import { mainItems, personalItems } from "./content";
+import Section from "./section";
 
 export default function HomeSidebar() {
     return (

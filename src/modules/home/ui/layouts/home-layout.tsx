@@ -1,4 +1,5 @@
 import { SidebarProvider } from "@components/ui/sidebar";
+
 import HomeNavbar from "../components/home-navbar";
 import HomeSidebar from "../components/home-sidebar";
 
