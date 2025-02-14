@@ -1,22 +1,21 @@
 import { HydrateClient, trpc } from "@/trpc/server";
+import { SEARCH_PARAMS } from "@lib/searchParams";
 import HomeView from "@modules/home/ui/views/home-view";
 
 export const dynamic = "force-dynamic";
 
 interface HomeProps {
-    searchParams: Promise<{
-        categoryId?: string;
-    }>;
+    searchParams: Promise<SEARCH_PARAMS["Home"]>;
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-    const { categoryId } = await searchParams;
+    const { category } = await searchParams;
 
     void trpc.categories.getMany.prefetch();
 
     return (
         <HydrateClient>
-            <HomeView categoryId={categoryId} />
+            <HomeView categoryId={category} />
         </HydrateClient>
     );
 }

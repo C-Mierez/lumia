@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { EmblaCarouselType } from "embla-carousel";
 import Link from "next/link";
 
+import { buildSearchQuery, SEARCH_PARAMS } from "@lib/searchParams";
 import { cn, range } from "@lib/utils";
 
 import { Badge } from "./ui/badge";
@@ -11,76 +13,89 @@ import { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, Car
 import { Skeleton } from "./ui/skeleton";
 
 interface CarouselFilterProps {
-    value?: string | null;
-    isLoading?: boolean;
-    data: {
+    selectedItemId?: string;
+    items?: {
         id: string;
         label: string;
     }[];
+    searchKey: keyof SEARCH_PARAMS["Home"];
+    isLoading?: boolean;
 }
 
-export default function CarouselFilter({ value, isLoading, data }: CarouselFilterProps) {
-    const [api, setApi] = useState<CarouselApi>();
+export default function CarouselFilter({
+    selectedItemId,
+    isLoading = false,
+    items = [],
+    searchKey,
+}: CarouselFilterProps) {
+    const [carouselApi, setCarouselApi] = useState<CarouselApi>();
     const [currentItemIndex, setCurrentItemIndex] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
-    useEffect(() => {
-        if (!api) return;
-
-        setTotalItems(api.scrollSnapList().length);
+    const onSelect = useCallback((api: EmblaCarouselType) => {
         setCurrentItemIndex(api.selectedScrollSnap() + 1);
+    }, []);
 
-        api.on("select", () => {
-            setCurrentItemIndex(api.selectedScrollSnap() + 1);
-        });
-    }, [api]);
+    useEffect(() => {
+        if (!carouselApi) return;
+
+        setTotalItems(carouselApi.scrollSnapList().length);
+        setCurrentItemIndex(carouselApi.selectedScrollSnap() + 1);
+
+        carouselApi.on("select", onSelect);
+
+        return () => {
+            carouselApi.off("select", onSelect);
+            carouselApi.destroy();
+        };
+    }, [carouselApi]);
 
     return (
         <div className="relative w-full select-none">
             <Carousel
-                setApi={setApi}
+                setApi={setCarouselApi}
                 opts={{
                     align: "start",
                     dragFree: true,
                 }}
                 className="w-full px-11"
             >
+                {/* Scroll Buttons */}
+                <CarouselPrevious className="left-0 z-20 size-8" />
+                <CarouselNext className="right-0 z-20 size-8" />
+
+                {/* Items */}
                 <CarouselContent className="-ml-3">
-                    {/* Placeholder Badges */}
+                    {/* Skeleton Badges */}
                     {isLoading &&
                         range(18).map((_, i) => {
-                            return (
-                                <CarouselItem key={i} className="pointer-events-none basis-auto pl-3">
-                                    <Skeleton className="h-full w-24 rounded-md px-3 py-1 text-xs font-semibold">
-                                        &nbsp;
-                                    </Skeleton>
-                                </CarouselItem>
-                            );
+                            return <CarouselBadgeSkeleton key={i} />;
                         })}
 
                     {/* All Badges */}
                     {!isLoading && (
-                        <CategoryBadge
-                            id={"AllBadge"}
-                            label={"All"}
-                            value={!value ? "AllBadge" : ""}
-                            isDefault
-                        ></CategoryBadge>
+                        <>
+                            <CarouselBadge
+                                id={"AllBadge"}
+                                label={"All"}
+                                selectedItemId={!selectedItemId ? "AllBadge" : ""}
+                                searchKey={searchKey}
+                                isDefault
+                            ></CarouselBadge>
+                            {items.map((item) => {
+                                return (
+                                    <CarouselBadge
+                                        key={item.id}
+                                        id={item.id}
+                                        label={item.label}
+                                        selectedItemId={selectedItemId}
+                                        searchKey={searchKey}
+                                    ></CarouselBadge>
+                                );
+                            })}
+                        </>
                     )}
-                    {!isLoading &&
-                        data.map((item) => {
-                            return (
-                                <CategoryBadge
-                                    key={item.id}
-                                    id={item.id}
-                                    label={item.label}
-                                    value={value}
-                                ></CategoryBadge>
-                            );
-                        })}
                 </CarouselContent>
-                <CarouselPrevious className="left-0 z-20 size-8" />
-                <CarouselNext className="right-0 z-20 size-8" />
             </Carousel>
 
             {/* Fades */}
@@ -90,31 +105,34 @@ export default function CarouselFilter({ value, isLoading, data }: CarouselFilte
     );
 }
 
-interface CategoryBadgeProps {
-    value?: string | null;
-    label: string;
-    id: string;
+interface CarouselBadgeProps {
+    id?: string;
+    label?: string;
+    selectedItemId?: string;
     isDefault?: boolean;
+    searchKey: keyof SEARCH_PARAMS["Home"];
 }
 
-function CategoryBadge({ label, id, value, isDefault }: CategoryBadgeProps) {
+function CarouselBadge({ label, id, selectedItemId, isDefault = false, searchKey }: CarouselBadgeProps) {
     const [clicked, setClicked] = useState(false);
-    const [currentValue, setCurrentValue] = useState(value);
+    const [currentValue, setCurrentValue] = useState(selectedItemId);
 
     useEffect(() => {
-        if (currentValue !== value && clicked) {
-            setCurrentValue(value);
+        if (currentValue !== selectedItemId && clicked) {
+            setCurrentValue(selectedItemId);
             setClicked(false);
         }
-    }, [value, clicked, currentValue]);
+    }, [selectedItemId, clicked, currentValue]);
+
+    const href = isDefault ? "/" : `/${buildSearchQuery({ [searchKey]: id })}`;
 
     return (
-        <Link href={isDefault ? "/" : `?categoryId=${id}`} onClick={() => setClicked(true)}>
+        <Link href={href} onClick={() => setClicked(true)}>
             <CarouselItem
                 className={cn("basis-auto pl-3 transition-opacity duration-300", clicked && "opacity-50 duration-0")}
             >
                 <Badge
-                    variant={value === id || clicked ? "selected" : "default"}
+                    variant={selectedItemId === id || clicked ? "selected" : "default"}
                     className={cn(
                         "cursor-pointer rounded-md px-3 py-1 text-xs whitespace-nowrap",
                         // clicked ? "bg-red-500" : "",
@@ -124,6 +142,14 @@ function CategoryBadge({ label, id, value, isDefault }: CategoryBadgeProps) {
                 </Badge>
             </CarouselItem>
         </Link>
+    );
+}
+
+function CarouselBadgeSkeleton() {
+    return (
+        <CarouselItem className="pointer-events-none basis-auto pl-3">
+            <Skeleton className="h-full w-24 rounded-md px-3 py-1 text-xs font-semibold">&nbsp;</Skeleton>
+        </CarouselItem>
     );
 }
 

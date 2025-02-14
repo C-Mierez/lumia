@@ -29,9 +29,9 @@ function CategoriesSectionSuspense({ categoryId }: CategoriesSectionProps) {
         label: name,
     }));
 
-    return <CarouselFilter value={categoryId} data={data} />;
+    return <CarouselFilter selectedItemId={categoryId} items={data} searchKey={"category"} />;
 }
 
 function CategoriesFallback() {
-    return <CarouselFilter data={[]} isLoading />;
+    return <CarouselFilter isLoading searchKey={"category"} />;
 }
