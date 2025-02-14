@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
+import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
@@ -61,22 +62,41 @@ export const POST = async (request: Request) => {
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
             if (!data.playback_ids || !playbackId) return new Response("No Playback ID found", { status: 400 });
 
-            const thumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-            const previewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
+            const muxThumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+            const muxPreviewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
 
             const duration = data.duration ? Math.floor(data.duration * 1000) : 0;
 
-            await db
-                .update(videosTable)
-                .set({
-                    muxStatus: data.status,
-                    muxPlaybackId: playbackId,
-                    muxAssetId: data.id,
-                    thumbnailUrl,
-                    previewUrl,
-                    duration,
-                })
-                .where(eq(videosTable.muxUploadId, data.upload_id));
+            // Upload the thumbnail and preview to UploadThing
+            const utapi = new UTApi();
+            const [thumbnailFile, previewFile] = await utapi.uploadFilesFromUrl([muxThumbnailUrl, muxPreviewUrl]);
+
+            if (!thumbnailFile.data || !previewFile.data)
+                return new Response("Failed to upload thumbnail or preview", { status: 500 });
+
+            // Update the video in the database
+            await db.batch([
+                db
+                    .update(videosTable)
+                    .set({
+                        muxStatus: data.status,
+                        muxPlaybackId: playbackId,
+                        muxAssetId: data.id,
+                        previewUrl: previewFile.data.ufsUrl,
+                        previewKey: previewFile.data.key,
+                        duration,
+                    })
+                    .where(eq(videosTable.muxUploadId, data.upload_id!)),
+
+                // Update the thumbnail only if it's null
+                db
+                    .update(videosTable)
+                    .set({
+                        thumbnailUrl: thumbnailFile.data.ufsUrl,
+                        thumbnailKey: thumbnailFile.data.key,
+                    })
+                    .where(and(eq(videosTable.muxUploadId, data.upload_id!), isNull(videosTable.thumbnailKey))),
+            ]);
 
             break;
         }
@@ -101,7 +121,14 @@ export const POST = async (request: Request) => {
 
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
 
-            await db.delete(videosTable).where(eq(videosTable.muxUploadId, data.upload_id));
+            const [video] = await db.delete(videosTable).where(eq(videosTable.muxUploadId, data.upload_id)).returning();
+
+            if (!video) return new Response("Video not found", { status: 404 });
+
+            // Delete the thumbnail and preview from UploadThing
+            const utapi = new UTApi();
+            const keys = [video.thumbnailKey, video.previewKey].filter((key) => key !== null);
+            await utapi.deleteFiles(keys);
 
             break;
         }

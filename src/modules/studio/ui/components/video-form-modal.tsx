@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
-import { Check, ChevronsUpDown, CopyIcon, MoreVerticalIcon, Trash2Icon } from "lucide-react";
+import {
+    Check,
+    ChevronsUpDown,
+    CopyIcon,
+    MoreVerticalIcon,
+    RotateCcwIcon,
+    SparklesIcon,
+    Trash2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -22,12 +30,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { cn, formatUppercaseFirstLetter, getFullVideoUrl } from "@lib/utils";
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 
+import ThumbnailUploader from "./thumbnail-uploader";
 import VideoUploader from "./video-uploader";
 
 interface VideoFormModalProps {
@@ -77,6 +87,27 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
         },
     });
 
+    const canRestoreThumbnail = useCallback(() => {
+        return (
+            !!video?.muxPlaybackId &&
+            video.thumbnailUrl !== `https://image.mux.com/${video.muxPlaybackId}/thumbnail.jpg`
+        );
+    }, [video]);
+
+    const restoreThumbnail = trpc.videos.restoreThumbnail.useMutation({
+        onMutate: () => {
+            toast.info("Restoring thumbnail...");
+        },
+        onSuccess: () => {
+            utils.studio.getMany.invalidate();
+            utils.studio.getOne.invalidate({ id: video?.id });
+            toast.success("Thumbnail restored successfully");
+        },
+        onError: (error) => {
+            toast.error(`Failed to restore thumbnail: ${error.message}`);
+        },
+    });
+
     const form = useForm<z.infer<typeof videoUpdateSchema>>({
         resolver: zodResolver(videoUpdateSchema),
         defaultValues: video,
@@ -114,9 +145,9 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                     <div className="flex items-end justify-between">
                                         <div>
                                             <h1 className="font-brand text-2xl font-bold">{video.title}</h1>
-                                            <p className="text-muted-foreground text-sm">
+                                            {/* <p className="text-muted-foreground text-sm">
                                                 Manage your video&apos;s information
-                                            </p>
+                                            </p> */}
                                         </div>
                                         <div className="flex gap-2">
                                             <Button
@@ -163,7 +194,12 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
                                         {/* Left Column */}
                                         <div className="flex flex-col gap-4 lg:col-span-3">
-                                            <h2 className="text-xl">Details</h2>
+                                            <div>
+                                                <h2 className="text-xl">Details</h2>
+                                                <p className="text-muted-foreground-alt text-xs">
+                                                    Fill in the fields with the information of your video
+                                                </p>
+                                            </div>
                                             <div className="flex flex-col gap-4">
                                                 {/* Title */}
                                                 <FormField
@@ -234,7 +270,7 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                                                         </Button>
                                                                     </PopoverTrigger>
                                                                 </FormControl>
-                                                                <PopoverContent className="p-0">
+                                                                <PopoverContent align="start" className="p-0">
                                                                     <Command
                                                                         onValueChange={field.onChange}
                                                                         defaultValue={field.value ?? undefined}
@@ -283,12 +319,79 @@ export default function VideoFormModal({ video, onOpenChange }: VideoFormModalPr
                                                 />
                                             </div>
                                             <Separator />
-                                            <h2 className="text-xl">Thumbnail</h2>
-                                            <div className="flex flex-col gap-4">
-                                                <Button type="button" variant="muted" size="sm">
-                                                    Upload Thumbnail
-                                                </Button>
+
+                                            {/* Thumbnail */}
+                                            <div className="flex items-end justify-between gap-4">
+                                                <div>
+                                                    <h2 className="text-xl">Thumbnail</h2>
+                                                    <p className="text-muted-foreground-alt text-xs">
+                                                        Set a thumbnail that stands out to draw your viewer&apos;s
+                                                        attention
+                                                    </p>
+                                                </div>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                type="button"
+                                                                variant={"muted"}
+                                                                disabled={
+                                                                    restoreThumbnail.isPending || !canRestoreThumbnail()
+                                                                }
+                                                                onClick={() => {
+                                                                    if (canRestoreThumbnail())
+                                                                        restoreThumbnail.mutate({ id: video.id });
+                                                                }}
+                                                            >
+                                                                <RotateCcwIcon />
+                                                                {/* Restore */}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="left">
+                                                            <p className="text-muted text-xs font-bold">
+                                                                Restore thumbnail
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
+                                            <FormField
+                                                control={form.control}
+                                                name="thumbnailUrl"
+                                                render={() => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-muted-foreground font-normal">
+                                                            Thumbnail
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                                                <div className="aspect-video w-full flex-1 md:w-full">
+                                                                    <VideoThumbnail
+                                                                        imageUrl={video.thumbnailUrl}
+                                                                        previewUrl={video.previewUrl}
+                                                                        title={video.title}
+                                                                        duration={0}
+                                                                    />
+                                                                </div>
+                                                                <div className="aspect-video w-full flex-1 md:w-full">
+                                                                    <div className="bg-muted border-muted-foreground flex size-full flex-col items-center justify-center rounded-md border border-dashed">
+                                                                        <SparklesIcon />
+                                                                        <p className="text-muted-foreground mt-2 h-6 text-center text-sm text-balance">
+                                                                            Generate using AI
+                                                                            <span className="text-muted-foreground/25 block h-1 text-xs">
+                                                                                Limits my apply
+                                                                            </span>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="border-muted-foreground aspect-video w-full flex-1 rounded-md border border-dashed md:w-full">
+                                                                    <ThumbnailUploader videoId={video.id} />
+                                                                </div>
+                                                            </div>
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
                                         </div>
 
                                         {/* Right Column */}

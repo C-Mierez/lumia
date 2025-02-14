@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { UTApi } from "uploadthing/server";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -82,6 +83,8 @@ export const videosRouter = createTRPCRouter({
 
         if (!input.id) throw new TRPCError({ code: "BAD_REQUEST", message: "id is required" });
 
+        // TODO Enforce visibility restrictions server-side
+
         const [updatedVideo] = await db
             .update(videosTable)
             .set({
@@ -117,6 +120,48 @@ export const videosRouter = createTRPCRouter({
 
             if (!!deletedVideo.muxAssetId) await mux.video.assets.delete(deletedVideo.muxAssetId);
 
+            if (!!deletedVideo.thumbnailKey || !!deletedVideo.previewKey) {
+                const utapi = new UTApi();
+                const keys = [deletedVideo.thumbnailKey, deletedVideo.previewKey].filter((key) => key !== null);
+                await utapi.deleteFiles(keys);
+            }
+
             return deletedVideo;
+        }),
+    restoreThumbnail: authedProcedure
+        .input(
+            z.object({
+                id: z.string().uuid(),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+            const { id } = input;
+
+            const [video] = await db
+                .select()
+                .from(videosTable)
+                .where(and(eq(videosTable.id, id), eq(videosTable.userId, user.id)));
+
+            if (!video) throw new TRPCError({ code: "NOT_FOUND" });
+
+            if (!video.muxPlaybackId)
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Video has not been processed" });
+
+            const muxThumbnailUrl = `https://image.mux.com/${video.muxPlaybackId}/thumbnail.jpg`;
+
+            // Upload the thumbnail to UploadThing
+            const utapi = new UTApi();
+            const thumbnailFile = await utapi.uploadFilesFromUrl(muxThumbnailUrl);
+
+            if (!thumbnailFile.data) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+            const updatedVideo = await db
+                .update(videosTable)
+                .set({ thumbnailUrl: thumbnailFile.data.ufsUrl, thumbnailKey: thumbnailFile.data.key })
+                .where(and(eq(videosTable.id, id), eq(videosTable.userId, user.id)))
+                .returning();
+
+            return video;
         }),
 });

@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import SVG from "@components/svg/svg";
-import { formatVideoDuration } from "@lib/utils";
+import { cn, formatVideoDuration } from "@lib/utils";
 
 interface VideoThumbnailProps {
     title: string;
@@ -14,16 +14,23 @@ export default function VideoThumbnail({ title, imageUrl, previewUrl, duration }
     return (
         <div className="group relative overflow-hidden">
             <div className="relative aspect-video w-full overflow-hidden rounded-md">
-                {!!imageUrl && !!previewUrl ? (
+                {!!imageUrl || !!previewUrl ? (
                     <>
                         <div className="bg-muted repeat-[8] absolute inset-0 animate-pulse" />
-                        <Image alt={title} src={previewUrl} fill className="group-hover:opacity-100" />
-                        <Image
-                            alt={title}
-                            src={imageUrl}
-                            fill
-                            className="transition-opacity duration-200 group-hover:opacity-0"
-                        />
+                        {!!previewUrl && (
+                            <Image alt={title} src={previewUrl} fill className="object-cover group-hover:opacity-100" />
+                        )}
+                        {!!imageUrl && (
+                            <Image
+                                alt={title}
+                                src={imageUrl}
+                                fill
+                                className={cn(
+                                    "object-cover transition-opacity duration-200",
+                                    !!previewUrl && "group-hover:opacity-0",
+                                )}
+                            />
+                        )}
                     </>
                 ) : (
                     <SVG.PlaceholderVideo className="size-full" />

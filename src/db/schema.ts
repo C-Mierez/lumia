@@ -1,5 +1,5 @@
-import { createSelectSchema, createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 /* -------------------------------- Entities -------------------------------- */
 export const usersTable = pgTable(
@@ -36,7 +36,9 @@ export const videosTable = pgTable("videos", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     thumbnailUrl: text("thumbnail_url"),
+    thumbnailKey: text("thumbnail_key"),
     previewUrl: text("preview_url"),
+    previewKey: text("preview_key"),
     duration: integer("duration"),
     visibility: videoVisibilityEnum("visibility").default("private").notNull(),
     /* ----------------------------------- Mux ---------------------------------- */
