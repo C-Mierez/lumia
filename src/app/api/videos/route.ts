@@ -38,6 +38,8 @@ export const POST = async (request: Request) => {
         env.MUX_WEBHOOK_SECRET,
     );
 
+    console.log("Webhook received", payload.type as WebhookEvent["type"]);
+
     switch (payload.type as WebhookEvent["type"]) {
         case "video.asset.created": {
             // Insert the muxAssetId and muxStatus into the database
