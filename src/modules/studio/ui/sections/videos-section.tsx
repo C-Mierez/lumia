@@ -4,13 +4,13 @@ import { Suspense } from "react";
 
 import { format } from "date-fns";
 import { GlobeIcon, LockIcon } from "lucide-react";
-import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
 import InfiniteScroll from "@components/infinite-scroll";
 import { Skeleton } from "@components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
+import useSafeQueryState from "@hooks/use-safe-query-state";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { formatUppercaseFirstLetter, range } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
@@ -19,11 +19,20 @@ import VideoFormModal from "../components/video-form-modal";
 
 export default function VideosSection() {
     return (
-        <Suspense fallback={<VideoSectionSkeleton />}>
-            <ErrorBoundary fallback={<p>Something went wrong</p>}>
-                <VideosSectionSuspense />
-            </ErrorBoundary>
-        </Suspense>
+        <>
+            {/* Section Title */}
+            <div>
+                <h1 className="font-brand text-2xl font-bold">Channel Content</h1>
+                <p className="text-muted-foreground text-sm">Manage your channel&apos;s content and videos</p>
+            </div>
+
+            {/* Section Content */}
+            <Suspense fallback={<VideoSectionSkeleton />}>
+                <ErrorBoundary fallback={<p>Something went wrong</p>}>
+                    <VideosSectionSuspense />
+                </ErrorBoundary>
+            </Suspense>
+        </>
     );
 }
 
@@ -39,7 +48,8 @@ function VideosSectionSuspense() {
 
     const videos = data.pages.flatMap((page) => page.items);
 
-    const [editVideo, setEditVideo] = useQueryState("edit");
+    const [editVideo, setEditVideo] = useSafeQueryState("edit");
+
     const selectedVideo = videos.find((video) => video.id === editVideo);
 
     const onOpenChange = (isOpen: boolean) => {
@@ -123,8 +133,7 @@ function VideosSectionSuspense() {
                 </TableBody>
             </Table>
 
-            {JSON.stringify(data)}
-
+            {/* Automatic fetch for infinite scrolling */}
             <InfiniteScroll
                 hasNextPage={query.hasNextPage}
                 isFetchingNextPage={query.isFetchingNextPage}
