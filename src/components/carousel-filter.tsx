@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { EmblaCarouselType } from "embla-carousel";
 import Link from "next/link";
 
-import { buildSearchQuery, SEARCH_PARAMS } from "@lib/searchParams";
+import { buildSearchQuery, SEARCH_KEYS_ALL } from "@lib/searchParams";
 import { cn, range } from "@lib/utils";
 
 import { Badge } from "./ui/badge";
@@ -18,7 +18,7 @@ interface CarouselFilterProps {
         id: string;
         label: string;
     }[];
-    searchKey: keyof SEARCH_PARAMS["Home"];
+    searchKey: SEARCH_KEYS_ALL;
     isLoading?: boolean;
 }
 
@@ -110,7 +110,7 @@ interface CarouselBadgeProps {
     label?: string;
     selectedItemId?: string;
     isDefault?: boolean;
-    searchKey: keyof SEARCH_PARAMS["Home"];
+    searchKey: SEARCH_KEYS_ALL;
 }
 
 function CarouselBadge({ label, id, selectedItemId, isDefault = false, searchKey }: CarouselBadgeProps) {
