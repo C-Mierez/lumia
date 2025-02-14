@@ -1,20 +1,20 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { SidebarMenuButton, SidebarMenuItem } from "@components/ui/sidebar";
 
-import { SidebarItem } from "../types";
-import { usePathname } from "next/navigation";
+import { SidebarItemType } from "./types";
 
-interface StudioSidebarItemProps {
-    item: SidebarItem;
+interface SidebarItemProps {
+    item: SidebarItemType;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export default function StudioSidebarItem({ item, onClick }: StudioSidebarItemProps) {
+export default function SidebarItem({ item, onClick }: SidebarItemProps) {
     const pathname = usePathname();
 
     return (
-        <SidebarMenuItem key={item.title}>
+        <SidebarMenuItem>
             <SidebarMenuButton tooltip={item.title} isActive={pathname === item.href} onClick={onClick} asChild>
                 <Link href={item.href}>
                     <item.icon />

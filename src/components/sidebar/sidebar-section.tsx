@@ -1,17 +1,25 @@
 "use client";
 
+import Link from "next/link";
+
 import { useAuth } from "@clerk/clerk-react";
 import { useClerk } from "@clerk/nextjs";
-import { SidebarGroup, SidebarGroupContent, SidebarMenu } from "@components/ui/sidebar";
+import {
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@components/ui/sidebar";
 
-import { SidebarItem } from "../types";
-import StudioSidebarItem from "./item";
+import { SidebarItemType } from "./types";
+import SidebarItem from "./sidebar-item";
 
-interface SectionProps {
-    items: SidebarItem[];
+interface SidebarSectionProps {
+    items: SidebarItemType[];
 }
 
-export default function Section({ items }: SectionProps) {
+export default function SidebarSection({ items }: SidebarSectionProps) {
     const clerk = useClerk();
     const { isSignedIn } = useAuth();
 
@@ -20,7 +28,7 @@ export default function Section({ items }: SectionProps) {
             <SidebarGroupContent>
                 <SidebarMenu>
                     {items.map((item) => (
-                        <StudioSidebarItem
+                        <SidebarItem
                             item={item}
                             key={item.title}
                             onClick={(e) => {

@@ -1,8 +1,8 @@
+import SidebarSection from "@components/sidebar/sidebar-section";
 import { Separator } from "@components/ui/separator";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@components/ui/sidebar";
 
 import { footerItems, mainItems, metaItems } from "./content";
-import Section from "./section";
 import StudioSidebarHeader from "./header";
 
 export default function StudioSidebar() {
@@ -13,14 +13,14 @@ export default function StudioSidebar() {
             </SidebarHeader>
             <Separator />
             <SidebarContent>
-                <Section items={mainItems} />
+                <SidebarSection items={mainItems} />
                 <Separator className="-my-2" />
-                <Section items={metaItems} />
+                <SidebarSection items={metaItems} />
             </SidebarContent>
 
             {/* Footer */}
             <SidebarFooter className="p-0">
-                <Section items={footerItems} />
+                <SidebarSection items={footerItems} />
             </SidebarFooter>
         </Sidebar>
     );
