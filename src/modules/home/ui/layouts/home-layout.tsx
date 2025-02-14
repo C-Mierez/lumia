@@ -1,4 +1,4 @@
-import { SidebarProvider } from "@components/ui/sidebar";
+import BaseLayout from "@components/layout/base-layout";
 
 import HomeNavbar from "../components/home-navbar";
 import HomeSidebar from "../components/home-sidebar";
@@ -9,12 +9,8 @@ interface HomeLayoutProps {
 
 export function HomeLayout({ children }: HomeLayoutProps) {
     return (
-        <SidebarProvider className="flex flex-col">
-            <HomeNavbar />
-            <div className="flex shrink-0">
-                <HomeSidebar />
-                <main className="flex-1 overflow-y-auto">{children}</main>
-            </div>
-        </SidebarProvider>
+        <BaseLayout navbar={<HomeNavbar />} sidebar={<HomeSidebar />}>
+            {children}
+        </BaseLayout>
     );
 }
