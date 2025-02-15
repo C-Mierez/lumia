@@ -7,7 +7,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./ui/drawer";
 interface ResponsiveModalProps {
     children: React.ReactNode;
     isOpen: boolean;
-    title: string;
+    header?: React.ReactNode;
     onOpenChange: (isOpen: boolean) => void;
     className?: string;
     hideClose?: boolean;
@@ -16,7 +16,7 @@ interface ResponsiveModalProps {
 export default function ResponsiveModal({
     children,
     isOpen,
-    title,
+    header,
     onOpenChange,
     className,
     hideClose,
@@ -28,7 +28,7 @@ export default function ResponsiveModal({
             <Drawer open={isOpen} onOpenChange={onOpenChange}>
                 <DrawerContent className={className}>
                     <DrawerHeader>
-                        <DrawerTitle>{title}</DrawerTitle>
+                        <DrawerTitle>{header}</DrawerTitle>
                     </DrawerHeader>
                     {children}
                 </DrawerContent>
@@ -39,8 +39,9 @@ export default function ResponsiveModal({
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className={className} hideClose={hideClose}>
                 <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
+                    <DialogTitle>{header}</DialogTitle>
                 </DialogHeader>
+
                 {children}
             </DialogContent>
         </Dialog>
