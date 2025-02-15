@@ -11,7 +11,7 @@ import SearchInput from "./search-input";
 
 export default function HomeNavbar() {
     return (
-        <NavbarWrapper>
+        <>
             <div className="flex items-center gap-4">
                 {/* Sidebar Button */}
                 <SidebarTrigger variant={"glow"} className="size-5 [&_svg]:size-5"></SidebarTrigger>
@@ -40,6 +40,6 @@ export default function HomeNavbar() {
                 {/* Auth  */}
                 <AuthButton />
             </div>
-        </NavbarWrapper>
+        </>
     );
 }
