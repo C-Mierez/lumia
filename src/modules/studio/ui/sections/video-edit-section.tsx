@@ -6,7 +6,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
 
-import VideoFormModal from "../components/video-form-modal";
+import VideoEditForm from "../components/video-edit-form";
 
 interface VideoEditSectionProps {
     videoId: string;
@@ -28,5 +28,5 @@ export default function VideoEditSection({ onOpenChange, videoId }: VideoEditSec
 function VideoEditSectionSuspense({ videoId, onOpenChange }: VideoEditSectionProps) {
     const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
 
-    return <VideoFormModal video={video} onOpenChange={onOpenChange}></VideoFormModal>;
+    return <VideoEditForm video={video} onOpenChange={onOpenChange}></VideoEditForm>;
 }
