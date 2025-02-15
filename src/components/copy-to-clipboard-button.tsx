@@ -5,6 +5,7 @@ import { Check, CopyIcon } from "lucide-react";
 import { cn } from "@lib/utils";
 
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 interface CopyToClipboardButtonProps {
     targetContent: string;
@@ -17,9 +18,19 @@ export default function CopyToClipboardButton({ targetContent, disabled, classNa
 
     const onClick = () => {
         setDidCopy(true);
-        navigator.clipboard.writeText(targetContent).then(() => {
-            setDidCopy(false);
+        const didCopy = navigator.clipboard.writeText(targetContent);
+
+        didCopy.then(() => {
+            toast.success("Copied to clipboard");
         });
+
+        didCopy.catch(() => {
+            toast.error("Failed to copy to clipboard");
+        });
+
+        setTimeout(() => {
+            setDidCopy(false);
+        }, 2000);
     };
 
     return (
