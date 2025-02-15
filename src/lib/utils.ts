@@ -44,3 +44,13 @@ export function getFullVideoUrl(videoId?: string) {
 export function formatUppercaseFirstLetter(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
+// Default mux thumbnail url
+export function getDefaultMuxThumbnailUrl(playbackId: string) {
+    return `https://image.mux.com/${playbackId}/thumbnail.jpg`;
+}
+
+// Default mux preview url
+export function getDefaultMuxPreviewUrl(playbackId: string) {
+    return `https://image.mux.com/${playbackId}/animated.gif`;
+}

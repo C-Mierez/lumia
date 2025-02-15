@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
 import { mux } from "@lib/mux";
+import { getDefaultMuxThumbnailUrl } from "@lib/utils";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
@@ -148,7 +149,7 @@ export const videosRouter = createTRPCRouter({
             if (!video.muxPlaybackId)
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Video has not been processed" });
 
-            const muxThumbnailUrl = `https://image.mux.com/${video.muxPlaybackId}/thumbnail.jpg`;
+            const muxThumbnailUrl = getDefaultMuxThumbnailUrl(video.muxPlaybackId);
 
             // Upload the thumbnail to UploadThing
             const utapi = new UTApi();

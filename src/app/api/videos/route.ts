@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { videosTable } from "@/db/schema";
 import { env } from "@/env";
 import { mux } from "@lib/mux";
+import { getDefaultMuxPreviewUrl, getDefaultMuxThumbnailUrl } from "@lib/utils";
 import type {
     VideoAssetCreatedWebhookEvent,
     VideoAssetDeletedWebhookEvent,
@@ -64,8 +65,8 @@ export const POST = async (request: Request) => {
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
             if (!data.playback_ids || !playbackId) return new Response("No Playback ID found", { status: 400 });
 
-            const muxThumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-            const muxPreviewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
+            const muxThumbnailUrl = getDefaultMuxThumbnailUrl(playbackId);
+            const muxPreviewUrl = getDefaultMuxPreviewUrl(playbackId);
 
             const duration = data.duration ? Math.floor(data.duration * 1000) : 0;
 
