@@ -1,6 +1,15 @@
 "use client";
 
-import { Check, ChevronsUpDown, MoreVerticalIcon, RotateCcwIcon, SparklesIcon, Trash2Icon } from "lucide-react";
+import {
+    Check,
+    ChevronsUpDown,
+    Loader2Icon,
+    MoreVerticalIcon,
+    RefreshCwIcon,
+    RotateCcwIcon,
+    SparklesIcon,
+    Trash2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -8,7 +17,7 @@ import { z } from "zod";
 
 import { videoUpdateSchema } from "@/db/schema";
 import { trpc } from "@/trpc/client";
-import { StudioGetOneOutput } from "@/trpc/types";
+import { StudioGetOneOutput, StudioGetOneQuery } from "@/trpc/types";
 import CopyToClipboardButton from "@components/copy-to-clipboard-button";
 import { Button } from "@components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@components/ui/command";
@@ -30,10 +39,11 @@ import VideoUploader from "./video-uploader";
 
 interface VideoEditFormProps {
     video: StudioGetOneOutput;
+    videoQuery: StudioGetOneQuery;
     onOpenChange: (isOpen: boolean) => void;
 }
 
-export default function VideoEditForm({ video, onOpenChange }: VideoEditFormProps) {
+export default function VideoEditForm({ video, onOpenChange, videoQuery }: VideoEditFormProps) {
     /* -------------------------------------------------------------------------- */
     /*                                    TRPC                                    */
     /* -------------------------------------------------------------------------- */
@@ -94,6 +104,8 @@ export default function VideoEditForm({ video, onOpenChange }: VideoEditFormProp
     };
 
     /* --------------------------- Local Calculations --------------------------- */
+    const isRefetchingVideo = videoQuery.isFetching;
+
     const fullVideoURL = getFullVideoUrl(video.id);
 
     const canRestoreThumbnail =
@@ -112,12 +124,12 @@ export default function VideoEditForm({ video, onOpenChange }: VideoEditFormProp
                         <div className="flex gap-2">
                             <Button
                                 type="button"
-                                disabled={updateVideo.isPending}
-                                onClick={() => {
-                                    utils.studio.getMany.invalidate();
+                                disabled={updateVideo.isPending || isRefetchingVideo}
+                                onClick={async () => {
+                                    await utils.studio.getOne.invalidate({ id: video.id });
                                 }}
                             >
-                                Refresh
+                                {isRefetchingVideo ? <Loader2Icon className="animate-spin" /> : <RefreshCwIcon />}
                             </Button>
                             <Button
                                 type="button"
@@ -131,7 +143,12 @@ export default function VideoEditForm({ video, onOpenChange }: VideoEditFormProp
                             <Button
                                 type="submit"
                                 variant={"muted"}
-                                disabled={updateVideo.isPending || !form.formState.isDirty}
+                                disabled={
+                                    updateVideo.isPending ||
+                                    !form.formState.isDirty ||
+                                    !form.formState.isValid ||
+                                    isRefetchingVideo
+                                }
                             >
                                 Save
                             </Button>
