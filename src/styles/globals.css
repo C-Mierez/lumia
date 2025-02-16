@@ -119,6 +119,8 @@
     --color-accent-500: #403088;
     --color-accent-600: #2b205a;
 
+    --color-destructive-500: #c42442;
+
     --radius: 0.6rem;
     /* ---------------------------------- Theme --------------------------------- */
     --background: var(--color-main-50);
@@ -144,7 +146,7 @@
     --accent: var(--color-accent-400);
     --accent-foreground: var(--color-main-50);
 
-    --destructive: hsl(0 84.2% 60.2%);
+    --destructive: var(--color-destructive-500);
     --destructive-foreground: var(--color-main-50);
 
     --border: var(--muted);
@@ -187,7 +189,7 @@
         --accent: var(--color-accent-500);
         --accent-foreground: var(--color-main-50);
 
-        --destructive: hsl(0 62.8% 30.6%);
+        --destructive: var(--color-destructive-500);
         --destructive-foreground: var(--color-main-50);
 
         --card: var(--color-main-950);
