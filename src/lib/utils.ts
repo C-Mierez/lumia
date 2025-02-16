@@ -54,3 +54,8 @@ export function getDefaultMuxThumbnailUrl(playbackId: string) {
 export function getDefaultMuxPreviewUrl(playbackId: string) {
     return `https://image.mux.com/${playbackId}/animated.gif`;
 }
+
+// Default mux track url
+export function getDefaultMuxTrackUrl(playbackId: string, trackId: string) {
+    return `https://stream.mux.com/${playbackId}/text/${trackId}.txt`;
+}
