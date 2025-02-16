@@ -42,14 +42,12 @@ export const videosRouter = createTRPCRouter({
                     playback_policy: ["public"],
                     input: [
                         {
+                            language_code: "en",
+                            name: "English",
                             generated_subtitles: [
                                 {
                                     language_code: "en",
                                     name: "English",
-                                },
-                                {
-                                    language_code: "es",
-                                    name: "Español",
                                 },
                             ],
                         },
