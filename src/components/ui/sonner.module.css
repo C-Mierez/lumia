@@ -8,7 +8,7 @@
 }
 
 .customDescription {
-    @apply text-muted;
+    @apply text-muted-foreground;
 }
 
 .customActionButton {
