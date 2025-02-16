@@ -8,6 +8,7 @@ import { usersTable } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { rateLimit } from "@lib/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
+import { ZodError } from "zod";
 
 export const createTRPCContext = cache(async (opts: { headers: Headers }) => {
     /**
@@ -30,6 +31,15 @@ const t = initTRPC.context<Context>().create({
      * @see https://trpc.io/docs/server/data-transformers
      */
     transformer: superjson,
+    errorFormatter({ shape, error }) {
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+                zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+            },
+        };
+    },
 });
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;
