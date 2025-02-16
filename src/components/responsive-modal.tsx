@@ -25,7 +25,7 @@ export default function ResponsiveModal({
 
     if (isMobile)
         return (
-            <Drawer open={isOpen} onOpenChange={onOpenChange}>
+            <Drawer open={isOpen} onOpenChange={onOpenChange} modal>
                 <DrawerContent className={className}>
                     <DrawerHeader>
                         <DrawerTitle>{header}</DrawerTitle>
@@ -36,7 +36,7 @@ export default function ResponsiveModal({
         );
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog open={isOpen} onOpenChange={onOpenChange} modal>
             <DialogContent className={className} hideClose={hideClose}>
                 <DialogHeader>
                     <DialogTitle>{header}</DialogTitle>
