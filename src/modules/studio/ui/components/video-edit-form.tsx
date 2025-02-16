@@ -148,8 +148,12 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
     };
 
     useEffect(() => {
-        isRefetchingVideo ? form.control._disableForm(true) : form.control._disableForm(false);
-    }, [isRefetchingVideo]);
+        if (isRefetchingVideo) {
+            form.control._disableForm(true);
+        } else {
+            form.control._disableForm(false);
+        }
+    }, [isRefetchingVideo, form.control, form]);
 
     useEffect(() => {
         form.reset(video);

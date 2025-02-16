@@ -29,8 +29,6 @@ export default function VideoEditSection({ onOpenChange, videoId }: VideoEditSec
 function VideoEditSectionSuspense({ videoId, onOpenChange }: VideoEditSectionProps) {
     const [video, videoQuery] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
 
-    videoQuery;
-
     return (
         <>
             <VideoEditForm video={video} onOpenChange={onOpenChange} videoQuery={videoQuery} />

@@ -48,7 +48,7 @@ export default function CarouselFilter({
             carouselApi.off("select", onSelect);
             carouselApi.destroy();
         };
-    }, [carouselApi]);
+    }, [carouselApi, onSelect]);
 
     return (
         <div className="relative w-full select-none">
