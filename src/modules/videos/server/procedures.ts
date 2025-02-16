@@ -7,6 +7,7 @@ import { videosTable, videoUpdateSchema } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
 import { mux } from "@lib/mux";
 import { getDefaultMuxThumbnailUrl } from "@lib/utils";
+import { buildWorkflowURL, workflowClient } from "@lib/workflow";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
@@ -165,4 +166,36 @@ export const videosRouter = createTRPCRouter({
 
             return video;
         }),
+    generateThumbnail: authedProcedure
+        .input(z.object({ id: z.string().uuid(), prompt: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+
+            const workflowId = await workflowClient.trigger({
+                url: buildWorkflowURL("VideoThumbnail"),
+                body: { userId: user.id, videoId: input.id, prompt: input.prompt },
+            });
+
+            return workflowId;
+        }),
+    generateDescription: authedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+        const { user } = ctx;
+
+        const workflowId = await workflowClient.trigger({
+            url: buildWorkflowURL("VideoDescription"),
+            body: { userId: user.id, videoId: input.id },
+        });
+
+        return workflowId;
+    }),
+    generateTitle: authedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+        const { user } = ctx;
+
+        const workflowId = await workflowClient.trigger({
+            url: buildWorkflowURL("VideoTitle"),
+            body: { userId: user.id, videoId: input.id },
+        });
+
+        return workflowId;
+    }),
 });
