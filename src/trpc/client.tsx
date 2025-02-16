@@ -6,7 +6,7 @@ import superjson from "superjson";
 import { env } from "@/env";
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, loggerLink } from "@trpc/client";
+import { httpBatchLink, loggerLink, splitLink, unstable_httpSubscriptionLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 
 import { makeQueryClient } from "./query-client";
@@ -50,14 +50,20 @@ export function TRPCProvider(
                     enabled: (op) =>
                         env.NODE_ENV === "development" || (op.direction === "down" && op.result instanceof Error),
                 }),
-                httpBatchLink({
-                    transformer: superjson,
-                    url: getUrl(),
-                    async headers() {
-                        const headers = new Headers();
-                        headers.set("x-trpc-source", "nextjs-react");
-                        return headers;
-                    },
+                splitLink({
+                    // uses the httpSubscriptionLink for subscriptions
+                    condition: (op) => op.type === "subscription",
+                    true: unstable_httpSubscriptionLink({
+                        ...config,
+                    }),
+                    false: httpBatchLink({
+                        ...config,
+                        async headers() {
+                            const headers = new Headers();
+                            headers.set("x-trpc-source", "nextjs-react");
+                            return headers;
+                        },
+                    }),
                 }),
             ],
         }),
@@ -68,3 +74,8 @@ export function TRPCProvider(
         </trpc.Provider>
     );
 }
+
+const config = {
+    transformer: superjson,
+    url: getUrl(),
+};
