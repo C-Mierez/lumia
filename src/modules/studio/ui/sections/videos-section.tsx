@@ -78,8 +78,8 @@ function VideosSectionSuspense() {
                                             />
                                         </div>
                                         <div className="flex flex-1 flex-col items-start justify-start">
-                                            <p className="font-brand">{video.title}</p>
-                                            <p className="text-muted-foreground line-clamp-2 text-xs">
+                                            <p className="font-brand text-start">{video.title}</p>
+                                            <p className="text-muted-foreground line-clamp-2 text-start text-xs">
                                                 {video.description ?? "No video description"}
                                             </p>
                                         </div>
