@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import {
     Check,
     ChevronsUpDown,
@@ -34,6 +36,7 @@ import { cn, formatUppercaseFirstLetter, getDefaultMuxThumbnailUrl, getFullVideo
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 
+import ThumbnailGenerator from "./thumbnail-generator";
 import ThumbnailUploader from "./thumbnail-uploader";
 import VideoUploader from "./video-uploader";
 
@@ -92,6 +95,47 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
         },
     });
 
+    const generateTitle = trpc.videos.generateTitle.useMutation({
+        onSuccess: () => {
+            toast.success("Title generation started", {
+                description: "This may take a few minutes to complete",
+                duration: 20000,
+            });
+        },
+        onError: (error) => {
+            toast.error(`Failed to generate title: ${error.message}`);
+        },
+    });
+    const generateDescription = trpc.videos.generateDescription.useMutation({
+        onSuccess: () => {
+            toast.success("Description generation started", {
+                description: "This may take a few minutes to complete",
+                duration: 20000,
+            });
+        },
+        onError: (error) => {
+            toast.error(`Failed to generate description: ${error.message}`);
+        },
+    });
+    const generateThumbnail = trpc.videos.generateThumbnail.useMutation({
+        onSuccess: () => {
+            toast.success("Thumbnail generation started", {
+                description: "This may take a few minutes to complete",
+                duration: 20000,
+            });
+        },
+        onError: (error) => {
+            toast.error(`Failed to generate thumbnail: ${error.message}`);
+        },
+    });
+
+    /* --------------------------- Local Calculations --------------------------- */
+    const isRefetchingVideo = videoQuery.isFetching;
+
+    const fullVideoURL = getFullVideoUrl(video.id);
+
+    const canRestoreThumbnail =
+        video.muxPlaybackId && video.thumbnailUrl !== getDefaultMuxThumbnailUrl(video.muxPlaybackId);
     /* -------------------------------------------------------------------------- */
     /*                                    FORM                                    */
     /* -------------------------------------------------------------------------- */
@@ -103,13 +147,13 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
         updateVideo.mutate(data);
     };
 
-    /* --------------------------- Local Calculations --------------------------- */
-    const isRefetchingVideo = videoQuery.isFetching;
+    useEffect(() => {
+        isRefetchingVideo ? form.control._disableForm(true) : form.control._disableForm(false);
+    }, [isRefetchingVideo]);
 
-    const fullVideoURL = getFullVideoUrl(video.id);
-
-    const canRestoreThumbnail =
-        video.muxPlaybackId && video.thumbnailUrl !== getDefaultMuxThumbnailUrl(video.muxPlaybackId);
+    useEffect(() => {
+        form.reset(video);
+    }, [video]);
 
     return (
         <Form {...form}>
@@ -127,6 +171,7 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                 disabled={updateVideo.isPending || isRefetchingVideo}
                                 onClick={async () => {
                                     await utils.studio.getOne.invalidate({ id: video.id });
+                                    await utils.studio.getMany.invalidate();
                                 }}
                             >
                                 {isRefetchingVideo ? <Loader2Icon className="animate-spin" /> : <RefreshCwIcon />}
@@ -146,7 +191,7 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                 disabled={
                                     updateVideo.isPending ||
                                     !form.formState.isDirty ||
-                                    !form.formState.isValid ||
+                                    // !form.formState.isValid ||
                                     isRefetchingVideo
                                 }
                             >
@@ -186,7 +231,32 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                     control={form.control}
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-muted-foreground font-normal">Title</FormLabel>
+                                            <div className="flex items-end justify-between gap-2">
+                                                <FormLabel className="text-muted-foreground font-normal">
+                                                    Title
+                                                </FormLabel>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                type="button"
+                                                                variant={"muted"}
+                                                                size={"smallIcon"}
+                                                                disabled={generateTitle.isPending || isRefetchingVideo}
+                                                                onClick={() => generateTitle.mutate({ id: video.id })}
+                                                            >
+                                                                <SparklesIcon />
+                                                                {/* Generate */}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="left">
+                                                            <p className="text-muted text-xs font-medium">
+                                                                Generate title using AI
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
                                             <FormControl>
                                                 <Input {...field} placeholder="Add a title to your video" />
                                             </FormControl>
@@ -200,9 +270,36 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                     control={form.control}
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-muted-foreground font-normal">
-                                                Description
-                                            </FormLabel>
+                                            <div className="flex items-end justify-between gap-2">
+                                                <FormLabel className="text-muted-foreground font-normal">
+                                                    Description
+                                                </FormLabel>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                type="button"
+                                                                variant={"muted"}
+                                                                size={"smallIcon"}
+                                                                disabled={
+                                                                    generateDescription.isPending || isRefetchingVideo
+                                                                }
+                                                                onClick={() =>
+                                                                    generateDescription.mutate({ id: video.id })
+                                                                }
+                                                            >
+                                                                <SparklesIcon />
+                                                                {/* Generate */}
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="left">
+                                                            <p className="text-muted text-xs font-medium">
+                                                                Generate description using AI
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
                                             <FormControl>
                                                 <Textarea
                                                     {...field}
@@ -314,7 +411,7 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent side="left">
-                                            <p className="text-muted text-xs font-bold">Restore thumbnail</p>
+                                            <p className="text-muted text-xs">Restore thumbnail</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -337,16 +434,13 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                                         duration={0}
                                                     />
                                                 </div>
-                                                <div className="aspect-video w-full flex-1 md:w-full">
-                                                    <div className="bg-muted border-muted-foreground flex size-full flex-col items-center justify-center rounded-md border border-dashed">
-                                                        <SparklesIcon />
-                                                        <p className="text-muted-foreground mt-2 h-6 text-center text-sm text-balance">
-                                                            Generate using AI
-                                                            <span className="text-muted-foreground/25 block h-1 text-xs">
-                                                                Limits my apply
-                                                            </span>
-                                                        </p>
-                                                    </div>
+                                                <div className="group aspect-video w-full flex-1 md:w-full">
+                                                    <ThumbnailGenerator
+                                                        onGenerate={(prompt) =>
+                                                            generateThumbnail.mutate({ id: video.id, prompt })
+                                                        }
+                                                        disabled={generateThumbnail.isPending || isRefetchingVideo}
+                                                    />
                                                 </div>
                                                 <div className="border-muted-foreground aspect-video w-full flex-1 rounded-md border border-dashed md:w-full">
                                                     <ThumbnailUploader videoId={video.id} />

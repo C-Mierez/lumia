@@ -31,5 +31,9 @@ function VideoEditSectionSuspense({ videoId, onOpenChange }: VideoEditSectionPro
 
     videoQuery;
 
-    return <VideoEditForm video={video} onOpenChange={onOpenChange} videoQuery={videoQuery} />;
+    return (
+        <>
+            <VideoEditForm video={video} onOpenChange={onOpenChange} videoQuery={videoQuery} />
+        </>
+    );
 }
