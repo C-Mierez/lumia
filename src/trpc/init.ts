@@ -9,14 +9,14 @@ import { auth } from "@clerk/nextjs/server";
 import { rateLimit } from "@lib/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
 
-export const createTRPCContext = cache(async () => {
+export const createTRPCContext = cache(async (opts: { headers: Headers }) => {
     /**
      * @see: https://trpc.io/docs/server/context
      */
 
     const clerkAuth = await auth();
 
-    return { clerkAuth };
+    return { clerkAuth, ...opts };
 });
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
