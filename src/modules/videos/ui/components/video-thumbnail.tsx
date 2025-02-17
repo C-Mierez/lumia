@@ -18,7 +18,12 @@ export default function VideoThumbnail({ title, imageUrl, previewUrl, duration }
                     <>
                         <div className="bg-muted repeat-[8] absolute inset-0 animate-pulse" />
                         {!!previewUrl && (
-                            <Image alt={title} src={previewUrl} fill className="object-cover group-hover:opacity-100" />
+                            <Image
+                                alt={title}
+                                src={previewUrl}
+                                fill
+                                className="object-cover opacity-0 group-hover:opacity-100"
+                            />
                         )}
                         {!!imageUrl && (
                             <Image

@@ -4,10 +4,12 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
-import { authedProcedure, createTRPCRouter } from "@/trpc/init";
+import { authedProcedure, baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { parseVideoEventToStatus, subscribeToEventChannel } from "@lib/server/event-channel";
 import { mux } from "@lib/server/mux";
-import { getDefaultMuxThumbnailUrl } from "@lib/utils";
+import { redis } from "@lib/server/redis";
 import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
+import { getDefaultMuxThumbnailUrl } from "@lib/utils";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
@@ -196,4 +198,67 @@ export const videosRouter = createTRPCRouter({
 
         return workflowId;
     }),
+    /* -------------------------------------------------------------------------- */
+    /*                                Subscriptions                               */
+    /* -------------------------------------------------------------------------- */
+    onTitleGenerationStatus: authedProcedure.input(z.object({ workflowId: z.string() })).subscription(async function* ({
+        ctx,
+        input,
+        signal,
+    }) {
+        const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+
+        for await (const event of events) {
+            yield {
+                status: parseVideoEventToStatus(event.data!),
+            };
+        }
+    }),
+    onDescriptionGenerationStatus: authedProcedure
+        .input(z.object({ workflowId: z.string() }))
+        .subscription(async function* ({ ctx, input, signal }) {
+            const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+
+            for await (const event of events) {
+                yield {
+                    status: parseVideoEventToStatus(event.data!),
+                };
+            }
+        }),
+    onThumbnailGenerationStatus: authedProcedure
+        .input(z.object({ workflowId: z.string() }))
+        .subscription(async function* ({ ctx, input, signal }) {
+            const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+
+            for await (const event of events) {
+                yield {
+                    status: parseVideoEventToStatus(event.data!),
+                };
+            }
+        }),
+    // onTest2: authedProcedure.subscription(async function* ({ ctx, input, signal }) {
+    //     const events = await subscribeToEventChannel(`test2`, signal);
+
+    //     for await (const event of events) {
+    //         yield {
+    //             data: event.data,
+    //         };
+    //     }
+    // }),
+    // test: baseProcedure.mutation(async ({ ctx }) => {
+    //     // Wait 3 seconds
+    //     // await redis.publish("test2", "status");
+    //     // await new Promise((resolve) => setTimeout(resolve, 3000));
+    //     // await redis.publish("test2", "I AM ANOTHER EVENT 2");
+    //     const data = "subscribe,test2,1";
+
+    //     console.log(data.split(","));
+    // }),
+    // test2: baseProcedure.mutation(async ({ ctx }) => {
+    //     await redis.publish("test", "status");
+    //     await new Promise((resolve) => setTimeout(resolve, 3000));
+    //     await redis.publish("test", "I AM ANOTHER EVENT 2");
+
+    //     return "test2";
+    // }),
 });

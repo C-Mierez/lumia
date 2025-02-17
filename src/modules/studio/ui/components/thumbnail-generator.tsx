@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 
-import { SparklesIcon } from "lucide-react";
+import { Loader2Icon, SparklesIcon } from "lucide-react";
 
 import PromptModal from "@components/prompt-modal";
 
 interface ThumbnailGeneratorProps {
     disabled?: boolean;
+    status: string;
     onGenerate: (promptInput: string) => void;
 }
 
-export default function ThumbnailGenerator({ disabled, onGenerate }: ThumbnailGeneratorProps) {
+export default function ThumbnailGenerator({ disabled, onGenerate, status }: ThumbnailGeneratorProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
@@ -30,11 +31,15 @@ export default function ThumbnailGenerator({ disabled, onGenerate }: ThumbnailGe
                 disabled={disabled}
                 onClick={() => setIsModalOpen(true)}
             >
-                <SparklesIcon />
+                {disabled ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />}
                 <p className="text-muted-foreground group-hover:group-[not-disabled]:text-foreground mt-2 h-6 text-center text-sm text-balance group-hover:group-[not-disabled]:underline">
-                    Generate using AI
+                    {disabled ? status : "Generate using AI"}
                 </p>
-                <p className="text-muted-foreground/25 -mt-1 h-1 text-xs group-hover:decoration-0">Limits my apply</p>
+                {disabled ? null : (
+                    <p className="text-muted-foreground/25 -mt-1 h-1 text-xs group-hover:decoration-0">
+                        Limits my apply
+                    </p>
+                )}
             </button>
         </>
     );

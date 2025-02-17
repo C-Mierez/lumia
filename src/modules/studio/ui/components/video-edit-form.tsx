@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
     Check,
@@ -32,9 +32,11 @@ import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { VideoStatus } from "@lib/server/events";
 import { cn, formatUppercaseFirstLetter, getDefaultMuxThumbnailUrl, getFullVideoUrl } from "@lib/utils";
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+import { skipToken } from "@tanstack/react-query";
 
 import ThumbnailGenerator from "./thumbnail-generator";
 import ThumbnailUploader from "./thumbnail-uploader";
@@ -106,6 +108,7 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
             toast.error(`Failed to generate title: ${error.message}`);
         },
     });
+
     const generateDescription = trpc.videos.generateDescription.useMutation({
         onSuccess: () => {
             toast.success("Description generation started", {
@@ -128,6 +131,55 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
             toast.error(`Failed to generate thumbnail: ${error.message}`);
         },
     });
+
+    const [titleStatus, setTitleStatus] = useState("");
+    const onTitleStatus = trpc.videos.onTitleGenerationStatus.useSubscription(
+        generateTitle.data ? { workflowId: generateTitle.data.workflowRunId } : skipToken,
+        {
+            onData(data) {
+                if (data && data.status) setTitleStatus(data.status);
+                if (data.status === VideoStatus.Finished) {
+                    setTitleStatus("");
+                    utils.studio.getOne.invalidate({ id: video.id });
+                    utils.studio.getMany.invalidate();
+                }
+            },
+        },
+    );
+
+    const [descriptionStatus, setDescriptionStatus] = useState("");
+    const onDescriptionStatus = trpc.videos.onDescriptionGenerationStatus.useSubscription(
+        generateDescription.data ? { workflowId: generateDescription.data.workflowRunId } : skipToken,
+        {
+            onData(data) {
+                if (data && data.status) setDescriptionStatus(data.status);
+                if (data.status === VideoStatus.Finished) {
+                    setDescriptionStatus("");
+                    utils.studio.getOne.invalidate({ id: video.id });
+                    utils.studio.getMany.invalidate();
+                }
+            },
+        },
+    );
+
+    const [thumbnailStatus, setThumbnailStatus] = useState("");
+    const onThumbnailStatus = trpc.videos.onThumbnailGenerationStatus.useSubscription(
+        generateThumbnail.data ? { workflowId: generateThumbnail.data.workflowRunId } : skipToken,
+        {
+            onData(data) {
+                if (data && data.status) setThumbnailStatus(data.status);
+                if (data.status === VideoStatus.Finished) {
+                    setThumbnailStatus("");
+                    utils.studio.getOne.invalidate({ id: video.id });
+                    utils.studio.getMany.invalidate();
+                }
+            },
+        },
+    );
+
+    function isDisablingStatus(generationStatus: string) {
+        return generationStatus !== VideoStatus.Finished && generationStatus !== "";
+    }
 
     /* --------------------------- Local Calculations --------------------------- */
     const isRefetchingVideo = videoQuery.isFetching;
@@ -239,27 +291,18 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                                 <FormLabel className="text-muted-foreground font-normal">
                                                     Title
                                                 </FormLabel>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                type="button"
-                                                                variant={"muted"}
-                                                                size={"smallIcon"}
-                                                                disabled={generateTitle.isPending || isRefetchingVideo}
-                                                                onClick={() => generateTitle.mutate({ id: video.id })}
-                                                            >
-                                                                <SparklesIcon />
-                                                                {/* Generate */}
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent side="left">
-                                                            <p className="text-muted text-xs font-medium">
-                                                                Generate title using AI
-                                                            </p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <GenerateWithAIButton
+                                                    disabled={
+                                                        generateTitle.isPending ||
+                                                        isRefetchingVideo ||
+                                                        isDisablingStatus(titleStatus)
+                                                    }
+                                                    videoId={video.id}
+                                                    status={titleStatus}
+                                                    onClick={() => {
+                                                        generateTitle.mutate({ id: video.id });
+                                                    }}
+                                                />
                                             </div>
                                             <FormControl>
                                                 <Input {...field} placeholder="Add a title to your video" />
@@ -278,31 +321,18 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                                 <FormLabel className="text-muted-foreground font-normal">
                                                     Description
                                                 </FormLabel>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                type="button"
-                                                                variant={"muted"}
-                                                                size={"smallIcon"}
-                                                                disabled={
-                                                                    generateDescription.isPending || isRefetchingVideo
-                                                                }
-                                                                onClick={() =>
-                                                                    generateDescription.mutate({ id: video.id })
-                                                                }
-                                                            >
-                                                                <SparklesIcon />
-                                                                {/* Generate */}
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent side="left">
-                                                            <p className="text-muted text-xs font-medium">
-                                                                Generate description using AI
-                                                            </p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <GenerateWithAIButton
+                                                    disabled={
+                                                        generateDescription.isPending ||
+                                                        isRefetchingVideo ||
+                                                        isDisablingStatus(descriptionStatus)
+                                                    }
+                                                    videoId={video.id}
+                                                    status={descriptionStatus}
+                                                    onClick={() => {
+                                                        generateDescription.mutate({ id: video.id });
+                                                    }}
+                                                />
                                             </div>
                                             <FormControl>
                                                 <Textarea
@@ -443,7 +473,12 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                                                         onGenerate={(prompt) =>
                                                             generateThumbnail.mutate({ id: video.id, prompt })
                                                         }
-                                                        disabled={generateThumbnail.isPending || isRefetchingVideo}
+                                                        status={thumbnailStatus}
+                                                        disabled={
+                                                            generateThumbnail.isPending ||
+                                                            isRefetchingVideo ||
+                                                            isDisablingStatus(thumbnailStatus)
+                                                        }
                                                     />
                                                 </div>
                                                 <div className="border-muted-foreground aspect-video w-full flex-1 rounded-md border border-dashed md:w-full">
@@ -574,6 +609,33 @@ function VideoUploadIsland({ videoId, uploadId }: { videoId: string; uploadId?: 
     return (
         <div>
             <VideoUploader onSuccess={onSuccess} endpoint={endpointFetch} />
+        </div>
+    );
+}
+
+function GenerateWithAIButton(props: { disabled: boolean; videoId: string; onClick: () => void; status: string }) {
+    return (
+        <div className="flex items-center gap-2">
+            {!!props.status && <span className="text-muted-foreground text-xs">{props.status}</span>}
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            type="button"
+                            variant={"muted"}
+                            size={"smallIcon"}
+                            disabled={props.disabled}
+                            onClick={props.onClick}
+                        >
+                            <SparklesIcon />
+                            {/* Generate */}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                        <p className="text-muted text-xs font-medium">Generate title using AI</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
     );
 }
