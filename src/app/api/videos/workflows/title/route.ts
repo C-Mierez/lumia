@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
-import { generateGeminiContent } from "@lib/gemini";
+import { generateGeminiContent } from "@lib/server/gemini";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
 import { serve } from "@upstash/workflow/nextjs";
 

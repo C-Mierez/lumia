@@ -5,7 +5,7 @@ import { UTApi } from "uploadthing/server";
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
 import { env } from "@/env";
-import { mux } from "@lib/mux";
+import { mux } from "@lib/server/mux";
 import { getDefaultMuxPreviewUrl, getDefaultMuxThumbnailUrl } from "@lib/utils";
 import type {
     VideoAssetCreatedWebhookEvent,

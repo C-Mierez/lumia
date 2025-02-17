@@ -4,9 +4,9 @@ import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
-import { generateGeminiContent } from "@lib/gemini";
+import { generateGeminiContent } from "@lib/server/gemini";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
-import { generateWorkersAIImage } from "@lib/workersai";
+import { generateWorkersAIImage } from "@lib/server/workersai";
 import { serve } from "@upstash/workflow/nextjs";
 
 type InputType = {

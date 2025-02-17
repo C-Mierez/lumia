@@ -5,9 +5,9 @@ import { z } from "zod";
 import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
-import { mux } from "@lib/mux";
+import { mux } from "@lib/server/mux";
 import { getDefaultMuxThumbnailUrl } from "@lib/utils";
-import { buildWorkflowURL, workflowClient } from "@lib/workflow";
+import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";

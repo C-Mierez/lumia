@@ -6,7 +6,7 @@ import superjson from "superjson";
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { rateLimit } from "@lib/rate-limit";
+import { rateLimit } from "@lib/server/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { ZodError } from "zod";
 
