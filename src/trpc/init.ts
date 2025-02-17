@@ -2,13 +2,12 @@ import { cache } from "react";
 
 import { eq } from "drizzle-orm";
 import superjson from "superjson";
+import { ZodError } from "zod";
 
 import { db } from "@/db";
 import { usersTable } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { rateLimit } from "@lib/server/rate-limit";
 import { initTRPC, TRPCError } from "@trpc/server";
-import { ZodError } from "zod";
 
 export const createTRPCContext = cache(async (opts: { headers: Headers }) => {
     /**
@@ -53,13 +52,6 @@ export const authedProcedure = t.procedure.use(async (opts) => {
     // Check session has a valid user
     if (!ctx.clerkAuth.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    // Check rate limit
-    const { success } = await rateLimit.limit(ctx.clerkAuth.userId);
-
-    if (!success) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
     }
 
     // Check that user exists in the database, and attach to context

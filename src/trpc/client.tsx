@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import superjson from "superjson";
 
-import { env } from "@/env";
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink, splitLink, unstable_httpSubscriptionLink } from "@trpc/client";
@@ -48,7 +47,8 @@ export function TRPCProvider(
             links: [
                 loggerLink({
                     enabled: (op) =>
-                        env.NODE_ENV === "development" || (op.direction === "down" && op.result instanceof Error),
+                        process.env.VERCEL_URL === "development" ||
+                        (op.direction === "down" && op.result instanceof Error),
                 }),
                 splitLink({
                     // uses the httpSubscriptionLink for subscriptions
