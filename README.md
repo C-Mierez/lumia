@@ -24,16 +24,26 @@ A Youtube-inspired video-sharing website.
 
 ### Features
 
-- [ ] User-uploaded videos
+- [x] User-uploaded videos
 - [ ] Custom-built video player
-- [ ] Real-time video processing (Mux)
-- [ ] Video thumbnail generation
+- [x] Real-time video processing (Mux)
 - [ ] Video playlist creation and management
 - [ ] Channel subscriptions
 - [ ] Video comments and likes system
+- [x] AI-Generation tools for the user to use (Video title, description, thumbnail)
 
 --- Tech
 
-- [ ] Clerk Auth synchronization to local own db though Webhooks (Svix verification)
-- [ ] Authenticated server component prefetching through tRPC v11's support for server-side calls
-- [ ] Vercel KV (Upstash) Redis service for request rate limiting
+- [x] Use of Redis KV service as event channel for communication between Workflows and tRPC subscription endpoints. This allows real-time status tracking of the state of workflows for the client.
+- [x] Using NextJS Parallel Routes and Route Intercepting for the creation of Router-compliant modals
+- [x] Clerk Auth synchronization to local own db though Webhooks (Svix verification)
+- [x] Authenticated server component prefetching through tRPC v11's support for server-side calls
+- [x] Vercel KV (Upstash) Redis service for request rate limiting
+- [x] Implementation of Background Jobs using Upstash Workflow for dealing with long-running tasks, such as AI-generation requests
+
+### TODO
+
+- [ ] Make admin-made Categories for homepage filters. Make user-made Tags for videos
+    - [ ] Keep track of the amount a times a Tag is used on videos (Increment and Decrement accordingly in db table). Use this metric to show the most popular tags as a search filter.
+
+---
