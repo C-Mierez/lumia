@@ -32,8 +32,8 @@ import { Separator } from "@components/ui/separator";
 import { Textarea } from "@components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { VideoStatus } from "@lib/server/events";
 import { cn, formatUppercaseFirstLetter, getDefaultMuxThumbnailUrl, getFullVideoUrl } from "@lib/utils";
+import { VideoStatus } from "@modules/videos/server/constants";
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 import { skipToken } from "@tanstack/react-query";
@@ -133,8 +133,8 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
     });
 
     const [titleStatus, setTitleStatus] = useState("");
-    const onTitleStatus = trpc.videos.onTitleGenerationStatus.useSubscription(
-        generateTitle.data ? { workflowId: generateTitle.data.workflowRunId } : skipToken,
+    const onTitleStatus = trpc.videos.onGenerateTitle.useSubscription(
+        generateTitle.data ? { videoId: video.id } : skipToken,
         {
             onData(data) {
                 if (data && data.status) setTitleStatus(data.status);
@@ -148,8 +148,8 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
     );
 
     const [descriptionStatus, setDescriptionStatus] = useState("");
-    const onDescriptionStatus = trpc.videos.onDescriptionGenerationStatus.useSubscription(
-        generateDescription.data ? { workflowId: generateDescription.data.workflowRunId } : skipToken,
+    const onDescriptionStatus = trpc.videos.onGenerateDescription.useSubscription(
+        generateDescription.data ? { videoId: video.id } : skipToken,
         {
             onData(data) {
                 if (data && data.status) setDescriptionStatus(data.status);
@@ -163,8 +163,8 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
     );
 
     const [thumbnailStatus, setThumbnailStatus] = useState("");
-    const onThumbnailStatus = trpc.videos.onThumbnailGenerationStatus.useSubscription(
-        generateThumbnail.data ? { workflowId: generateThumbnail.data.workflowRunId } : skipToken,
+    const onThumbnailStatus = trpc.videos.onGenerateThumbnail.useSubscription(
+        generateThumbnail.data ? { videoId: video.id } : skipToken,
         {
             onData(data) {
                 if (data && data.status) setThumbnailStatus(data.status);
@@ -209,7 +209,7 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
 
     useEffect(() => {
         form.reset(video);
-    }, [video]);
+    }, [video, form]);
 
     return (
         <Form {...form}>
@@ -494,65 +494,8 @@ export default function VideoEditForm({ video, onOpenChange, videoQuery }: Video
                         {/* Right Column */}
                         <div className="flex flex-col gap-4 lg:col-span-2">
                             {/* Video Area */}
-                            <div className="bg-background-alt flex flex-col gap-4 rounded-md p-4">
-                                {!video.muxUploadId ? (
-                                    <>
-                                        <VideoUploadIsland
-                                            videoId={video.id}
-                                            uploadId={video.muxUploadId ?? undefined}
-                                        />
-                                    </>
-                                ) : (
-                                    <>
-                                        {!!video.thumbnailUrl && !!video.previewUrl ? (
-                                            <VideoPlayer
-                                                playbackId={video.muxPlaybackId}
-                                                thumbnailUrl={video.thumbnailUrl}
-                                            />
-                                        ) : (
-                                            <div className="relative aspect-video w-full shrink-0">
-                                                <VideoThumbnail
-                                                    imageUrl={video.thumbnailUrl}
-                                                    previewUrl={video.previewUrl}
-                                                    title={video.title}
-                                                    duration={video.duration || 0}
-                                                />
-                                            </div>
-                                        )}
-                                        <div className="flex flex-col gap-4">
-                                            <div>
-                                                <p className="text-muted-foreground text-xs">Video URL</p>
-                                                <div className="flex items-end gap-2">
-                                                    <Button
-                                                        asChild
-                                                        type="button"
-                                                        variant={"link"}
-                                                        className="line-clamp-1 px-0"
-                                                    >
-                                                        <Link href={fullVideoURL}>{fullVideoURL}</Link>
-                                                    </Button>
-                                                    <CopyToClipboardButton
-                                                        disabled={false}
-                                                        targetContent={fullVideoURL}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p className="text-muted-foreground text-xs">Status</p>
-                                                <p className="h-9 py-2 text-sm font-bold">
-                                                    {formatUppercaseFirstLetter(video.muxStatus || "Preparing")}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-muted-foreground text-xs">Subtitles</p>
-                                                <p className="h-9 py-2 text-sm font-bold">
-                                                    {formatUppercaseFirstLetter(video.muxTrackStatus || "No Subtitles")}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+
+                            <UploadIsland fullVideoURL={fullVideoURL} video={video} />
 
                             {/* Other Actions */}
                             <FormField
@@ -636,6 +579,79 @@ function GenerateWithAIButton(props: { disabled: boolean; videoId: string; onCli
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
+        </div>
+    );
+}
+
+interface UploadIslandProps {
+    fullVideoURL: string;
+    video: StudioGetOneOutput;
+}
+
+function UploadIsland({ fullVideoURL, video }: UploadIslandProps) {
+    const onVideoProcessing = trpc.videos.onVideoProcessing.useSubscription(
+        { videoId: video.id },
+        {
+            onData(data) {
+                if (data && data.status) {
+                    toast.info(data.status);
+                }
+            },
+        },
+    );
+
+    return (
+        <div className="bg-background-alt flex flex-col gap-4 rounded-md p-4">
+            {!video.muxUploadId ? (
+                //  If no Mux Upload exists, show upload video component
+                <VideoUploadIsland videoId={video.id} uploadId={video.muxUploadId ?? undefined} />
+            ) : (
+                // If Mux Upload exists, show video thumbnail and video player
+                <>
+                    {!!video.muxPlaybackId ? (
+                        // If Mux Playback exists, show video player
+                        <VideoPlayer playbackId={video.muxPlaybackId} thumbnailUrl={video.thumbnailUrl} />
+                    ) : (
+                        // If no Mux Playback exists, show video thumbnail
+                        <div className="relative aspect-video w-full shrink-0">
+                            <VideoThumbnail
+                                imageUrl={video.thumbnailUrl}
+                                previewUrl={video.previewUrl}
+                                title={video.title}
+                                duration={video.duration || 0}
+                            />
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            {onVideoProcessing.data && (
+                                <p className="text-muted-foreground text-xs">{onVideoProcessing.data.status}</p>
+                            )}
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground text-xs">Video URL</p>
+                            <div className="flex items-end gap-2">
+                                <Button asChild type="button" variant={"link"} className="line-clamp-1 px-0">
+                                    <Link href={fullVideoURL}>{fullVideoURL}</Link>
+                                </Button>
+                                <CopyToClipboardButton disabled={false} targetContent={fullVideoURL} />
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground text-xs">Status</p>
+                            <p className="h-9 py-2 text-sm font-bold">
+                                {formatUppercaseFirstLetter(video.muxStatus || "Preparing")}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground text-xs">Subtitles</p>
+                            <p className="h-9 py-2 text-sm font-bold">
+                                {formatUppercaseFirstLetter(video.muxTrackStatus || "No Subtitles")}
+                            </p>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

@@ -3,13 +3,10 @@ import { NextRequest } from "next/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
-import { createCallerFactory, createTRPCContext } from "@/trpc/init";
-import { appRouter } from "@/trpc/routers/_app";
-import { VideoEvents } from "@lib/server/events";
+import { publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
-import { StepLogger } from "@lib/server/workflow";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
-import { WorkflowLogger } from "@upstash/workflow";
+import { buildEventChannelName, VideoEvents, VideoProcedures } from "@modules/videos/server/constants";
 import { serve } from "@upstash/workflow/nextjs";
 
 type InputType = {
@@ -27,13 +24,17 @@ const VIDEO_TITLE_SYSTEM_PROMPT = `Your task is to generate an SEO-focused title
 
 export const POST = async (request: NextRequest) => {
     console.log("API Post request on video/workflows/title");
-    const { POST: handler } = serve(
+    const { POST: handler } = serve<InputType>(
         async (context) => {
-            const input = context.requestPayload as InputType;
+            const input = context.requestPayload;
             const { videoId, userId } = input;
+            publishToEventChannel(buildEventChannelName(videoId, VideoProcedures.GenerateTitle), VideoEvents.Started);
 
             const video = await context.run(VideoEvents.GetVideo, async () => {
-                const caller = createCallerFactory(appRouter)(await createTRPCContext({ headers: request.headers }));
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateTitle),
+                    VideoEvents.GetVideo,
+                );
 
                 const [video] = await db
                     .select()
@@ -48,8 +49,12 @@ export const POST = async (request: NextRequest) => {
                 throw new Error("Video asset, playback or track not found");
 
             const transcript = await context.run(VideoEvents.GetTranscript, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateTitle),
+                    VideoEvents.GetTranscript,
+                );
+
                 const trackUrl = getDefaultMuxTrackUrl(video.muxPlaybackId!, video.muxTrackId!);
-                console.log("Fetching transcript from:", trackUrl);
                 // Fetch the transcript from the Mux track URL
                 const response = await fetch(trackUrl);
 
@@ -61,7 +66,12 @@ export const POST = async (request: NextRequest) => {
                 return responseText;
             });
 
-            const generatedTitle = await context.run(VideoEvents.GenerateTile, async () => {
+            const generatedTitle = await context.run(VideoEvents.GenerateTitle, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateTitle),
+                    VideoEvents.GenerateTitle,
+                );
+
                 const result = await generateGeminiContent(VIDEO_TITLE_SYSTEM_PROMPT, transcript);
 
                 if (!result.response) throw new Error("Failed to generate title");
@@ -70,6 +80,11 @@ export const POST = async (request: NextRequest) => {
             });
 
             await context.run(VideoEvents.UpdateVideo, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateTitle),
+                    VideoEvents.UpdateVideo,
+                );
+
                 const [updatedVideo] = await db
                     .update(videosTable)
                     .set({
@@ -82,9 +97,18 @@ export const POST = async (request: NextRequest) => {
 
                 return updatedVideo;
             });
+
+            publishToEventChannel(buildEventChannelName(videoId, VideoProcedures.GenerateTitle), VideoEvents.Finished);
         },
         {
-            verbose: new StepLogger() as unknown as WorkflowLogger,
+            failureFunction: async ({ context, failStatus, failResponse, failHeaders }) => {
+                console.error("Failed to process video description workflow", failResponse);
+
+                publishToEventChannel(
+                    buildEventChannelName(context.requestPayload.videoId, VideoProcedures.GenerateDescription),
+                    VideoEvents.Error,
+                );
+            },
         },
     );
 

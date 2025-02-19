@@ -4,13 +4,12 @@ import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
+import { publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
 import { generateWorkersAIImage } from "@lib/server/workersai";
-import { StepLogger } from "@lib/server/workflow";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
-import { WorkflowLogger } from "@upstash/workflow";
+import { buildEventChannelName, VideoEvents, VideoProcedures } from "@modules/videos/server/constants";
 import { serve } from "@upstash/workflow/nextjs";
-import { VideoEvents } from "@lib/server/events";
 
 type InputType = {
     userId: string;
@@ -27,12 +26,21 @@ const VIDEO_THUMBNAIL_SYSTEM_PROMPT = `Your task is to generate a prompt to use 
 export const POST = async (request: NextRequest) => {
     console.log("API Post request on video/workflows/thumbnail");
 
-    const { POST: handler } = serve(
+    const { POST: handler } = serve<InputType>(
         async (context) => {
-            const input = context.requestPayload as InputType;
+            const input = context.requestPayload;
             const { videoId, userId, prompt } = input;
+            publishToEventChannel(
+                buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                VideoEvents.Started,
+            );
 
             const video = await context.run(VideoEvents.GetVideo, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                    VideoEvents.GetVideo,
+                );
+
                 const [video] = await db
                     .select()
                     .from(videosTable)
@@ -44,6 +52,11 @@ export const POST = async (request: NextRequest) => {
             if (!video) throw new Error("Video not found");
 
             await context.run(VideoEvents.CleanUp, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                    VideoEvents.CleanUp,
+                );
+
                 if (video.thumbnailKey) {
                     const utapi = new UTApi();
                     await utapi.deleteFiles(video.thumbnailKey);
@@ -62,8 +75,12 @@ export const POST = async (request: NextRequest) => {
             let finalPrompt = prompt;
             if (!prompt) {
                 const transcript = await context.run(VideoEvents.GetTranscript, async () => {
+                    publishToEventChannel(
+                        buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                        VideoEvents.GetTranscript,
+                    );
+
                     const trackUrl = getDefaultMuxTrackUrl(video.muxPlaybackId!, video.muxTrackId!);
-                    console.log("Fetching transcript from:", trackUrl);
                     // Fetch the transcript from the Mux track URL
                     const response = await fetch(trackUrl);
 
@@ -76,6 +93,11 @@ export const POST = async (request: NextRequest) => {
                 });
 
                 finalPrompt = await context.run(VideoEvents.GeneratePrompt, async () => {
+                    publishToEventChannel(
+                        buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                        VideoEvents.GeneratePrompt,
+                    );
+
                     const videoData = `Video Title: ${video.title ?? "Untitled"}\nVideo Description: ${video.description ?? "No description"}\nTranscript: ${transcript}`;
 
                     const result = await generateGeminiContent(VIDEO_THUMBNAIL_SYSTEM_PROMPT, videoData);
@@ -87,7 +109,11 @@ export const POST = async (request: NextRequest) => {
             }
 
             const uploadData = await context.run(VideoEvents.GenerateThumbnail, async () => {
-                console.log("Generating thumbnail with prompt:", finalPrompt);
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                    VideoEvents.GenerateThumbnail,
+                );
+
                 const response = await generateWorkersAIImage(finalPrompt);
 
                 if (!response.ok) throw new Error("Failed to generate thumbnail");
@@ -105,6 +131,11 @@ export const POST = async (request: NextRequest) => {
             });
 
             await context.run(VideoEvents.UpdateVideo, async () => {
+                publishToEventChannel(
+                    buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                    VideoEvents.UpdateVideo,
+                );
+
                 const [updatedVideo] = await db
                     .update(videosTable)
                     .set({
@@ -118,9 +149,21 @@ export const POST = async (request: NextRequest) => {
 
                 return updatedVideo;
             });
+
+            publishToEventChannel(
+                buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
+                VideoEvents.Finished,
+            );
         },
         {
-            verbose: new StepLogger() as unknown as WorkflowLogger,
+            failureFunction: async ({ context, failStatus, failResponse, failHeaders }) => {
+                console.error("Failed to process video description workflow", failResponse);
+
+                publishToEventChannel(
+                    buildEventChannelName(context.requestPayload.videoId, VideoProcedures.GenerateDescription),
+                    VideoEvents.Error,
+                );
+            },
         },
     );
 

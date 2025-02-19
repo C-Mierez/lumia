@@ -5,8 +5,10 @@ import { UTApi } from "uploadthing/server";
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
 import { env } from "@/env";
+import { publishToEventChannel } from "@lib/server/event-channel";
 import { mux } from "@lib/server/mux";
-import { getDefaultMuxPreviewUrl, getDefaultMuxThumbnailUrl } from "@lib/utils";
+import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
+import { buildEventChannelName, VideoEvents, VideoProcedures } from "@modules/videos/server/constants";
 import type {
     VideoAssetCreatedWebhookEvent,
     VideoAssetDeletedWebhookEvent,
@@ -39,7 +41,7 @@ export const POST = async (request: Request) => {
         env.MUX_WEBHOOK_SECRET,
     );
 
-    console.log("Webhook received", payload.type as WebhookEvent["type"]);
+    console.log("Mux Webhook received", payload.type as WebhookEvent["type"]);
 
     switch (payload.type as WebhookEvent["type"]) {
         case "video.asset.created": {
@@ -48,58 +50,47 @@ export const POST = async (request: Request) => {
 
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
 
-            await db
+            const [video] = await db
                 .update(videosTable)
                 .set({
                     muxAssetId: data.id,
                     muxStatus: data.status,
                 })
-                .where(eq(videosTable.muxUploadId, data.upload_id));
+                .where(eq(videosTable.muxUploadId, data.upload_id))
+                .returning();
+
+            if (!video) return new Response("Video not found", { status: 404 });
+
+            publishToEventChannel(
+                buildEventChannelName(video.id, VideoProcedures.Processing),
+                VideoEvents.MuxAssetCreated,
+            );
             break;
         }
         case "video.asset.ready": {
-            // Update the muxStatus to ready in the database
             const data = payload.data as VideoAssetReadyWebhookEvent["data"];
-            const playbackId = data.playback_ids?.[0].id; // This should always exist when the "ready" event is received
 
+            const playbackId = data.playback_ids?.[0].id; // This should always exist when the "ready" event is received
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
             if (!data.playback_ids || !playbackId) return new Response("No Playback ID found", { status: 400 });
 
-            const muxThumbnailUrl = getDefaultMuxThumbnailUrl(playbackId);
-            const muxPreviewUrl = getDefaultMuxPreviewUrl(playbackId);
+            // Verify that the video has not been processed as ready yet
+            // Set the playback ID otherwise
+            const [video] = await db
+                .update(videosTable)
+                .set({ muxPlaybackId: playbackId })
+                .where(and(eq(videosTable.muxAssetId, data.id), isNull(videosTable.muxPlaybackId)))
+                .returning();
 
-            const duration = data.duration ? Math.floor(data.duration * 1000) : 0;
+            if (!video) return new Response("Video already processed", { status: 202 });
 
-            // Upload the thumbnail and preview to UploadThing
-            const utapi = new UTApi();
-            const [thumbnailFile, previewFile] = await utapi.uploadFilesFromUrl([muxThumbnailUrl, muxPreviewUrl]);
-
-            if (!thumbnailFile.data || !previewFile.data)
-                return new Response("Failed to upload thumbnail or preview", { status: 500 });
-
-            // Update the video in the database
-            await db.batch([
-                db
-                    .update(videosTable)
-                    .set({
-                        muxStatus: data.status,
-                        muxPlaybackId: playbackId,
-                        muxAssetId: data.id,
-                        previewUrl: previewFile.data.ufsUrl,
-                        previewKey: previewFile.data.key,
-                        duration,
-                    })
-                    .where(eq(videosTable.muxUploadId, data.upload_id!)),
-
-                // Update the thumbnail only if it's null
-                db
-                    .update(videosTable)
-                    .set({
-                        thumbnailUrl: thumbnailFile.data.ufsUrl,
-                        thumbnailKey: thumbnailFile.data.key,
-                    })
-                    .where(and(eq(videosTable.muxUploadId, data.upload_id!), isNull(videosTable.thumbnailKey))),
-            ]);
+            await workflowClient.trigger({
+                url: buildWorkflowURL("VideoAssetReady"),
+                body: {
+                    playbackId,
+                    data,
+                },
+            });
 
             break;
         }
@@ -109,12 +100,20 @@ export const POST = async (request: Request) => {
 
             if (!data.upload_id) return new Response("No Upload ID found", { status: 400 });
 
-            await db
+            const [video] = await db
                 .update(videosTable)
                 .set({
                     muxStatus: data.status,
                 })
-                .where(eq(videosTable.muxUploadId, data.upload_id));
+                .where(eq(videosTable.muxUploadId, data.upload_id))
+                .returning();
+
+            if (!video) return new Response("Video not found", { status: 404 });
+
+            publishToEventChannel(
+                buildEventChannelName(video.id, VideoProcedures.Processing),
+                VideoEvents.MuxAssetErrored,
+            );
 
             break;
         }
@@ -126,12 +125,17 @@ export const POST = async (request: Request) => {
 
             const [video] = await db.delete(videosTable).where(eq(videosTable.muxUploadId, data.upload_id)).returning();
 
-            if (!video) return new Response("Video not found", { status: 404 });
+            if (!video) return new Response("Video not found", { status: 202 });
 
             // Delete the thumbnail and preview from UploadThing
             const utapi = new UTApi();
             const keys = [video.thumbnailKey, video.previewKey].filter((key) => key !== null);
             await utapi.deleteFiles(keys);
+
+            publishToEventChannel(
+                buildEventChannelName(video.id, VideoProcedures.Processing),
+                VideoEvents.MuxAssetDeleted,
+            );
 
             break;
         }
@@ -142,13 +146,21 @@ export const POST = async (request: Request) => {
 
             if (!data.asset_id) return new Response("No Asset ID found", { status: 400 });
 
-            await db
+            const [video] = await db
                 .update(videosTable)
                 .set({
                     muxTrackId: data.id,
                     muxTrackStatus: data.status,
                 })
-                .where(eq(videosTable.muxAssetId, data.asset_id));
+                .where(eq(videosTable.muxAssetId, data.asset_id))
+                .returning();
+
+            if (!video) return new Response("Video not found", { status: 404 });
+
+            publishToEventChannel(
+                buildEventChannelName(video.id, VideoProcedures.Processing),
+                VideoEvents.MuxAssetTrackReady,
+            );
 
             break;
         }

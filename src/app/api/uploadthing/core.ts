@@ -47,10 +47,6 @@ export const ourFileRouter = {
             return { user, ...input };
         })
         .onUploadComplete(async ({ metadata, file }) => {
-            console.log("Upload complete for userId:", metadata.user.id, metadata.user.name);
-
-            console.log("file url", file.ufsUrl);
-
             await db
                 .update(videosTable)
                 .set({ thumbnailUrl: file.ufsUrl, thumbnailKey: file.key })

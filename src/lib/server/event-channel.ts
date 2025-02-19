@@ -2,38 +2,7 @@ import { stream } from "fetch-event-stream";
 
 import { env } from "@/env";
 
-import { GeneralEvents, VideoEvents, VideoStatus } from "./events";
 import { redis } from "./redis";
-
-export function parseVideoEventToStatus(event: string) {
-    // Parse event-stream response
-    const [command, channel, data] = event.split(",");
-
-    if (command !== "message") return null;
-
-    switch (data) {
-        case VideoEvents.GetVideo:
-            return VideoStatus.GetVideo;
-        case VideoEvents.GenerateTile:
-            return VideoStatus.GenerateTile;
-        case VideoEvents.GenerateDescription:
-            return VideoStatus.GenerateDescription;
-        case VideoEvents.GenerateThumbnail:
-            return VideoStatus.GenerateThumbnail;
-        case VideoEvents.GetTranscript:
-            return VideoStatus.GetTranscript;
-        case VideoEvents.UpdateVideo:
-            return VideoStatus.UpdateVideo;
-        case VideoEvents.GeneratePrompt:
-            return VideoStatus.GeneratePrompt;
-        case VideoEvents.CleanUp:
-            return VideoStatus.CleanUp;
-        case GeneralEvents.Finished:
-            return VideoStatus.Finished;
-        default:
-            return null;
-    }
-}
 
 export async function subscribeToEventChannel(channel: string, signal?: AbortSignal) {
     /**

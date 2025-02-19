@@ -1,18 +1,19 @@
 import { and, eq } from "drizzle-orm";
+import { ServerSentEventMessage } from "fetch-event-stream";
 import { UTApi } from "uploadthing/server";
 import { z } from "zod";
 
 import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
-import { authedProcedure, baseProcedure, createTRPCRouter } from "@/trpc/init";
-import { parseVideoEventToStatus, subscribeToEventChannel } from "@lib/server/event-channel";
+import { authedProcedure, createTRPCRouter } from "@/trpc/init";
+import { publishToEventChannel, subscribeToEventChannel } from "@lib/server/event-channel";
 import { mux } from "@lib/server/mux";
-import { redis } from "@lib/server/redis";
 import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
 import { getDefaultMuxThumbnailUrl } from "@lib/utils";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
+import { buildEventChannelName, VideoEvents, VideoEventStatusMap, VideoProcedures, VideoStatus } from "./constants";
 
 export const videosRouter = createTRPCRouter({
     requestUpload: authedProcedure
@@ -29,14 +30,11 @@ export const videosRouter = createTRPCRouter({
             if (!!currentUploadId) {
                 const check = await mux.video.uploads.retrieve(currentUploadId);
                 if (check.status === "waiting" || check.status === "asset_created") {
-                    console.log("Existing upload found");
                     return {
                         url: check.url,
                     };
                 }
             }
-
-            console.log("Creating new upload");
 
             const upload = await mux.video.uploads.create({
                 new_asset_settings: {
@@ -61,6 +59,8 @@ export const videosRouter = createTRPCRouter({
             if (!upload.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
             await db.update(videosTable).set({ muxUploadId: upload.id }).where(eq(videosTable.id, videoId)).returning();
+
+            publishToEventChannel(buildEventChannelName(videoId, VideoProcedures.Processing), VideoEvents.Started);
 
             return {
                 url: upload.url,
@@ -122,11 +122,9 @@ export const videosRouter = createTRPCRouter({
 
             if (!!deletedVideo.muxAssetId) await mux.video.assets.delete(deletedVideo.muxAssetId);
 
-            if (!!deletedVideo.thumbnailKey || !!deletedVideo.previewKey) {
-                const utapi = new UTApi();
-                const keys = [deletedVideo.thumbnailKey, deletedVideo.previewKey].filter((key) => key !== null);
-                await utapi.deleteFiles(keys);
-            }
+            const utapi = new UTApi();
+            if (!!deletedVideo.thumbnailKey) await utapi.deleteFiles([deletedVideo.thumbnailKey]);
+            if (!!deletedVideo.previewKey) await utapi.deleteFiles([deletedVideo.previewKey]);
 
             return deletedVideo;
         }),
@@ -201,64 +199,68 @@ export const videosRouter = createTRPCRouter({
     /* -------------------------------------------------------------------------- */
     /*                                Subscriptions                               */
     /* -------------------------------------------------------------------------- */
-    onTitleGenerationStatus: authedProcedure.input(z.object({ workflowId: z.string() })).subscription(async function* ({
+    onGenerateTitle: authedProcedure.input(z.object({ videoId: z.string().uuid() })).subscription(async function* ({
         ctx,
         input,
         signal,
     }) {
-        const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+        const events = await subscribeToEventChannel(
+            buildEventChannelName(input.videoId, VideoProcedures.GenerateTitle),
+            signal,
+        );
 
-        for await (const event of events) {
-            yield {
-                status: parseVideoEventToStatus(event.data!),
-            };
-        }
+        yield* handleVideoEvents(events);
     }),
-    onDescriptionGenerationStatus: authedProcedure
-        .input(z.object({ workflowId: z.string() }))
+    onGenerateDescription: authedProcedure
+        .input(z.object({ videoId: z.string().uuid() }))
         .subscription(async function* ({ ctx, input, signal }) {
-            const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+            const events = await subscribeToEventChannel(
+                buildEventChannelName(input.videoId, VideoProcedures.GenerateDescription),
+                signal,
+            );
 
-            for await (const event of events) {
-                yield {
-                    status: parseVideoEventToStatus(event.data!),
-                };
-            }
+            yield* handleVideoEvents(events);
         }),
-    onThumbnailGenerationStatus: authedProcedure
-        .input(z.object({ workflowId: z.string() }))
-        .subscription(async function* ({ ctx, input, signal }) {
-            const events = await subscribeToEventChannel(`${input.workflowId}:progress`, signal);
+    onGenerateThumbnail: authedProcedure.input(z.object({ videoId: z.string().uuid() })).subscription(async function* ({
+        ctx,
+        input,
+        signal,
+    }) {
+        const events = await subscribeToEventChannel(
+            buildEventChannelName(input.videoId, VideoProcedures.GenerateThumbnail),
+            signal,
+        );
 
-            for await (const event of events) {
-                yield {
-                    status: parseVideoEventToStatus(event.data!),
-                };
-            }
-        }),
-    // onTest2: authedProcedure.subscription(async function* ({ ctx, input, signal }) {
-    //     const events = await subscribeToEventChannel(`test2`, signal);
+        yield* handleVideoEvents(events);
+    }),
+    onVideoProcessing: authedProcedure.input(z.object({ videoId: z.string().uuid() })).subscription(async function* ({
+        ctx,
+        input,
+        signal,
+    }) {
+        const channel = buildEventChannelName(input.videoId, VideoProcedures.Processing);
+        const events = await subscribeToEventChannel(channel, signal);
 
-    //     for await (const event of events) {
-    //         yield {
-    //             data: event.data,
-    //         };
-    //     }
-    // }),
-    // test: baseProcedure.mutation(async ({ ctx }) => {
-    //     // Wait 3 seconds
-    //     // await redis.publish("test2", "status");
-    //     // await new Promise((resolve) => setTimeout(resolve, 3000));
-    //     // await redis.publish("test2", "I AM ANOTHER EVENT 2");
-    //     const data = "subscribe,test2,1";
-
-    //     console.log(data.split(","));
-    // }),
-    // test2: baseProcedure.mutation(async ({ ctx }) => {
-    //     await redis.publish("test", "status");
-    //     await new Promise((resolve) => setTimeout(resolve, 3000));
-    //     await redis.publish("test", "I AM ANOTHER EVENT 2");
-
-    //     return "test2";
-    // }),
+        yield* handleVideoEvents(events);
+    }),
 });
+
+async function* handleVideoEvents(events: AsyncGenerator<ServerSentEventMessage, void, unknown>) {
+    for await (const event of events) {
+        const [command, channel, data] = event.data!.split(",");
+
+        if (command !== "message") continue;
+
+        function isVideoEvent(value: string): value is VideoEvents {
+            return Object.values(VideoEvents).includes(value as VideoEvents);
+        }
+
+        if (!data || !isVideoEvent(data)) continue;
+
+        const status = VideoEventStatusMap[data];
+
+        yield {
+            status: status,
+        };
+    }
+}
