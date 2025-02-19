@@ -3,8 +3,8 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev:all": "concurrently \"bun run dev:webhook\" \"bun run dev\"",
-        "dev:prod": "bun run build && concurrently \"bun run dev:webhook\" \"bun run start\"",
+        "dev:all": "NODE_OPTIONS='--no-deprecation' concurrently \"bun run dev:webhook\" \"bun run dev\"",
+        "dev:prod": "NODE_OPTIONS='--no-deprecation' bun run build && concurrently \"bun run dev:webhook\" \"bun run start\"",
         "dev": "next dev --turbopack",
         "dev:webhook": "bun --env-file=.env.local run dev:ngrok",
         "dev:ngrok": "ngrok http --url=$NGROK_URL 3000",
@@ -63,7 +63,7 @@
         "svix": "^1.45.1",
         "tailwind-merge": "^3.0.1",
         "tailwindcss-animate": "^1.0.7",
-        "uploadthing": "^7.5.0",
+        "uploadthing": "^7.5.2",
         "vaul": "^1.1.2",
         "zod": "^3.24.2"
     },
