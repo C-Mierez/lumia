@@ -152,9 +152,9 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
                 <Separator />
 
                 {/* Form fields */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
                     {/* Details Section */}
-                    <div className="flex flex-col gap-4 lg:col-span-3">
+                    <div className="order-2 flex flex-col gap-4 md:order-1 xl:col-span-3">
                         <FormSectionHeader
                             title="General"
                             description=" Fill in the fields with the information of your video"
@@ -185,7 +185,7 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
 
                         <ThumbnailField form={form} video={video} />
                     </div>
-                    <div className="flex flex-col gap-4 lg:col-span-2">
+                    <div className="order-1 flex flex-col gap-4 md:order-2 xl:col-span-2">
                         <VideoIsland video={video} />
                     </div>
                 </div>
@@ -240,8 +240,18 @@ function VideoUpdateFormHeader({
 
             {/* Actions */}
             <div className="flex gap-2">
-                <Button type="button" variant={"ghost"} disabled={!canRefresh} onClick={onInvalidation}>
-                    {!canRefresh ? <Loader2Icon className="animate-spin" /> : <RefreshCwIcon />}
+                <Button
+                    type="button"
+                    variant={"ghost"}
+                    disabled={!canRefresh}
+                    onClick={onInvalidation}
+                    className="group"
+                >
+                    {!canRefresh ? (
+                        <Loader2Icon className="animate-spin" />
+                    ) : (
+                        <RefreshCwIcon className="transition-transform group-hover:rotate-90" />
+                    )}
                 </Button>
 
                 <Button type="submit" variant={"secondary"} disabled={!canSubmit}>
@@ -269,7 +279,7 @@ function VideoUpdateFormHeader({
                     onCancel={() => {}}
                     destructive
                 />
-                <Button type="button" variant={"destructive"} onClick={() => setShowDeleteModal(true)}>
+                <Button type="button" variant={"destructiveMuted"} onClick={() => setShowDeleteModal(true)}>
                     <Trash2Icon />
                 </Button>
             </div>

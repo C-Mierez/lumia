@@ -59,7 +59,11 @@ export default function VideoIsland({ video }: VideoIslandProps) {
 }
 
 function ProcessedVideo({ video }: VideoIslandProps) {
-    return <VideoPlayer playbackId={video.muxPlaybackId} thumbnailUrl={video.thumbnailUrl} />;
+    return (
+        <div className="aspect-video shrink-0 overflow-hidden rounded-md">
+            <VideoPlayer playbackId={video.muxPlaybackId} thumbnailUrl={video.thumbnailUrl} />;
+        </div>
+    );
 }
 
 function ProcessingVideo({ video }: VideoIslandProps) {

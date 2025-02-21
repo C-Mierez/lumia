@@ -1,8 +1,6 @@
-import { useIsMobile } from "@hooks/use-mobile";
 import { DialogTitle } from "@radix-ui/react-dialog";
 
 import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./ui/drawer";
 
 interface ResponsiveModalProps {
     children: React.ReactNode;
@@ -21,19 +19,19 @@ export default function ResponsiveModal({
     className,
     hideClose,
 }: ResponsiveModalProps) {
-    const isMobile = useIsMobile();
+    // const isMobile = useIsMobile();
 
-    if (isMobile)
-        return (
-            <Drawer open={isOpen} onOpenChange={onOpenChange} modal>
-                <DrawerContent className={className}>
-                    <DrawerHeader>
-                        <DrawerTitle>{header}</DrawerTitle>
-                    </DrawerHeader>
-                    {children}
-                </DrawerContent>
-            </Drawer>
-        );
+    // if (isMobile)
+    //     return (
+    //         <Drawer open={isOpen} onOpenChange={onOpenChange} modal>
+    //             <DrawerContent className={className}>
+    //                 <DrawerHeader>
+    //                     <DrawerTitle>{header}</DrawerTitle>
+    //                 </DrawerHeader>
+    //                 {children}
+    //             </DrawerContent>
+    //         </Drawer>
+    //     );
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange} modal>

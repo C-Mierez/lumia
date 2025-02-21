@@ -34,7 +34,7 @@ export function TitleField({ form, video }: TitleFieldProps) {
                             <GenWithAIWrapper video={video} onDisabled={setIsDisabled} />
                         </div>
                         <FormControl>
-                            <Input {...field} placeholder="Add a title to your video" />
+                            <Input {...field} placeholder="Add a title to your video" className="text-sm" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
