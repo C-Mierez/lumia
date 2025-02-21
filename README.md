@@ -15,6 +15,7 @@ A Youtube-inspired video-sharing website.
 - Clerk Auth
 - Svix Webhook
 - Upstash Redis + Ratelimit
+- Upstash Workflow
 - Tailwind V4
 
 --- Local:
@@ -24,13 +25,14 @@ A Youtube-inspired video-sharing website.
 
 ### Features
 
-- [x] User-uploaded videos
+- [x] User-uploaded videos (With managed details, categories, tags, etc)
 - [ ] Custom-built video player
-- [x] Real-time video processing (Mux)
+- [x] Video processing service (Mux)
 - [ ] Video playlist creation and management
 - [ ] Channel subscriptions
 - [ ] Video comments and likes system
 - [x] AI-Generation tools for the user to use (Video title, description, thumbnail)
+- [x] Real-time status updates for long-running tasks using SSE
 
 --- Tech
 
