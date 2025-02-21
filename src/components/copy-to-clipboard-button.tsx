@@ -1,19 +1,23 @@
 import { useState } from "react";
 
 import { Check, CopyIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@lib/utils";
 
 import { Button } from "./ui/button";
-import { toast } from "sonner";
 
 interface CopyToClipboardButtonProps {
     targetContent: string;
     className?: string;
-    disabled: boolean;
+    disabled?: boolean;
 }
 
-export default function CopyToClipboardButton({ targetContent, disabled, className }: CopyToClipboardButtonProps) {
+export default function CopyToClipboardButton({
+    targetContent,
+    disabled = false,
+    className,
+}: CopyToClipboardButtonProps) {
     const [didCopy, setDidCopy] = useState(false);
 
     const onClick = () => {

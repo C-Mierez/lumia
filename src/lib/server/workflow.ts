@@ -15,6 +15,10 @@ export function buildWorkflowURL(endpoint: keyof typeof WORKFLOW_ENDPOINTS) {
     return `${env.UPSTASH_WORKFLOW_URL}/api/${WORKFLOW_ENDPOINTS[endpoint]}`;
 }
 
+export function buildRedisKey(workflowRunId: string, key: string) {
+    return `${workflowRunId}:${key}`;
+}
+
 // //@ts-expect-error since we had to redeclare the workflowRunId
 // export class StepLogger extends WorkflowLogger {
 //     //@ts-expect-error since we had to redeclare the workflowRunId

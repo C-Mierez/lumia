@@ -27,7 +27,7 @@ export const categoriesTable = pgTable(
     (t) => [uniqueIndex("name_idx").on(t.name)],
 );
 
-export const videoVisibilityEnum = pgEnum("video_visibility", ["public", "private"]);
+export const videoVisibilityEnum = pgEnum("video_visibility", ["public", "private", "unlisted"]);
 
 export const videosTable = pgTable("videos", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -59,4 +59,15 @@ export const videosTable = pgTable("videos", {
 
 export const videoSelectSchema = createSelectSchema(videosTable);
 export const videoInsertSchema = createInsertSchema(videosTable);
-export const videoUpdateSchema = createUpdateSchema(videosTable);
+export const videoUpdateSchema = createUpdateSchema(videosTable).refine(
+    (data) => {
+        if (data.visibility === "public" && !data.muxPlaybackId) {
+            return false;
+        }
+        return true;
+    },
+    {
+        message: "You can't set the visibility to public until the video is processed",
+        path: ["visibility"],
+    },
+);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import SlotModal from "@components/slot-modal";
 
@@ -12,10 +12,11 @@ interface VideoModalViewProps {
 
 export default function VideoModalView({ videoId }: VideoModalViewProps) {
     const router = useRouter();
+    const pathname = usePathname();
 
     const onOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
-            router.back();
+            if (pathname.startsWith("/studio/video/")) router.back();
         }
     };
 

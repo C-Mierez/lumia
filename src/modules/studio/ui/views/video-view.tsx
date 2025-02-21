@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import VideoEditSection from "../sections/video-edit-section";
 
@@ -10,10 +10,11 @@ interface VideoViewProps {
 
 export default function VideoView({ videoId }: VideoViewProps) {
     const router = useRouter();
+    const pathname = usePathname();
 
     const onOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
-            router.back();
+            if (pathname.startsWith("/studio/video/")) router.back();
         }
     };
 

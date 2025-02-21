@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { ServerSentEventMessage } from "fetch-event-stream";
 import { UTApi } from "uploadthing/server";
 import { z } from "zod";
@@ -6,14 +6,14 @@ import { z } from "zod";
 import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
-import { publishToEventChannel, subscribeToEventChannel } from "@lib/server/event-channel";
+import { cacheEvent, getCachedEvent, publishToEventChannel, subscribeToEventChannel } from "@lib/server/event-channel";
 import { mux } from "@lib/server/mux";
 import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
 import { getDefaultMuxThumbnailUrl } from "@lib/utils";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
-import { buildEventChannelName, VideoEvents, VideoEventStatusMap, VideoProcedures, VideoStatus } from "./constants";
+import { buildEventChannelName, VideoEvents, VideoEventStatusMap, VideoProcedures } from "./constants";
 
 export const videosRouter = createTRPCRouter({
     requestUpload: authedProcedure
@@ -58,7 +58,11 @@ export const videosRouter = createTRPCRouter({
 
             if (!upload.url) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-            await db.update(videosTable).set({ muxUploadId: upload.id }).where(eq(videosTable.id, videoId)).returning();
+            await db
+                .update(videosTable)
+                .set({ muxUploadId: upload.id, updatedAt: new Date() })
+                .where(eq(videosTable.id, videoId))
+                .returning();
 
             publishToEventChannel(buildEventChannelName(videoId, VideoProcedures.Processing), VideoEvents.Started);
 
@@ -86,7 +90,7 @@ export const videosRouter = createTRPCRouter({
         if (!input.id) throw new TRPCError({ code: "BAD_REQUEST", message: "id is required" });
 
         // TODO Enforce visibility restrictions server-side
-
+        // Video cant be made public if it has not been processed
         const [updatedVideo] = await db
             .update(videosTable)
             .set({
@@ -96,7 +100,13 @@ export const videosRouter = createTRPCRouter({
                 visibility: input.visibility,
                 updatedAt: new Date(),
             })
-            .where(and(eq(videosTable.id, input.id), eq(videosTable.userId, user.id)))
+            .where(
+                and(
+                    eq(videosTable.id, input.id),
+                    eq(videosTable.userId, user.id),
+                    input.visibility === "public" ? isNotNull(videosTable.muxPlaybackId) : undefined,
+                ),
+            )
             .returning();
 
         if (!updatedVideo) throw new TRPCError({ code: "NOT_FOUND" });
@@ -158,43 +168,79 @@ export const videosRouter = createTRPCRouter({
 
             const updatedVideo = await db
                 .update(videosTable)
-                .set({ thumbnailUrl: thumbnailFile.data.ufsUrl, thumbnailKey: thumbnailFile.data.key })
+                .set({
+                    thumbnailUrl: thumbnailFile.data.ufsUrl,
+                    thumbnailKey: thumbnailFile.data.key,
+                    updatedAt: new Date(),
+                })
                 .where(and(eq(videosTable.id, id), eq(videosTable.userId, user.id)))
                 .returning();
 
             return video;
         }),
     generateThumbnail: authedProcedure
-        .input(z.object({ id: z.string().uuid(), prompt: z.string() }))
+        .input(z.object({ videoId: z.string().uuid(), prompt: z.string() }))
         .mutation(async ({ ctx, input }) => {
             const { user } = ctx;
 
-            const workflowId = await workflowClient.trigger({
+            // Check cache for on-going workflow
+            const cachedVideoEvent = await getCachedEvent(
+                buildEventChannelName(input.videoId, VideoProcedures.GenerateThumbnail),
+            );
+            if (cachedVideoEvent && cachedVideoEvent !== VideoEvents.Error) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Thumbnail generation is already in progress" });
+            }
+
+            publishToEventChannel(
+                buildEventChannelName(input.videoId, VideoProcedures.GenerateThumbnail),
+                VideoEvents.Started,
+            );
+
+            await workflowClient.trigger({
                 url: buildWorkflowURL("VideoThumbnail"),
-                body: { userId: user.id, videoId: input.id, prompt: input.prompt },
+                body: { userId: user.id, videoId: input.videoId, prompt: input.prompt },
             });
-
-            return workflowId;
         }),
-    generateDescription: authedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    generateDescription: authedProcedure
+        .input(z.object({ videoId: z.string().uuid() }))
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+
+            // Check cache for on-going workflow
+            const cachedVideoEvent = await getCachedEvent(
+                buildEventChannelName(input.videoId, VideoProcedures.GenerateDescription),
+            );
+            if (cachedVideoEvent && cachedVideoEvent !== VideoEvents.Error) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Description generation is already in progress" });
+            }
+
+            publishToEventChannel(
+                buildEventChannelName(input.videoId, VideoProcedures.GenerateDescription),
+                VideoEvents.Started,
+            );
+
+            await workflowClient.trigger({
+                url: buildWorkflowURL("VideoDescription"),
+                body: { userId: user.id, videoId: input.videoId },
+            });
+        }),
+    generateTitle: authedProcedure.input(z.object({ videoId: z.string().uuid() })).mutation(async ({ ctx, input }) => {
         const { user } = ctx;
 
-        const workflowId = await workflowClient.trigger({
-            url: buildWorkflowURL("VideoDescription"),
-            body: { userId: user.id, videoId: input.id },
-        });
+        // Check cache for on-going workflow
+        const cachedVideoEvent = await getCachedEvent(
+            buildEventChannelName(input.videoId, VideoProcedures.GenerateTitle),
+        );
+        if (cachedVideoEvent && cachedVideoEvent !== VideoEvents.Error) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Title generation is already in progress" });
+        }
 
-        return workflowId;
-    }),
-    generateTitle: authedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-        const { user } = ctx;
+        publishToEventChannel(buildEventChannelName(input.videoId, VideoProcedures.GenerateTitle), VideoEvents.Started);
 
-        const workflowId = await workflowClient.trigger({
+        await workflowClient.trigger({
             url: buildWorkflowURL("VideoTitle"),
-            body: { userId: user.id, videoId: input.id },
+            body: { userId: user.id, videoId: input.videoId },
         });
-
-        return workflowId;
     }),
     /* -------------------------------------------------------------------------- */
     /*                                Subscriptions                               */
@@ -204,34 +250,34 @@ export const videosRouter = createTRPCRouter({
         input,
         signal,
     }) {
-        const events = await subscribeToEventChannel(
-            buildEventChannelName(input.videoId, VideoProcedures.GenerateTitle),
-            signal,
-        );
+        const channel = buildEventChannelName(input.videoId, VideoProcedures.GenerateTitle);
 
-        yield* handleVideoEvents(events);
+        // Subscribe to channel
+        const events = await subscribeToEventChannel(channel, signal);
+
+        yield* handleVideoEvents(events, channel);
     }),
     onGenerateDescription: authedProcedure
         .input(z.object({ videoId: z.string().uuid() }))
         .subscription(async function* ({ ctx, input, signal }) {
-            const events = await subscribeToEventChannel(
-                buildEventChannelName(input.videoId, VideoProcedures.GenerateDescription),
-                signal,
-            );
+            const channel = buildEventChannelName(input.videoId, VideoProcedures.GenerateDescription);
 
-            yield* handleVideoEvents(events);
+            // Subscribe to channel
+            const events = await subscribeToEventChannel(channel, signal);
+
+            yield* handleVideoEvents(events, channel);
         }),
     onGenerateThumbnail: authedProcedure.input(z.object({ videoId: z.string().uuid() })).subscription(async function* ({
         ctx,
         input,
         signal,
     }) {
-        const events = await subscribeToEventChannel(
-            buildEventChannelName(input.videoId, VideoProcedures.GenerateThumbnail),
-            signal,
-        );
+        const channel = buildEventChannelName(input.videoId, VideoProcedures.GenerateThumbnail);
 
-        yield* handleVideoEvents(events);
+        // Subscribe to channel
+        const events = await subscribeToEventChannel(channel, signal);
+
+        yield* handleVideoEvents(events, channel);
     }),
     onVideoProcessing: authedProcedure.input(z.object({ videoId: z.string().uuid() })).subscription(async function* ({
         ctx,
@@ -239,13 +285,25 @@ export const videosRouter = createTRPCRouter({
         signal,
     }) {
         const channel = buildEventChannelName(input.videoId, VideoProcedures.Processing);
+
+        // Subscribe to channel
         const events = await subscribeToEventChannel(channel, signal);
 
-        yield* handleVideoEvents(events);
+        yield* handleVideoEvents(events, channel);
     }),
 });
 
-async function* handleVideoEvents(events: AsyncGenerator<ServerSentEventMessage, void, unknown>) {
+async function* handleVideoEvents(events: AsyncGenerator<ServerSentEventMessage, void, unknown>, channel: string) {
+    // Check latest cached event
+    const cachedEvent = await getCachedEvent(channel);
+
+    if (cachedEvent) {
+        yield {
+            // We can assume that the cached event is a valid VideoEvent
+            status: VideoEventStatusMap[cachedEvent as VideoEvents],
+        };
+    }
+
     for await (const event of events) {
         const [command, channel, data] = event.data!.split(",");
 
@@ -258,6 +316,12 @@ async function* handleVideoEvents(events: AsyncGenerator<ServerSentEventMessage,
         if (!data || !isVideoEvent(data)) continue;
 
         const status = VideoEventStatusMap[data];
+
+        // Cache the without awaiting
+        const toCacheEvent = data === VideoEvents.Finished ? null : data;
+        cacheEvent(channel, toCacheEvent).catch((error) => {
+            console.error(`Failed to cache status: ${status} for channel: ${channel}`, error);
+        });
 
         yield {
             status: status,

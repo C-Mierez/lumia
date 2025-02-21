@@ -26,3 +26,11 @@ export async function subscribeToEventChannel(channel: string, signal?: AbortSig
 export async function publishToEventChannel(channel: string, data: string) {
     return await redis.publish(channel, data);
 }
+
+export async function cacheEvent(channel: string, data: string | null) {
+    return await redis.set(channel, data, { ex: 60 * 5 });
+}
+
+export async function getCachedEvent(channel: string) {
+    return (await redis.get(channel)) as string | null;
+}

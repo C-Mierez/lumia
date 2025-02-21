@@ -38,11 +38,11 @@ export enum VideoStatus {
     Finished = "Video processing finished",
     Error = "Error processing video",
     /* ----------------------------------- Mux ---------------------------------- */
-    MuxAssetCreated = "Video asset created",
-    MuxAssetReady = "Video asset ready",
-    MuxAssetErrored = "Video asset errored",
-    MuxAssetDeleted = "Video asset deleted",
-    MuxAssetTrackReady = "Video asset track ready",
+    MuxAssetCreated = "Video created",
+    MuxAssetReady = "Video ready",
+    MuxAssetErrored = "Video errored",
+    MuxAssetDeleted = "Video deleted",
+    MuxAssetTrackReady = "Video track ready",
 }
 
 // Create a mapping between VideoEvents and VideoStatus

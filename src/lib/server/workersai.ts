@@ -1,5 +1,4 @@
 import { env } from "@/env";
-import { UTApi } from "uploadthing/server";
 
 export async function generateWorkersAIImage(prompt: string) {
     const model = "@cf/stabilityai/stable-diffusion-xl-base-1.0";
@@ -13,8 +12,8 @@ export async function generateWorkersAIImage(prompt: string) {
         method: "POST",
         body: JSON.stringify({
             prompt: prompt,
-            height: 1024,
-            width: 1792,
+            height: 1080,
+            width: 1920,
         }),
     });
 

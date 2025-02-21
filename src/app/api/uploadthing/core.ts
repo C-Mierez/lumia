@@ -49,7 +49,7 @@ export const ourFileRouter = {
         .onUploadComplete(async ({ metadata, file }) => {
             await db
                 .update(videosTable)
-                .set({ thumbnailUrl: file.ufsUrl, thumbnailKey: file.key })
+                .set({ thumbnailUrl: file.ufsUrl, thumbnailKey: file.key, updatedAt: new Date() })
                 .where(and(eq(videosTable.id, metadata.videoId), eq(videosTable.userId, metadata.user.id)));
 
             // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback

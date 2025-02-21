@@ -4,7 +4,7 @@ import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
-import { publishToEventChannel } from "@lib/server/event-channel";
+import { cacheEvent, publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
 import { generateWorkersAIImage } from "@lib/server/workersai";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
@@ -30,10 +30,6 @@ export const POST = async (request: NextRequest) => {
         async (context) => {
             const input = context.requestPayload;
             const { videoId, userId, prompt } = input;
-            publishToEventChannel(
-                buildEventChannelName(videoId, VideoProcedures.GenerateThumbnail),
-                VideoEvents.Started,
-            );
 
             const video = await context.run(VideoEvents.GetVideo, async () => {
                 publishToEventChannel(
@@ -66,6 +62,7 @@ export const POST = async (request: NextRequest) => {
                         .set({
                             thumbnailUrl: null,
                             thumbnailKey: null,
+                            updatedAt: new Date(),
                         })
                         .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)));
                 }
@@ -141,6 +138,7 @@ export const POST = async (request: NextRequest) => {
                     .set({
                         thumbnailUrl: uploadData.ufsUrl,
                         thumbnailKey: uploadData.key,
+                        updatedAt: new Date(),
                     })
                     .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
                     .returning();
@@ -159,10 +157,14 @@ export const POST = async (request: NextRequest) => {
             failureFunction: async ({ context, failStatus, failResponse, failHeaders }) => {
                 console.error("Failed to process video description workflow", failResponse);
 
-                publishToEventChannel(
-                    buildEventChannelName(context.requestPayload.videoId, VideoProcedures.GenerateDescription),
-                    VideoEvents.Error,
+                const channel = buildEventChannelName(
+                    context.requestPayload.videoId,
+                    VideoProcedures.GenerateThumbnail,
                 );
+
+                publishToEventChannel(channel, VideoEvents.Error);
+
+                cacheEvent(channel, VideoEvents.Error);
             },
         },
     );

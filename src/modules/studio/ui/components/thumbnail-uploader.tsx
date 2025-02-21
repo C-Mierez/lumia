@@ -37,7 +37,8 @@ export default function ThumbnailUploader({ videoId }: ThumbnailUploaderProps) {
             endpoint={"thumbnailUploader"}
             input={{ videoId }}
             appearance={{
-                container: "bg-muted group relative aspect-video p-0 overflow-hidden m-0",
+                container:
+                    "bg-background-alt group hover:bg-muted cursor-pointer relative aspect-video p-0 overflow-hidden m-0",
                 button: "text-xs bg-accent px-4 py-2 h-auto w-auto m-0 mt-2 ut-readying:bg-accent/50 ut-uploading:bg-accent/50 after:bg-accent",
                 label: "text-muted-foreground font-normal text-sm m-0 mt-2 hover:text-foreground group-hover:text-foreground group-hover:underline",
                 allowedContent: "hidden",

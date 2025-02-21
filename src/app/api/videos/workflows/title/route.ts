@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 import { db } from "@/db";
 import { videosTable } from "@/db/schema";
-import { publishToEventChannel } from "@lib/server/event-channel";
+import { cacheEvent, publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
 import { buildEventChannelName, VideoEvents, VideoProcedures } from "@modules/videos/server/constants";
@@ -28,7 +28,6 @@ export const POST = async (request: NextRequest) => {
         async (context) => {
             const input = context.requestPayload;
             const { videoId, userId } = input;
-            publishToEventChannel(buildEventChannelName(videoId, VideoProcedures.GenerateTitle), VideoEvents.Started);
 
             const video = await context.run(VideoEvents.GetVideo, async () => {
                 publishToEventChannel(
@@ -89,6 +88,7 @@ export const POST = async (request: NextRequest) => {
                     .update(videosTable)
                     .set({
                         title: generatedTitle,
+                        updatedAt: new Date(),
                     })
                     .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
                     .returning();
@@ -102,12 +102,13 @@ export const POST = async (request: NextRequest) => {
         },
         {
             failureFunction: async ({ context, failStatus, failResponse, failHeaders }) => {
-                console.error("Failed to process video description workflow", failResponse);
+                console.error("Failed to process video title workflow", failResponse);
 
-                publishToEventChannel(
-                    buildEventChannelName(context.requestPayload.videoId, VideoProcedures.GenerateDescription),
-                    VideoEvents.Error,
-                );
+                const channel = buildEventChannelName(context.requestPayload.videoId, VideoProcedures.GenerateTitle);
+
+                publishToEventChannel(channel, VideoEvents.Error);
+
+                cacheEvent(channel, VideoEvents.Error);
             },
         },
     );

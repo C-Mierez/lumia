@@ -1,0 +1,1 @@
+ALTER TYPE "public"."video_visibility" ADD VALUE 'unlisted';
