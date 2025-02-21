@@ -89,6 +89,7 @@ export const POST = async (request: Request) => {
                 body: {
                     playbackId,
                     data,
+                    thumbnailKey: video.thumbnailKey,
                 },
             });
 

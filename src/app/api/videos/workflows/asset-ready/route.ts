@@ -13,6 +13,7 @@ import { serve } from "@upstash/workflow/nextjs";
 type InputType = {
     data: VideoAssetReadyWebhookEvent["data"];
     playbackId: string;
+    thumbnailKey: string;
 };
 
 export const POST = async (request: NextRequest) => {
@@ -20,7 +21,7 @@ export const POST = async (request: NextRequest) => {
     const { POST: handler } = serve<InputType>(
         async (context) => {
             const input = context.requestPayload;
-            const { data, playbackId } = input;
+            const { data, playbackId, thumbnailKey } = input;
 
             const [thumbnailFile, previewFile] = await context.run("upload-thumbnail-and-preview", async () => {
                 const muxThumbnailUrl = getDefaultMuxThumbnailUrl(playbackId);
@@ -28,19 +29,27 @@ export const POST = async (request: NextRequest) => {
 
                 // Upload the thumbnail and preview to UploadThing
                 const utapi = new UTApi();
-                const [thumbnailFile, previewFile] = await utapi.uploadFilesFromUrl([muxThumbnailUrl, muxPreviewUrl]);
 
-                if (!thumbnailFile.data || !previewFile.data) {
-                    // Delete the thumbnail and preview from UploadThing
-                    if (thumbnailFile.data) await utapi.deleteFiles([thumbnailFile.data.key]);
-                    if (previewFile.data) await utapi.deleteFiles([previewFile.data.key]);
+                const previewUpload = await utapi.uploadFilesFromUrl(muxPreviewUrl);
+
+                if (previewUpload.error) throw new Error("Failed to upload preview");
+
+                // Skip thumbnail upload if the key already exists
+                if (thumbnailKey) return [undefined, previewUpload];
+
+                const thumbnailUpload = await utapi.uploadFilesFromUrl(muxThumbnailUrl);
+
+                if (thumbnailUpload.error) {
+                    // Clean up the preview from UploadThing
+                    await utapi.deleteFiles(previewUpload.data.key);
+
                     throw new Error("Failed to upload thumbnail or preview");
                 }
 
-                return [thumbnailFile, previewFile];
+                return [thumbnailUpload, previewUpload];
             });
 
-            const a = await context.run("update-video", async () => {
+            await context.run("update-video", async () => {
                 const duration = data.duration ? Math.floor(data.duration * 1000) : 0;
 
                 // Update the video in the database
@@ -59,13 +68,15 @@ export const POST = async (request: NextRequest) => {
                 if (!video) throw new Error("Video not found");
 
                 // Update the thumbnail only if it's null
-                await db
-                    .update(videosTable)
-                    .set({
-                        thumbnailUrl: thumbnailFile.data.ufsUrl,
-                        thumbnailKey: thumbnailFile.data.key,
-                    })
-                    .where(and(eq(videosTable.muxUploadId, data.upload_id!), isNull(videosTable.thumbnailKey)));
+                if (thumbnailFile) {
+                    await db
+                        .update(videosTable)
+                        .set({
+                            thumbnailUrl: thumbnailFile.data.ufsUrl,
+                            thumbnailKey: thumbnailFile.data.key,
+                        })
+                        .where(and(eq(videosTable.muxUploadId, data.upload_id!), isNull(videosTable.thumbnailKey)));
+                }
 
                 await publishToEventChannel(
                     buildEventChannelName(video.id, VideoProcedures.Processing),
