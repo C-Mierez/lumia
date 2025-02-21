@@ -44,7 +44,13 @@ export function TitleField({ form, video }: TitleFieldProps) {
     );
 }
 
-function GenWithAIWrapper(props: { video: StudioGetOneOutput; onDisabled: (disabled: boolean) => void }) {
+function GenWithAIWrapper({
+    video,
+    onDisabled,
+}: {
+    video: StudioGetOneOutput;
+    onDisabled: (disabled: boolean) => void;
+}) {
     const utils = trpc.useUtils();
 
     const generateTitle = trpc.videos.generateTitle.useMutation({
@@ -60,12 +66,12 @@ function GenWithAIWrapper(props: { video: StudioGetOneOutput; onDisabled: (disab
     });
 
     const onTitleStatus = trpc.videos.onGenerateTitle.useSubscription(
-        { videoId: props.video.id },
+        { videoId: video.id },
         {
             async onData(data) {
                 if (data.status === VideoStatus.Finished) {
                     utils.studio.getMany.invalidate();
-                    await utils.studio.getOne.invalidate({ id: props.video.id });
+                    await utils.studio.getOne.invalidate({ id: video.id });
                 }
             },
         },
@@ -75,11 +81,11 @@ function GenWithAIWrapper(props: { video: StudioGetOneOutput; onDisabled: (disab
         generateTitle.isPending ||
         onTitleStatus.status === "connecting" ||
         isDisablingStatus(onTitleStatus.data?.status ?? null) ||
-        !canGenerateAIContent(props.video);
+        !canGenerateAIContent(video);
 
     useEffect(() => {
-        if (canGenerateAIContent(props.video)) props.onDisabled(isGenerationDisabled);
-    }, [isGenerationDisabled]);
+        if (canGenerateAIContent(video)) onDisabled(isGenerationDisabled);
+    }, [video, onDisabled, isGenerationDisabled]);
 
     return (
         <GenWithAIButton
@@ -87,7 +93,7 @@ function GenWithAIWrapper(props: { video: StudioGetOneOutput; onDisabled: (disab
             status={onTitleStatus.data?.status ?? ""}
             tooltip="Generate title using AI"
             onClick={() => {
-                generateTitle.mutate({ videoId: props.video.id });
+                generateTitle.mutate({ videoId: video.id });
             }}
         />
     );

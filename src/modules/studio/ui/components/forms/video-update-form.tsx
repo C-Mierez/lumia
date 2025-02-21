@@ -98,15 +98,15 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
         form.resetField("title", {
             defaultValue: video.title,
         });
-    }, [video.title]);
+    }, [form, video.title]);
     useEffect(() => {
         form.resetField("description", {
             defaultValue: video.description,
         });
-    }, [video.description]);
+    }, [form, video.description]);
     useEffect(() => {
         form.resetField("visibility");
-    }, [video.muxPlaybackId]);
+    }, [form, video.muxPlaybackId]);
 
     const { isDirty, isValid, isSubmitted } = form.formState;
 
@@ -128,13 +128,6 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
     };
 
     /* --------------------------------- Actions -------------------------------- */
-    const invalidateVideo = useCallback(async () => {
-        await utils.studio.getOne.invalidate({ id: video.id });
-    }, [utils, video.id]);
-
-    const invalidateAllVideos = useCallback(async () => {
-        await Promise.all([utils.studio.getMany.invalidate(), utils.studio.getOne.invalidate({ id: video.id })]);
-    }, [utils]);
 
     return (
         <Form {...form}>
@@ -142,7 +135,6 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
                 {/* Header */}
                 <VideoUpdateFormHeader
                     onOpenChange={onOpenChange}
-                    onInvalidation={invalidateAllVideos}
                     canRefresh={canRefresh}
                     canSubmit={canSubmit}
                     onDelete={onDelete}
@@ -216,23 +208,16 @@ function FormSectionHeader({
 
 interface VideoUpdateFormHeaderProps {
     onOpenChange: (isOpen: boolean) => void;
-    onInvalidation: () => void;
     canRefresh: boolean;
     canSubmit: boolean;
     onDelete: () => void;
     video: StudioGetOneOutput;
 }
 
-function VideoUpdateFormHeader({
-    onOpenChange,
-    onInvalidation,
-    canRefresh,
-    canSubmit,
-    onDelete,
-    video,
-}: VideoUpdateFormHeaderProps) {
+function VideoUpdateFormHeader({ onOpenChange, canRefresh, canSubmit, onDelete, video }: VideoUpdateFormHeaderProps) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const shownVideoTitle = !!video.title ? video.title : "Untitled Video";
+    const utils = trpc.useUtils();
     return (
         <div className="flex items-end justify-between">
             {/* Video title */}
@@ -244,7 +229,13 @@ function VideoUpdateFormHeader({
                     type="button"
                     variant={"ghost"}
                     disabled={!canRefresh}
-                    onClick={onInvalidation}
+                    onClick={
+                        canRefresh
+                            ? () => {
+                                  utils.studio.getOne.invalidate({ id: video.id });
+                              }
+                            : undefined
+                    }
                     className="group"
                 >
                     {!canRefresh ? (
