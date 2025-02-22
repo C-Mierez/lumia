@@ -1,9 +1,9 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
-import { videosTable } from "@/db/schema";
+import { categoriesTable, videosTable } from "@/db/schema";
 import { cacheEvent, publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
 import { generateWorkersAIImage } from "@lib/server/workersai";
@@ -38,9 +38,10 @@ export const POST = async (request: NextRequest) => {
                 );
 
                 const [video] = await db
-                    .select()
+                    .select({ ...getTableColumns(videosTable), category: { ...getTableColumns(categoriesTable) } })
                     .from(videosTable)
-                    .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)));
+                    .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
+                    .innerJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
 
                 return video;
             });
@@ -95,7 +96,7 @@ export const POST = async (request: NextRequest) => {
                         VideoEvents.GeneratePrompt,
                     );
 
-                    const videoData = `Video Title: ${video.title ?? "Untitled"}\nVideo Description: ${video.description ?? "No description"}\nTranscript: ${transcript}`;
+                    const videoData = `Video Title: ${video.title ?? "Untitled"}\nVideo Description: ${video.description ?? "No description"}\nCategory:${video.category.name ?? "No Category"}\nTranscript: ${transcript}`;
 
                     const result = await generateGeminiContent(VIDEO_THUMBNAIL_SYSTEM_PROMPT, videoData);
 

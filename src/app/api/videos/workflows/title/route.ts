@@ -1,8 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns } from "drizzle-orm";
 import { NextRequest } from "next/server";
 
 import { db } from "@/db";
-import { videosTable } from "@/db/schema";
+import { categoriesTable, videosTable } from "@/db/schema";
 import { cacheEvent, publishToEventChannel } from "@lib/server/event-channel";
 import { generateGeminiContent } from "@lib/server/gemini";
 import { getDefaultMuxTrackUrl } from "@lib/utils";
@@ -36,9 +36,10 @@ export const POST = async (request: NextRequest) => {
                 );
 
                 const [video] = await db
-                    .select()
+                    .select({ ...getTableColumns(videosTable), category: { ...getTableColumns(categoriesTable) } })
                     .from(videosTable)
-                    .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)));
+                    .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
+                    .innerJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
 
                 return video;
             });
@@ -71,7 +72,9 @@ export const POST = async (request: NextRequest) => {
                     VideoEvents.GenerateTitle,
                 );
 
-                const result = await generateGeminiContent(VIDEO_TITLE_SYSTEM_PROMPT, transcript);
+                const finalPrompt = `Video Description: ${video.description ?? "No description"}\nCategory:${video.category.name ?? "No Category"}\nTranscript: ${transcript}`;
+
+                const result = await generateGeminiContent(VIDEO_TITLE_SYSTEM_PROMPT, finalPrompt);
 
                 if (!result.response) throw new Error("Failed to generate title");
 
