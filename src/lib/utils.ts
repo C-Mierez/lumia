@@ -1,6 +1,9 @@
-import { MuxStatus } from "@modules/videos/constants";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+
+import { MuxStatus } from "@modules/videos/constants";
+
+import { buildSearchQuery } from "./searchParams";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -36,8 +39,8 @@ export function formatMuxStatus(status: string | null) {
 }
 
 // Get current URL in Vercel deployment
-export function getFullVideoUrl(videoId?: string) {
-    return `${process.env.VERCEL_URL || "http://localhost:3000"}/videos/${videoId ?? ""}`;
+export function getFullVideoUrl(videoId: string) {
+    return `${process.env.VERCEL_URL || "http://localhost:3000"}/watch${buildSearchQuery({ v: videoId })}`;
 }
 
 // Format string to uppercase first letter only

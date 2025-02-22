@@ -1,10 +1,22 @@
+import { NextResponse } from "next/server";
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher(["/studio(.*)"]);
+const isWatchRoute = createRouteMatcher(["/watch(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
     if (isProtectedRoute(req)) {
         await auth.protect();
+    }
+
+    if (isWatchRoute(req)) {
+        const url = new URL(req.url);
+        const v = url.searchParams.get("v");
+
+        if (!v) {
+            return NextResponse.redirect(new URL("/", req.url));
+        }
     }
 });
 
