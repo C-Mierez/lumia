@@ -110,7 +110,8 @@ function VideoDetails({ video, processingState }: VideoIslandProps & { processin
         { videoId: video.id },
         {
             async onData(data) {
-                if (data.status === VideoStatus.MuxAssetReady || data.status === VideoStatus.MuxAssetTrackReady) {
+                if (data.status === VideoStatus.MuxAssetReady) {
+                    await utils.studio.getMany.invalidate();
                     await utils.studio.getOne.invalidate({ id: video.id });
                 }
             },

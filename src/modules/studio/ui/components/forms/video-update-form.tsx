@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Loader2Icon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -95,18 +95,25 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
 
     // Set listener for external video title and description changes (AI Generation sub-components)
     useEffect(() => {
+        // Reset form when video changes
+        if (video) {
+            form.reset(video, {
+                keepDirtyValues: true,
+            });
+        }
+    }, [video, form]);
+    useEffect(() => {
+        console.log("Title changed");
         form.resetField("title", {
             defaultValue: video.title,
         });
     }, [form, video.title]);
     useEffect(() => {
+        console.log("Description changed");
         form.resetField("description", {
             defaultValue: video.description,
         });
     }, [form, video.description]);
-    useEffect(() => {
-        form.resetField("visibility");
-    }, [form, video.muxPlaybackId]);
 
     const { isDirty, isValid, isSubmitted } = form.formState;
 

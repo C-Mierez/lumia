@@ -75,7 +75,7 @@ function GenWithAIWrapper({
         {
             async onData(data) {
                 if (data.status === VideoStatus.Finished) {
-                    utils.studio.getMany.invalidate();
+                    await utils.studio.getMany.invalidate();
                     await utils.studio.getOne.invalidate({ id: video.id });
                 }
             },
