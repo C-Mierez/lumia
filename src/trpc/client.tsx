@@ -5,13 +5,15 @@ import superjson from "superjson";
 
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, loggerLink, splitLink, unstable_httpSubscriptionLink } from "@trpc/client";
-import { createTRPCReact } from "@trpc/react-query";
+import { createTRPCClient, httpBatchLink, loggerLink, splitLink, unstable_httpSubscriptionLink } from "@trpc/client";
+import { createTRPCContext } from "@trpc/tanstack-react-query";
 
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "./routers/_app";
 
-export const trpc = createTRPCReact<AppRouter>();
+// export const trpc = createTRPCReact<AppRouter>();
+
+export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
 let clientQueryClientSingleton: QueryClient;
 function getQueryClient() {
@@ -32,7 +34,7 @@ function getUrl() {
     return `${base}/api/trpc`;
 }
 
-export function TRPCProvider(
+export function TRPCReactProvider(
     props: Readonly<{
         children: React.ReactNode;
     }>,
@@ -43,7 +45,7 @@ export function TRPCProvider(
     //       render if it suspends and there is no boundary
     const queryClient = getQueryClient();
     const [trpcClient] = useState(() =>
-        trpc.createClient({
+        createTRPCClient<AppRouter>({
             links: [
                 loggerLink({
                     enabled: (op) =>
@@ -54,10 +56,12 @@ export function TRPCProvider(
                     // uses the httpSubscriptionLink for subscriptions
                     condition: (op) => op.type === "subscription",
                     true: unstable_httpSubscriptionLink({
-                        ...config,
+                        transformer: superjson,
+                        url: getUrl(),
                     }),
                     false: httpBatchLink({
-                        ...config,
+                        transformer: superjson,
+                        url: getUrl(),
                         async headers() {
                             const headers = new Headers();
                             headers.set("x-trpc-source", "nextjs-react");
@@ -69,13 +73,10 @@ export function TRPCProvider(
         }),
     );
     return (
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>
-        </trpc.Provider>
+        <QueryClientProvider client={queryClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                {props.children}
+            </TRPCProvider>
+        </QueryClientProvider>
     );
 }
-
-const config = {
-    transformer: superjson,
-    url: getUrl(),
-};

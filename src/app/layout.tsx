@@ -5,7 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
-import { TRPCProvider } from "@/trpc/client";
+import { TRPCReactProvider } from "@/trpc/client";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@components/ui/sonner";
 
@@ -42,7 +42,7 @@ export default function RootLayout({
             >
                 <body>
                     <NuqsAdapter>
-                        <TRPCProvider>{children}</TRPCProvider>
+                        <TRPCReactProvider>{children}</TRPCReactProvider>
                         <Toaster />
                     </NuqsAdapter>
                 </body>

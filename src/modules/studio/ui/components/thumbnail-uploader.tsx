@@ -4,20 +4,22 @@ import { ImagePlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { UploadDropzone } from "@lib/uploadthing";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ThumbnailUploaderProps {
     videoId: string;
 }
 
 export default function ThumbnailUploader({ videoId }: ThumbnailUploaderProps) {
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
 
-    const onUploadComplete = () => {
+    const onUploadComplete = async () => {
         toast.success("Thumbnail uploaded successfully");
-        utils.studio.getOne.invalidate({ id: videoId });
-        utils.studio.getMany.invalidate();
+        await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: videoId }) });
+        await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
     };
     const onUploadBegin = () => {
         toast.info("Uploading thumbnail...");

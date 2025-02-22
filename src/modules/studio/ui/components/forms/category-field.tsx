@@ -1,12 +1,13 @@
 import { Check, ChevronsUpDown, ListFilterIcon } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { Button } from "@components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@components/ui/command";
 import { FormControl, FormField, FormItem, FormLabel } from "@components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
 import { cn } from "@lib/utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { VideoUpdateSchema } from "./video-update-form";
 
@@ -15,7 +16,8 @@ interface CategoryFieldProps {
 }
 
 export function CategoryField({ form }: CategoryFieldProps) {
-    const [categories] = trpc.categories.getMany.useSuspenseQuery();
+    const trpc = useTRPC();
+    const { data: categories } = useSuspenseQuery(trpc.categories.getMany.queryOptions());
 
     return (
         <FormField

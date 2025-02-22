@@ -9,14 +9,14 @@ import { usersTable } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { initTRPC, TRPCError } from "@trpc/server";
 
-export const createTRPCContext = cache(async (opts: { headers: Headers }) => {
+export const createTRPCContext = cache(async () => {
     /**
      * @see: https://trpc.io/docs/server/context
      */
 
     const clerkAuth = await auth();
 
-    return { clerkAuth, ...opts };
+    return { clerkAuth };
 });
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;

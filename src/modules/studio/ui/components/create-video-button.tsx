@@ -3,27 +3,31 @@ import { CirclePlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { Button } from "@components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function CreateVideoButton() {
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
     const router = useRouter();
 
-    const create = trpc.videos.create.useMutation({
-        onMutate: async () => {
-            toast.info("Creating new video...");
-        },
-        onSuccess: (video) => {
-            toast.success("New video created");
-            utils.studio.getMany.invalidate();
-            utils.studio.getOne.invalidate({ id: video.id });
-            router.push(`/studio/video/${video.id}`);
-        },
-        onError: (error) => {
-            toast.error(`An error occurred: ${error.message}`);
-        },
-    });
+    const create = useMutation(
+        trpc.videos.create.mutationOptions({
+            onMutate: async () => {
+                toast.info("Creating new video...");
+            },
+            onSuccess: async (video) => {
+                toast.success("New video created");
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: video.id }) });
+                router.push(`/studio/video/${video.id}`);
+            },
+            onError: (error) => {
+                toast.error(`An error occurred: ${error.message}`);
+            },
+        }),
+    );
 
     return (
         <Button

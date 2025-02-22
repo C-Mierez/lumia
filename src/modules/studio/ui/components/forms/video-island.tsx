@@ -2,7 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { CaptionsIcon, CheckCircleIcon, Loader2Icon } from "lucide-react";
 import Link from "next/link";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { StudioGetOneOutput } from "@/trpc/types";
 import CopyToClipboardButton from "@components/copy-to-clipboard-button";
 import { Button } from "@components/ui/button";
@@ -11,6 +11,8 @@ import { formatUppercaseFirstLetter, getFullVideoUrl } from "@lib/utils";
 import { VideoStatus } from "@modules/videos/server/constants";
 import VideoPlayer from "@modules/videos/ui/components/video-player";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@trpc/tanstack-react-query";
 
 import VideoUploader from "../video-uploader";
 
@@ -80,15 +82,22 @@ function ProcessingVideo({ video }: VideoIslandProps) {
 }
 
 function UnprocessedVideo({ video }: VideoIslandProps) {
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
 
     const onSuccess = async () => {
-        await utils.studio.getOne.invalidate({ id: video.id });
+        await queryClient.invalidateQueries({
+            queryKey: trpc.studio.getOne.queryKey({
+                id: video.id,
+            }),
+        });
     };
 
-    const upload = trpc.videos.requestUpload.useMutation({
-        onSuccess,
-    });
+    const upload = useMutation(
+        trpc.videos.requestUpload.mutationOptions({
+            onSuccess,
+        }),
+    );
 
     const endpointFetch = async () => {
         const { url } = await upload.mutateAsync({
@@ -103,19 +112,25 @@ function UnprocessedVideo({ video }: VideoIslandProps) {
 }
 
 function VideoDetails({ video, processingState }: VideoIslandProps & { processingState: ProcessingState }) {
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
+
     const fullVideoURL = getFullVideoUrl(video.id);
 
-    const onVideoProcessing = trpc.videos.onVideoProcessing.useSubscription(
-        { videoId: video.id },
-        {
-            async onData(data) {
-                if (data.status === VideoStatus.MuxAssetReady) {
-                    await utils.studio.getMany.invalidate();
-                    await utils.studio.getOne.invalidate({ id: video.id });
-                }
+    const onVideoProcessing = useSubscription(
+        trpc.videos.onVideoProcessing.subscriptionOptions(
+            { videoId: video.id },
+            {
+                async onData(data) {
+                    if (data.status === VideoStatus.MuxAssetReady) {
+                        await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
+                        await queryClient.invalidateQueries({
+                            queryKey: trpc.studio.getOne.queryKey({ id: video.id }),
+                        });
+                    }
+                },
             },
-        },
+        ),
     );
 
     const status =

@@ -1,4 +1,4 @@
-import { HydrateClient, trpc } from "@/trpc/server";
+import { HydrateClient, prefetch, trpc } from "@/trpc/server";
 import { SEARCH_PARAMS } from "@lib/searchParams";
 import HomeView from "@modules/home/ui/views/home-view";
 
@@ -11,7 +11,7 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
     const { category } = await searchParams;
 
-    void trpc.categories.getMany.prefetch();
+    prefetch(trpc.categories.getMany.queryOptions());
 
     return (
         <HydrateClient>

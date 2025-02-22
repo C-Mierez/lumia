@@ -7,13 +7,14 @@ import { GlobeIcon, LockIcon } from "lucide-react";
 import Link from "next/link";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import InfiniteScroll from "@components/infinite-scroll";
 import { Skeleton } from "@components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@components/ui/table";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { formatUppercaseFirstLetter, range } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 
 export default function VideosSection() {
     return (
@@ -35,13 +36,17 @@ export default function VideosSection() {
 }
 
 function VideosSectionSuspense() {
-    const [data, query] = trpc.studio.getMany.useSuspenseInfiniteQuery(
-        {
-            limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
-        },
-        {
-            getNextPageParam: (lastPage) => lastPage.nextCursor,
-        },
+    const trpc = useTRPC();
+
+    const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useSuspenseInfiniteQuery(
+        trpc.studio.getMany.infiniteQueryOptions(
+            {
+                limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
+            },
+            {
+                getNextPageParam: (lastPage) => lastPage.nextCursor,
+            },
+        ),
     );
 
     const videos = data.pages.flatMap((page) => page.items);
@@ -114,9 +119,9 @@ function VideosSectionSuspense() {
 
             {/* Automatic fetch for infinite scrolling */}
             <InfiniteScroll
-                hasNextPage={query.hasNextPage}
-                isFetchingNextPage={query.isFetchingNextPage}
-                fetchNextPage={query.fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
             />
         </div>
     );

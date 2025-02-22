@@ -5,10 +5,12 @@ import { useState } from "react";
 import { BanIcon, Loader2Icon, SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { StudioGetOneOutput } from "@/trpc/types";
 import PromptModal from "@components/prompt-modal";
 import { VideoStatus } from "@modules/videos/server/constants";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@trpc/tanstack-react-query";
 
 import { canGenerateAIContent, isDisablingStatus } from "../utils";
 
@@ -19,30 +21,37 @@ interface ThumbnailGeneratorProps {
 
 export default function ThumbnailGenerator({ video, disabled }: ThumbnailGeneratorProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
 
-    const generateThumbnail = trpc.videos.generateThumbnail.useMutation({
-        onSuccess: () => {
-            toast.success("Thumbnail generation started", {
-                description: "This may take a few minutes to complete",
-                duration: 20000,
-            });
-        },
-        onError: (error) => {
-            toast.error(`Failed to generate thumbnail: ${error.message}`);
-        },
-    });
-
-    const onThumbnailStatus = trpc.videos.onGenerateThumbnail.useSubscription(
-        { videoId: video.id },
-        {
-            async onData(data) {
-                if (data.status === VideoStatus.Finished) {
-                    utils.studio.getMany.invalidate();
-                    await utils.studio.getOne.invalidate({ id: video.id });
-                }
+    const generateThumbnail = useMutation(
+        trpc.videos.generateThumbnail.mutationOptions({
+            onSuccess: () => {
+                toast.success("Thumbnail generation started", {
+                    description: "This may take a few minutes to complete",
+                    duration: 20000,
+                });
             },
-        },
+            onError: (error) => {
+                toast.error(`Failed to generate thumbnail: ${error.message}`);
+            },
+        }),
+    );
+
+    const onThumbnailStatus = useSubscription(
+        trpc.videos.onGenerateThumbnail.subscriptionOptions(
+            { videoId: video.id },
+            {
+                async onData(data) {
+                    if (data.status === VideoStatus.Finished) {
+                        await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
+                        await queryClient.invalidateQueries({
+                            queryKey: trpc.studio.getOne.queryKey({ id: video.id }),
+                        });
+                    }
+                },
+            },
+        ),
     );
 
     const thumbnailStatus = onThumbnailStatus.data?.status ?? null;

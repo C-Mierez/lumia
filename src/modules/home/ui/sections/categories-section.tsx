@@ -4,8 +4,9 @@ import { Suspense } from "react";
 
 import { ErrorBoundary } from "react-error-boundary";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import CarouselFilter from "@components/carousel-filter";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 interface CategoriesSectionProps {
     categoryId?: string;
@@ -22,14 +23,16 @@ export default function CategoriesSection({ categoryId }: CategoriesSectionProps
 }
 
 function CategoriesSectionSuspense({ categoryId }: CategoriesSectionProps) {
-    const [categories] = trpc.categories.getMany.useSuspenseQuery();
+    const trpc = useTRPC();
 
-    const data = categories.map(({ id, name }) => ({
+    const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions());
+
+    const categories = data.map(({ id, name }) => ({
         id: id,
         label: name,
     }));
 
-    return <CarouselFilter selectedItemId={categoryId} items={data} searchKey={"category"} />;
+    return <CarouselFilter selectedItemId={categoryId} items={categories} searchKey={"category"} />;
 }
 
 function CategoriesFallback() {

@@ -5,7 +5,8 @@ import { Suspense } from "react";
 import { Loader2Icon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import VideoUpdateForm from "../components/forms/video-update-form";
 
@@ -27,11 +28,12 @@ export default function VideoEditSection({ onOpenChange, videoId }: VideoEditSec
 }
 
 function VideoEditSectionSuspense({ videoId, onOpenChange }: VideoEditSectionProps) {
-    const [video, videoQuery] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
+    const trpc = useTRPC();
+    const videoQuery = useSuspenseQuery(trpc.studio.getOne.queryOptions({ id: videoId }));
 
     return (
         <>
-            <VideoUpdateForm video={video} onOpenChange={onOpenChange} videoQuery={videoQuery} />
+            <VideoUpdateForm video={videoQuery.data} onOpenChange={onOpenChange} videoQuery={videoQuery} />
         </>
     );
 }

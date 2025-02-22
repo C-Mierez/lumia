@@ -6,13 +6,14 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { videoUpdateSchema } from "@/db/schema";
-import { trpc } from "@/trpc/client";
+import { useTRPC } from "@/trpc/client";
 import { StudioGetOneOutput, StudioGetOneQuery } from "@/trpc/types";
 import ConfirmationModal from "@components/confirmation-modal";
 import { Button } from "@components/ui/button";
 import { Form } from "@components/ui/form";
 import { Separator } from "@components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { RestoreThumbnailButton } from "../restore-thumbnail-button";
 import { CategoryField } from "./category-field";
@@ -27,42 +28,44 @@ function useVideoUpdateTRPC(
     resetForm: (video: StudioGetOneOutput) => void,
     onOpenChange: (isOpen: boolean) => void,
 ) {
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
 
-    const updateVideo = trpc.videos.update.useMutation({
-        onMutate: () => {
-            toast.info("Updating video...");
-        },
-        onSuccess: (data) => {
-            utils.studio.getOne.invalidate({ id: video.id });
-            utils.studio.getMany.invalidate();
-            toast.success("Video updated successfully");
-            resetForm(data);
-        },
-        onError: () => {
-            toast.error("Failed to update video");
-        },
-    });
+    const updateVideo = useMutation(
+        trpc.videos.update.mutationOptions({
+            onMutate: () => {
+                toast.info("Updating video...");
+            },
+            onSuccess: async (data) => {
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: video.id }) });
+                toast.success("Video updated successfully");
+                resetForm(data);
+            },
+            onError: () => {
+                toast.error("Failed to update video");
+            },
+        }),
+    );
 
-    const deleteVideo = trpc.videos.delete.useMutation({
-        onMutate: () => {
-            toast.info("Deleting video...");
-        },
-        onSuccess: () => {
-            Promise.all([
-                utils.studio.getMany.invalidate(),
-                utils.studio.getOne.invalidate({ id: video?.id }, { refetchType: "none" }),
-            ]);
-            toast.success("Video deleted successfully");
-            onOpenChange(false);
-        },
-        onError: () => {
-            toast.error("Failed to delete video");
-        },
-    });
+    const deleteVideo = useMutation(
+        trpc.videos.delete.mutationOptions({
+            onMutate: () => {
+                toast.info("Deleting video...");
+            },
+            onSuccess: async () => {
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
+                await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: video.id }) });
+                toast.success("Video deleted successfully");
+                onOpenChange(false);
+            },
+            onError: () => {
+                toast.error("Failed to delete video");
+            },
+        }),
+    );
 
     return {
-        utils,
         updateVideo,
         deleteVideo,
     };
@@ -83,7 +86,7 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
     const [isFormDisabled, setIsFormDisabled] = useState<true | undefined>(undefined);
 
     /* ---------------------------------- tRPC ---------------------------------- */
-    const { utils, updateVideo, deleteVideo } = useVideoUpdateTRPC(video, resetForm, onOpenChange);
+    const { updateVideo, deleteVideo } = useVideoUpdateTRPC(video, resetForm, onOpenChange);
 
     /* ----------------------------- React Hook Form ---------------------------- */
     const form = useForm<VideoUpdateSchema>({
@@ -224,7 +227,8 @@ interface VideoUpdateFormHeaderProps {
 function VideoUpdateFormHeader({ onOpenChange, canRefresh, canSubmit, onDelete, video }: VideoUpdateFormHeaderProps) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const shownVideoTitle = !!video.title ? video.title : "Untitled Video";
-    const utils = trpc.useUtils();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
     return (
         <div className="flex items-end justify-between">
             {/* Video title */}
@@ -238,8 +242,10 @@ function VideoUpdateFormHeader({ onOpenChange, canRefresh, canSubmit, onDelete, 
                     disabled={!canRefresh}
                     onClick={
                         canRefresh
-                            ? () => {
-                                  utils.studio.getOne.invalidate({ id: video.id });
+                            ? async () => {
+                                  await queryClient.invalidateQueries({
+                                      queryKey: trpc.studio.getOne.queryKey({ id: video.id }),
+                                  });
                               }
                             : undefined
                     }
