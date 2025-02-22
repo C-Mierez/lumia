@@ -39,6 +39,7 @@ function useVideoUpdateTRPC(
             onSuccess: async (data) => {
                 await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
                 await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: video.id }) });
+                await queryClient.invalidateQueries({ queryKey: trpc.watch.getOne.queryKey({ videoId: video.id }) });
                 toast.success("Video updated successfully");
                 resetForm(data);
             },

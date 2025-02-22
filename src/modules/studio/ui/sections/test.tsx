@@ -1,43 +1,28 @@
 "use client";
 
 export default function Test() {
-    // const test = trpc.videos.test.useMutation({
-    //     onSuccess() {
-    //         toast.success("Mutation successful");
-    //     },
-    // });
-    // const test2 = trpc.videos.test2.useMutation({
-    //     onSuccess() {
-    //         toast.success("Mutation successful");
-    //     },
-    // });
-
-    // console.log("Rendering Test");
-
-    // trpc.videos.onTest2.useSubscription(
-    //     skipToken,
-    //     // undefined,
-    //     {
-    //         onStarted() {
-    //             toast.info("Subscription started");
-    //         },
-    //         onData(data) {
-    //             toast.info(`Event received. Data: ${data}`);
-    //         },
-    //         onError() {
-    //             toast.error("Subscription error");
-    //         },
-    //     },
+    // return (
+    //     <Suspense fallback={<p>Loading</p>}>
+    //         <ErrorBoundary fallback={<p>Something went wrong</p>}>
+    //             <TestSuspense />
+    //         </ErrorBoundary>
+    //     </Suspense>
     // );
+}
 
-    return (
-        <div>
-            {/* <Button onClick={() => test.mutate()} disabled={test.isPending}>
-                Mutate
-            </Button>
-            <Button onClick={() => test2.mutate()} disabled={test2.isPending}>
-                Mutate 2
-            </Button> */}
-        </div>
-    );
+function TestSuspense() {
+    // const trpc = useTRPC();
+    // const videoQuery = useSuspenseQuery(
+    //     trpc.watch.getOne.queryOptions(
+    //         {
+    //             videoId: "2f73693f-2131-4155-9df4-c1670d488247",
+    //         },
+    //         {S
+    //             refetchOnMount: true,
+    //             throwOnError: true,
+    //         },
+    //     ),
+    // );
+    // if (videoQuery.isError) return <div>Error</div>;
+    // return <div>{JSON.stringify(videoQuery.data)}</div>;
 }

@@ -1,30 +1,31 @@
 // SearchParams Keys for writing and reading search params from URL
-// export const SEARCH_KEY_VALUES = {
-//     Home: {
-//         category: "category",
-//         test: "test",
-//     },
-//     Studio: {
-//         video: "video",
-//     },
-// } as const;
-
-type SEARCH_PARAMS_TYPE = {
+export const SEARCH_KEY_VALUES = {
     Home: {
-        category: string;
-        test: string;
-        edit: string;
-    };
+        category: "category",
+        test: "test",
+        v: "v",
+    },
     Studio: {
-        video: string;
-    };
-};
+        video: "video",
+    },
+} as const;
+
+// type SEARCH_PARAMS_TYPE = {
+//     Home: {
+//         category: string;
+//         test: string;
+//         edit: string;
+//     };
+//     Studio: {
+//         video: string;
+//     };
+// };
 
 // Route SearchParam types for type declarations and checking
 // This is mainly needed to use NextJS's server-side searchParams API
 export type SEARCH_PARAMS = {
-    [Route in keyof SEARCH_PARAMS_TYPE]: {
-        [Key in keyof SEARCH_PARAMS_TYPE[Route]]?: string;
+    [Route in keyof typeof SEARCH_KEY_VALUES]: {
+        [Key in keyof (typeof SEARCH_KEY_VALUES)[Route]]?: string;
     };
 };
 
