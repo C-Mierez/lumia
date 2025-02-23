@@ -41,7 +41,7 @@ export const POST = async (request: NextRequest) => {
                     .select({ ...getTableColumns(videosTable), category: { ...getTableColumns(categoriesTable) } })
                     .from(videosTable)
                     .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
-                    .innerJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
+                    .leftJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
 
                 return video;
             });
@@ -96,7 +96,7 @@ export const POST = async (request: NextRequest) => {
                         VideoEvents.GeneratePrompt,
                     );
 
-                    const videoData = `Video Title: ${video.title ?? "Untitled"}\nVideo Description: ${video.description ?? "No description"}\nCategory:${video.category.name ?? "No Category"}\nTranscript: ${transcript}`;
+                    const videoData = `Video Title: ${video.title ?? "Untitled"}\nVideo Description: ${video.description ?? "No description"}\nCategory:${video.category?.name ?? "No Category"}\nTranscript: ${transcript}`;
 
                     const result = await generateGeminiContent(VIDEO_THUMBNAIL_SYSTEM_PROMPT, videoData);
 

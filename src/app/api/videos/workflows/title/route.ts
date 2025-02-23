@@ -39,7 +39,7 @@ export const POST = async (request: NextRequest) => {
                     .select({ ...getTableColumns(videosTable), category: { ...getTableColumns(categoriesTable) } })
                     .from(videosTable)
                     .where(and(eq(videosTable.id, videoId), eq(videosTable.userId, userId)))
-                    .innerJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
+                    .leftJoin(categoriesTable, eq(videosTable.categoryId, categoriesTable.id));
 
                 return video;
             });
@@ -71,8 +71,7 @@ export const POST = async (request: NextRequest) => {
                     buildEventChannelName(videoId, VideoProcedures.GenerateTitle),
                     VideoEvents.GenerateTitle,
                 );
-
-                const finalPrompt = `Video Description: ${video.description ?? "No description"}\nCategory:${video.category.name ?? "No Category"}\nTranscript: ${transcript}`;
+                const finalPrompt = `Video Description: ${video.description ?? "No description"}\nCategory:${video.category?.name ?? "No Category"}\nTranscript: ${transcript}`;
 
                 const result = await generateGeminiContent(VIDEO_TITLE_SYSTEM_PROMPT, finalPrompt);
 
