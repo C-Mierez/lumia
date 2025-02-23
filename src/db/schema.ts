@@ -72,7 +72,6 @@ export const videoUpdateSchema = createUpdateSchema(videosTable).refine(
     },
 );
 
-// One view per user per video
 // This is not the best implementation for views but it simplifies the implementation of a watch history feature
 export const viewsTable = pgTable(
     "views",
@@ -90,3 +89,26 @@ export const viewsTable = pgTable(
 export const viewsSelectSchema = createSelectSchema(viewsTable);
 export const viewsInsertSchema = createInsertSchema(viewsTable);
 export const viewsUpdateSchema = createUpdateSchema(viewsTable);
+
+export const reactionEnum = pgEnum("reaction_type", ["like", "dislike"]);
+
+// Similarly, this is implemented this way to simplify the implementation of a liked/disliked videos list feature
+export const reactionsTable = pgTable(
+    "reactions",
+    {
+        reactionType: reactionEnum("reactionType").notNull(),
+        reactedAt: timestamp("reacted_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        userId: uuid("user_id")
+            .references(() => usersTable.id, { onDelete: "cascade" })
+            .notNull(),
+        videoId: uuid("video_id")
+            .references(() => videosTable.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (t) => [primaryKey({ name: "reactions_pk", columns: [t.userId, t.videoId] })],
+);
+
+export const reactionsSelectSchema = createSelectSchema(reactionsTable);
+export const reactionsInsertSchema = createInsertSchema(reactionsTable);
+export const reactionsUpdateSchema = createUpdateSchema(reactionsTable);
