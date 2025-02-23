@@ -114,7 +114,7 @@ export const POST = async (request: NextRequest) => {
 
                 const response = await generateWorkersAIImage(finalPrompt);
 
-                if (!response.ok) throw new Error("Failed to generate thumbnail");
+                if (!response.ok) throw new Error("Failed to generate thumbnail", { cause: response.statusText });
 
                 const blob = await response.blob();
 
