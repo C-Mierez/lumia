@@ -195,7 +195,7 @@
         --card: var(--color-main-950);
         --card-foreground: var(--color-main-50);
 
-        --popover: var(--color-main-950);
+        --popover: var(--color-main-900);
         --popover-foreground: var(--color-main-50);
 
         --border: var(--muted);
@@ -244,5 +244,9 @@
     .scrollbar-hidden {
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .interpolate-size {
+        interpolate-size: allow-keywords;
     }
 }

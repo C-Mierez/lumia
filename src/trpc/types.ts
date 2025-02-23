@@ -9,3 +9,6 @@ export type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export type StudioGetOneOutput = RouterOutput["studio"]["getOne"];
 export type StudioGetOneQuery = UseSuspenseQueryResult<StudioGetOneOutput, unknown>;
+
+export type WatchGetOneOutput = RouterOutput["watch"]["getOne"];
+export type WatchGetOneQuery = UseSuspenseQueryResult<WatchGetOneOutput, unknown>;
