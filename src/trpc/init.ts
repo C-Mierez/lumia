@@ -68,3 +68,27 @@ export const authedProcedure = t.procedure.use(async (opts) => {
         },
     });
 });
+
+export const maybeAuthedProcedure = t.procedure.use(async (opts) => {
+    const { ctx } = opts;
+
+    let resultingUser = null;
+    // Check session has a valid user
+    if (ctx.clerkAuth.userId) {
+        // Check that user exists in the database, and attach to context
+        const [user] = await db.select().from(usersTable).where(eq(usersTable.clerkId, ctx.clerkAuth.userId)).limit(1);
+
+        if (!user) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
+        resultingUser = user;
+    }
+
+    return opts.next({
+        ctx: {
+            ...ctx,
+            maybeUser: resultingUser,
+        },
+    });
+});

@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 /* -------------------------------- Entities -------------------------------- */
@@ -71,3 +71,22 @@ export const videoUpdateSchema = createUpdateSchema(videosTable).refine(
         path: ["visibility"],
     },
 );
+
+// One view per user per video
+// This is not the best implementation for views but it simplifies the implementation of a watch history feature
+export const viewsTable = pgTable(
+    "views",
+    {
+        watchedAt: timestamp("watched_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        userId: uuid("user_id").references(() => usersTable.id, { onDelete: "cascade" }),
+        videoId: uuid("video_id")
+            .references(() => videosTable.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (t) => [primaryKey({ name: "views_pk", columns: [t.videoId, t.watchedAt] })],
+);
+
+export const viewsSelectSchema = createSelectSchema(viewsTable);
+export const viewsInsertSchema = createInsertSchema(viewsTable);
+export const viewsUpdateSchema = createUpdateSchema(viewsTable);

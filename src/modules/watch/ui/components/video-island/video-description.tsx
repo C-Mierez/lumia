@@ -21,20 +21,20 @@ export default function VideoDescription({ video }: VideoDescriptionProps) {
     const compactViews = useMemo(() => {
         return Intl.NumberFormat("en", {
             notation: "compact",
-        }).format(1300); // TODO Make actual videos views
-    }, []); // TODO Add proper dependency
+        }).format(video.views.count); // TODO Make actual videos views
+    }, [video, video.views.count]); // TODO Add proper dependency
     const expandedViews = useMemo(() => {
         return Intl.NumberFormat("en", {
             notation: "standard",
-        }).format(1300); // TODO Make actual videos views
-    }, []); // TODO Add proper dependency
+        }).format(video.views.count); // TODO Make actual videos views
+    }, [video, video.views.count]); // TODO Add proper dependency
 
     const compactCreation = useMemo(() => {
         return formatDistanceToNow(video.createdAt, { addSuffix: true });
-    }, [video.createdAt]);
+    }, [video, video.createdAt]);
     const expandedCreation = useMemo(() => {
         return format(video.createdAt, "d MMM yyyy");
-    }, [video.createdAt]);
+    }, [video, video.createdAt]);
 
     const views = isExpanded ? expandedViews : compactViews;
     const creation = isExpanded ? expandedCreation : compactCreation;
