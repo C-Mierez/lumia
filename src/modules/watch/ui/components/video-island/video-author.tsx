@@ -24,8 +24,7 @@ export function VideoAuthor({ video, showButton = false }: VideoAuthorProps) {
             {/* User Info */}
             <div className="flex flex-col justify-center">
                 <UserName name={video.user.name} />
-                {/* // TODO Fetch actual subscribers */}
-                <div className="text-muted-foreground text-xs leading-4">12 Subscribers</div>
+                <div className="text-muted-foreground text-xs leading-4">{video.user.subscriberCount} Subscribers</div>
             </div>
             {/* CTA*/}
             {showButton && (
@@ -33,7 +32,13 @@ export function VideoAuthor({ video, showButton = false }: VideoAuthorProps) {
                     {/* Subscribe button if not owner */}
                     {auth.userId !== video.user.clerkId ? (
                         // TODO Implement subscription state
-                        <SubscribeButton size={"default"} disabled={false} isSubscribed={false} onClick={() => {}} />
+                        <SubscribeButton
+                            shouldRevalidate
+                            userId={video.user.id}
+                            size={"default"}
+                            disabled={!auth.isLoaded}
+                            isSubscribed={video.currentUserSubscription}
+                        />
                     ) : (
                         <Button asChild variant={"secondary"}>
                             <Link href={`/studio/video/${video.id}`}>Edit</Link>

@@ -112,3 +112,18 @@ export const reactionsTable = pgTable(
 export const reactionsSelectSchema = createSelectSchema(reactionsTable);
 export const reactionsInsertSchema = createInsertSchema(reactionsTable);
 export const reactionsUpdateSchema = createUpdateSchema(reactionsTable);
+
+export const subscriptionsTable = pgTable(
+    "subscriptions",
+    {
+        subscribedAt: timestamp("subscribed_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        subscriberId: uuid("subscriber_id")
+            .references(() => usersTable.id, { onDelete: "cascade" })
+            .notNull(),
+        subscribedToId: uuid("subscribed_to_id")
+            .references(() => usersTable.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (t) => [primaryKey({ name: "subscriptions_pk", columns: [t.subscriberId, t.subscribedToId] })],
+);

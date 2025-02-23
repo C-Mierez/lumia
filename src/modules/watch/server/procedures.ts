@@ -1,8 +1,8 @@
-import { and, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { reactionEnum, reactionsTable, usersTable, videosTable, viewsTable } from "@/db/schema";
+import { reactionEnum, reactionsTable, subscriptionsTable, usersTable, videosTable, viewsTable } from "@/db/schema";
 import { authedProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
@@ -22,11 +22,24 @@ export const watchRouter = createTRPCRouter({
                 .where(inArray(reactionsTable.userId, maybeUser ? [maybeUser.id] : [])),
         );
 
+        const currentUserSubscriptionsSQ = db.$with("current_user_subscription").as(
+            db
+                .select()
+                .from(subscriptionsTable)
+                .where(inArray(subscriptionsTable.subscriberId, maybeUser ? [maybeUser.id] : [])),
+        );
+
         const [video] = await db
-            .with(currentUserReactionsSQ)
+            .with(currentUserReactionsSQ, currentUserSubscriptionsSQ)
             .select({
                 ...videosSelect,
-                user: { ...userSelect },
+                user: {
+                    ...userSelect,
+                    subscriberCount: db.$count(
+                        subscriptionsTable,
+                        eq(subscriptionsTable.subscribedToId, usersTable.id),
+                    ),
+                },
                 views: {
                     count: db.$count(viewsTable, eq(viewsTable.videoId, videosTable.id)),
                 },
@@ -41,11 +54,13 @@ export const watchRouter = createTRPCRouter({
                     ),
                 },
                 currentUserReaction: currentUserReactionsSQ.type,
+                currentUserSubscription: isNotNull(currentUserSubscriptionsSQ.subscriberId).mapWith(Boolean),
             })
             .from(videosTable)
             .where(eq(videosTable.id, input.videoId))
             .innerJoin(usersTable, eq(usersTable.id, videosTable.userId))
-            .leftJoin(currentUserReactionsSQ, eq(currentUserReactionsSQ.videoId, videosTable.id));
+            .leftJoin(currentUserReactionsSQ, eq(currentUserReactionsSQ.videoId, videosTable.id))
+            .leftJoin(currentUserSubscriptionsSQ, eq(currentUserSubscriptionsSQ.subscribedToId, usersTable.id));
         // .groupBy(videosTable.id, usersTable.id, currentUserReactionsSQ.type);
 
         if (!video) throw new TRPCError({ code: "NOT_FOUND" });
