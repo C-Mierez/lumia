@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { formatDistanceToNow } from "date-fns";
-import { FlagIcon, MoreVerticalIcon, Trash2Icon } from "lucide-react";
+import { FlagIcon, MoreVerticalIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react";
 
 import { useTRPC } from "@/trpc/client";
 import { WatchGetManyCommentsOutput, WatchGetManyCommentsQuery } from "@/trpc/types";
-import { useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import InfiniteScroll from "@components/infinite-scroll";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
@@ -22,7 +22,7 @@ interface CommentsListProps {
 
 export function CommentsList({ comments, query }: CommentsListProps) {
     return (
-        <div className="mt-2 flex flex-col gap-4">
+        <div className="mt-2 flex flex-col gap-6">
             {comments.map((comment, i) => (
                 <CommentItem key={`${i}${comment.comments.id}`} comment={comment} />
             ))}
@@ -83,10 +83,91 @@ function CommentItem({ comment }: CommentItemProps) {
                     <span className="text-muted-foreground text-xs">{commentDate}</span>
                 </div>
                 <p className="break-words">{comment.comments.text}</p>
+                <CommentInteractions comment={comment} />
             </div>
             <div className="z-10">
                 <CommentMenu onDelete={isUserComment ? onDeleteComment : undefined} />
             </div>
+        </div>
+    );
+}
+
+interface CommentInteractionsProps {
+    comment: WatchGetManyCommentsOutput["comments"][0];
+}
+
+function CommentInteractions({ comment }: CommentInteractionsProps) {
+    const { isSignedIn } = useAuth();
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
+
+    const [optimisticReaction, setOptimisticReaction] = useState(comment.currentUserReaction);
+
+    const createReaction = useMutation(
+        trpc.watch.createCommentReaction.mutationOptions({
+            async onSuccess(data) {
+                if (data) {
+                    toast.success(`${data.reactionType === "like" ? "Liked" : "Disliked"} video`);
+                    setOptimisticReaction(data.reactionType);
+                }
+                if (data === null) {
+                    toast.success("Removed reaction");
+                    setOptimisticReaction(null);
+                }
+                await queryClient.invalidateQueries({
+                    queryKey: trpc.watch.getManyComments.queryKey(),
+                });
+            },
+            onError(err) {
+                toast.error(err.message);
+            },
+        }),
+    );
+
+    const onLike = () => {
+        if (!isSignedIn) return;
+        setOptimisticReaction(optimisticReaction === "like" ? null : "like");
+        createReaction.mutate({ videoId: comment.comments.videoId, commentId: comment.comments.id, reaction: "like" });
+    };
+
+    const onDislike = () => {
+        if (!isSignedIn) return;
+        setOptimisticReaction(optimisticReaction === "dislike" ? null : "dislike");
+        createReaction.mutate({
+            videoId: comment.comments.videoId,
+            commentId: comment.comments.id,
+            reaction: "dislike",
+        });
+    };
+
+    const didUserLike = optimisticReaction === "like";
+    const didUserDislike = optimisticReaction === "dislike";
+
+    const likeCount = comment.reactions.likesCount + (createReaction.isPending && didUserLike ? 1 : 0);
+    const dislikeCount = comment.reactions.dislikesCount + (createReaction.isPending && didUserDislike ? 1 : 0);
+
+    return (
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+                <Button variant={didUserLike ? "secondary" : "ghost"} size={"smallIcon"} onClick={onLike}>
+                    <ThumbsUpIcon />
+                </Button>
+                <div className="text-muted-foreground text-xs">{likeCount}</div>
+            </div>
+            <div className="flex items-center gap-1">
+                <Button
+                    size={"smallIcon"}
+                    variant={didUserDislike ? "destructive" : "ghost"}
+                    className="hover:bg-destructive"
+                    onClick={onDislike}
+                >
+                    <ThumbsDownIcon />
+                </Button>
+                <div className="text-muted-foreground text-xs">{dislikeCount}</div>
+            </div>
+            <Button className="text-xs font-semibold" size={"sm"} variant={"link"}>
+                Reply
+            </Button>
         </div>
     );
 }

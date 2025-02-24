@@ -1,4 +1,15 @@
-import { integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+    foreignKey,
+    integer,
+    pgEnum,
+    pgTable,
+    primaryKey,
+    serial,
+    text,
+    timestamp,
+    uniqueIndex,
+    uuid,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 /* -------------------------------- Entities -------------------------------- */
@@ -158,3 +169,29 @@ export const commentsUpdateSchema = createUpdateSchema(commentsTable).refine(
         message: "Comment must not be empty",
     },
 );
+
+export const commentReactionsTable = pgTable(
+    "comment_reactions",
+    {
+        reactionType: reactionEnum("reactionType").notNull(),
+        reactedAt: timestamp("reacted_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        userId: uuid("user_id")
+            .references(() => usersTable.id, { onDelete: "cascade" })
+            .notNull(),
+        commentId: integer("comment_id").notNull(),
+        videoId: uuid("video_id").notNull(),
+    },
+    (t) => [
+        primaryKey({ name: "comment_reactions_pk", columns: [t.userId, t.commentId] }),
+        foreignKey({
+            name: "comment_reactions_comment_id_fk",
+            columns: [t.commentId, t.videoId],
+            foreignColumns: [commentsTable.id, commentsTable.videoId],
+        }),
+    ],
+);
+
+export const commentReactionsSelectSchema = createSelectSchema(commentReactionsTable);
+export const commentReactionsInsertSchema = createInsertSchema(commentReactionsTable);
+export const commentReactionsUpdateSchema = createUpdateSchema(commentReactionsTable);

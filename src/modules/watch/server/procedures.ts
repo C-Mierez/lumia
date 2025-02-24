@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import {
+    commentReactionsTable,
     commentsTable,
     reactionEnum,
     reactionsTable,
@@ -178,7 +179,7 @@ export const watchRouter = createTRPCRouter({
 
             return entry;
         }),
-    getManyComments: baseProcedure
+    getManyComments: maybeAuthedProcedure
         .input(
             z.object({
                 videoId: z.string().uuid(),
@@ -191,14 +192,51 @@ export const watchRouter = createTRPCRouter({
                 limit: z.number().min(1).max(100),
             }),
         )
-        .query(async ({ input }) => {
+        .query(async ({ ctx, input }) => {
+            const { maybeUser } = ctx;
             const { videoId, cursor, limit } = input;
 
+            const currentUserReactionsSQ = db.$with("current_user_reaction").as(
+                db
+                    .select({
+                        commentId: commentReactionsTable.commentId,
+                        videoId: commentReactionsTable.videoId,
+                        type: commentReactionsTable.reactionType,
+                    })
+                    .from(commentReactionsTable)
+                    .where(
+                        and(
+                            eq(commentReactionsTable.videoId, videoId),
+                            inArray(commentReactionsTable.userId, maybeUser ? [maybeUser.id] : []),
+                        ),
+                    ),
+            );
+
             const comments = await db
+                .with(currentUserReactionsSQ)
                 .select({
                     comments: { ...getTableColumns(commentsTable) },
                     users: { ...getTableColumns(usersTable) },
                     totalComments: db.$count(commentsTable, eq(commentsTable.videoId, videoId)),
+                    reactions: {
+                        likesCount: db.$count(
+                            commentReactionsTable,
+                            and(
+                                eq(commentReactionsTable.videoId, videoId),
+                                eq(commentReactionsTable.commentId, commentsTable.id),
+                                eq(commentReactionsTable.reactionType, "like"),
+                            ),
+                        ),
+                        dislikesCount: db.$count(
+                            commentReactionsTable,
+                            and(
+                                eq(commentReactionsTable.videoId, videoId),
+                                eq(commentReactionsTable.commentId, commentsTable.id),
+                                eq(commentReactionsTable.reactionType, "dislike"),
+                            ),
+                        ),
+                    },
+                    currentUserReaction: currentUserReactionsSQ.type,
                 })
                 .from(commentsTable)
                 .where(
@@ -213,6 +251,13 @@ export const watchRouter = createTRPCRouter({
                     ),
                 )
                 .innerJoin(usersTable, eq(usersTable.id, commentsTable.userId))
+                .leftJoin(
+                    currentUserReactionsSQ,
+                    and(
+                        eq(currentUserReactionsSQ.commentId, commentsTable.id),
+                        eq(currentUserReactionsSQ.videoId, videoId),
+                    ),
+                )
                 .orderBy(desc(commentsTable.updatedAt), desc(commentsTable.id))
                 .limit(limit + 1);
 
@@ -243,5 +288,83 @@ export const watchRouter = createTRPCRouter({
             if (!deletedComment) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
             return deletedComment;
+        }),
+    createCommentReaction: authedProcedure
+        .input(
+            z.object({
+                commentId: z.number().positive(),
+                videoId: z.string().uuid(),
+                reaction: z.enum(reactionEnum.enumValues),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+            const { videoId, reaction } = input;
+
+            // Check if the user has already reacted to the video
+            const [existingReaction] = await db
+                .select()
+                .from(commentReactionsTable)
+                .where(
+                    and(
+                        eq(commentReactionsTable.userId, user.id),
+                        eq(commentReactionsTable.videoId, videoId),
+                        eq(commentReactionsTable.commentId, input.commentId),
+                    ),
+                );
+
+            if (existingReaction) {
+                if (existingReaction.reactionType === reaction) {
+                    // Delete the existing reaction
+                    const [deleted] = await db
+                        .delete(commentReactionsTable)
+                        .where(
+                            and(
+                                eq(commentReactionsTable.userId, user.id),
+                                eq(commentReactionsTable.videoId, videoId),
+                                eq(commentReactionsTable.commentId, input.commentId),
+                            ),
+                        )
+                        .returning();
+
+                    if (!deleted) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+                    return null;
+                } else {
+                    // Update the existing reaction
+                    const [updatedReaction] = await db
+                        .update(commentReactionsTable)
+                        .set({
+                            reactionType: reaction,
+                        })
+                        .where(
+                            and(
+                                eq(commentReactionsTable.userId, user.id),
+                                eq(commentReactionsTable.videoId, videoId),
+                                eq(commentReactionsTable.commentId, input.commentId),
+                            ),
+                        )
+                        .returning();
+
+                    if (!updatedReaction) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+                    return updatedReaction;
+                }
+            }
+
+            // Create a single entry in the reactions table
+            const [entry] = await db
+                .insert(commentReactionsTable)
+                .values({
+                    userId: user.id,
+                    videoId,
+                    commentId: input.commentId,
+                    reactionType: reaction,
+                })
+                .returning();
+
+            if (!entry) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+            return entry;
         }),
 });
