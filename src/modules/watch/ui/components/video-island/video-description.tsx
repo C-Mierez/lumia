@@ -8,6 +8,7 @@ import { CircleDollarSignIcon, User2Icon, VideoIcon } from "lucide-react";
 import { WatchGetOneOutput } from "@/trpc/types";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
+import { cn } from "@lib/utils";
 
 import { VideoAuthor } from "./video-author";
 
@@ -40,13 +41,21 @@ export default function VideoDescription({ video }: VideoDescriptionProps) {
     const creation = isExpanded ? expandedCreation : compactCreation;
 
     return (
-        <div className="text-muted-foreground flex flex-col items-start gap-3 text-sm">
+        <div className="text-muted-foreground relative flex flex-col items-start gap-3 text-sm">
+            {/* Click expand overlay */}
+            <button
+                className={cn(
+                    "hover:bg-foreground/2 absolute -inset-4.5 cursor-pointer transition-colors",
+                    isExpanded && "pointer-events-none hidden",
+                )}
+                onClick={() => setIsExpanded(true)}
+            />
             <div className="flex flex-col gap-1">
                 <div className="text-foreground flex gap-4 text-sm">
                     <span>{views} views</span>
                     <span>Uploaded {creation}</span>
                 </div>
-                <p>{video.description}</p>
+                <p className={cn(isExpanded ? "" : "line-clamp-1")}>{video.description}</p>
             </div>
             {/* Expanded-only content */}
             {isExpanded && <ExpandedArea video={video} />}

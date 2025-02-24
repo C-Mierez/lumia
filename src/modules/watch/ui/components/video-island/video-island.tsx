@@ -31,11 +31,13 @@ export function VideoIsland({ video }: VideoIslandProps) {
 
     return (
         <div className="bg-background-alt flex flex-col gap-4 overflow-hidden rounded-md">
-            <VideoPlayer
-                playbackId={video?.muxPlaybackId}
-                thumbnailUrl={video?.thumbnailUrl}
-                onPlay={handleViewVideo}
-            />
+            <div className="aspect-video overflow-hidden rounded-t-lg">
+                <VideoPlayer
+                    playbackId={video?.muxPlaybackId}
+                    thumbnailUrl={video?.thumbnailUrl}
+                    onPlay={handleViewVideo}
+                />
+            </div>
             <div className="flex flex-col gap-4 px-4 pb-4">
                 {/* Title */}
                 <div className="font-brand text-xl">{video?.title}</div>
