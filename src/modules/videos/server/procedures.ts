@@ -130,7 +130,12 @@ export const videosRouter = createTRPCRouter({
 
             if (!deletedVideo) throw new TRPCError({ code: "NOT_FOUND" });
 
-            if (!!deletedVideo.muxAssetId) await mux.video.assets.delete(deletedVideo.muxAssetId);
+            try {
+                if (!!deletedVideo.muxAssetId) await mux.video.assets.delete(deletedVideo.muxAssetId);
+            } catch (error) {
+                // Mux asset may have already been deleted
+                console.error("Failed to delete mux asset", error);
+            }
 
             const utapi = new UTApi();
             if (!!deletedVideo.thumbnailKey) await utapi.deleteFiles([deletedVideo.thumbnailKey]);
