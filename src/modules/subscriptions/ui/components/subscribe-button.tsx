@@ -37,8 +37,8 @@ export function SubscribeButton({
         toast.success(isSubscribedState ? "Unsubscribed" : "Subscribed");
     };
 
-    const createSubscription = useMutation(trpc.users.createSubscription.mutationOptions({ onSuccess }));
-    const deleteSubscription = useMutation(trpc.users.deleteSubscription.mutationOptions({ onSuccess }));
+    const createSubscription = useMutation(trpc.subscriptions.createSubscription.mutationOptions({ onSuccess }));
+    const deleteSubscription = useMutation(trpc.subscriptions.deleteSubscription.mutationOptions({ onSuccess }));
 
     const onSubscribe = async () => {
         await createSubscription.mutateAsync({ userId: userId });
