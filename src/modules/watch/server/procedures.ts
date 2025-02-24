@@ -1,9 +1,17 @@
-import { and, eq, getTableColumns, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNotNull, desc, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { reactionEnum, reactionsTable, subscriptionsTable, usersTable, videosTable, viewsTable } from "@/db/schema";
-import { authedProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
+import {
+    commentsTable,
+    reactionEnum,
+    reactionsTable,
+    subscriptionsTable,
+    usersTable,
+    videosTable,
+    viewsTable,
+} from "@/db/schema";
+import { authedProcedure, baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
 export const watchRouter = createTRPCRouter({
@@ -149,5 +157,91 @@ export const watchRouter = createTRPCRouter({
             if (!entry) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
             return entry;
+        }),
+    createComment: authedProcedure
+        .input(z.object({ videoId: z.string().uuid(), text: z.string().nonempty() }))
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+            const { videoId, text } = input;
+
+            // Create a single entry in the comments table
+            const [entry] = await db
+                .insert(commentsTable)
+                .values({
+                    userId: user.id,
+                    videoId,
+                    text,
+                })
+                .returning();
+
+            if (!entry) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+            return entry;
+        }),
+    getManyComments: baseProcedure
+        .input(
+            z.object({
+                videoId: z.string().uuid(),
+                cursor: z
+                    .object({
+                        id: z.number().positive(),
+                        updatedAt: z.date(),
+                    })
+                    .nullish(),
+                limit: z.number().min(1).max(100),
+            }),
+        )
+        .query(async ({ input }) => {
+            const { videoId, cursor, limit } = input;
+
+            const comments = await db
+                .select({
+                    comments: { ...getTableColumns(commentsTable) },
+                    users: { ...getTableColumns(usersTable) },
+                    totalComments: db.$count(commentsTable, eq(commentsTable.videoId, videoId)),
+                })
+                .from(commentsTable)
+                .where(
+                    and(
+                        eq(commentsTable.videoId, videoId),
+                        cursor
+                            ? or(
+                                  lt(commentsTable.updatedAt, cursor.updatedAt),
+                                  and(eq(commentsTable.updatedAt, cursor.updatedAt), lt(commentsTable.id, cursor.id)),
+                              )
+                            : undefined,
+                    ),
+                )
+                .innerJoin(usersTable, eq(usersTable.id, commentsTable.userId))
+                .orderBy(desc(commentsTable.updatedAt), desc(commentsTable.id))
+                .limit(limit + 1);
+
+            const hasMore = comments.length > limit;
+
+            // Remove the extra item if more data is available
+            const items = hasMore ? comments.slice(0, -1) : comments;
+
+            // Set the cursor to the real last item
+            const lastItem = items[items.length - 1];
+
+            const nextCursor = hasMore ? { id: lastItem.comments.id, updatedAt: lastItem.comments.updatedAt } : null;
+
+            return { comments, nextCursor };
+        }),
+    deleteComment: authedProcedure
+        .input(z.object({ commentId: z.number().positive() }))
+        .mutation(async ({ ctx, input }) => {
+            const { user } = ctx;
+            const { commentId } = input;
+
+            // Create a single entry in the comments table
+            const [deletedComment] = await db
+                .delete(commentsTable)
+                .where(and(eq(commentsTable.userId, user.id), eq(commentsTable.id, commentId)))
+                .returning();
+
+            if (!deletedComment) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+            return deletedComment;
         }),
 });

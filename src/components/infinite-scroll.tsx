@@ -13,6 +13,7 @@ interface InfiniteScrollProps {
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
+    label?: string;
 }
 
 export default function InfiniteScroll({
@@ -20,6 +21,7 @@ export default function InfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    label = "No more videos found.",
 }: InfiniteScrollProps) {
     const { targetRef, isIntersecting } = useIntersectionObserver({
         threshold: 0.5,
@@ -40,7 +42,7 @@ export default function InfiniteScroll({
                     {isFetchingNextPage ? <Loader2Icon className="animate-spin" /> : "Load More"}
                 </Button>
             ) : (
-                <p className="text-muted-foreground text-xs">No more videos found.</p>
+                <p className="text-muted-foreground text-xs">{label}</p>
             )}
         </div>
     );

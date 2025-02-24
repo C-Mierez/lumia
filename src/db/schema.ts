@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 
 /* -------------------------------- Entities -------------------------------- */
@@ -126,4 +126,35 @@ export const subscriptionsTable = pgTable(
             .notNull(),
     },
     (t) => [primaryKey({ name: "subscriptions_pk", columns: [t.subscriberId, t.subscribedToId] })],
+);
+
+export const commentsTable = pgTable(
+    "comments",
+    {
+        id: serial("id"),
+        text: text("text").notNull(),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+        updatedAt: timestamp("updated_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        userId: uuid("user_id")
+            .references(() => usersTable.id, { onDelete: "cascade" })
+            .notNull(),
+        videoId: uuid("video_id")
+            .references(() => videosTable.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (t) => [primaryKey({ name: "comments_pk", columns: [t.id, t.videoId] })],
+);
+
+export const commentsSelectSchema = createSelectSchema(commentsTable);
+export const commentsInsertSchema = createInsertSchema(commentsTable);
+export const commentsUpdateSchema = createUpdateSchema(commentsTable).refine(
+    (data) => {
+        if (!data.text) return false;
+        if (data.text && data.text.length < 1) return false;
+        return true;
+    },
+    {
+        message: "Comment must not be empty",
+    },
 );

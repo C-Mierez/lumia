@@ -1,4 +1,4 @@
-import { UseSuspenseQueryResult } from "@tanstack/react-query";
+import { UseSuspenseInfiniteQueryResult, UseSuspenseQueryResult } from "@tanstack/react-query";
 import { inferReactQueryProcedureOptions } from "@trpc/react-query";
 import { inferRouterOutputs } from "@trpc/server";
 
@@ -12,3 +12,6 @@ export type StudioGetOneQuery = UseSuspenseQueryResult<StudioGetOneOutput, unkno
 
 export type WatchGetOneOutput = RouterOutput["watch"]["getOne"];
 export type WatchGetOneQuery = UseSuspenseQueryResult<WatchGetOneOutput, unknown>;
+
+export type WatchGetManyCommentsOutput = RouterOutput["watch"]["getManyComments"];
+export type WatchGetManyCommentsQuery = UseSuspenseInfiniteQueryResult<WatchGetManyCommentsOutput, unknown>;
