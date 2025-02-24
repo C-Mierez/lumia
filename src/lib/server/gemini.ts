@@ -8,8 +8,8 @@ export const DEFAULT_MODEL = "gemini-2.0-flash";
 export function generateGeminiContent(
     systemPrompt: string,
     userPrompt: string,
-    modelName: string = DEFAULT_MODEL,
     maxTokens: number = 75,
+    modelName: string = DEFAULT_MODEL,
 ) {
     const model = GenAI.getGenerativeModel({
         model: modelName,

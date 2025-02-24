@@ -19,7 +19,8 @@ const VIDEO_DESCRIPTION_SYSTEM_PROMPT = `Your task is to summarize the transcrip
 - Avoid jargon or overly complex language unless necessary for the context.
 - Focus on the most critical information, ignoring filler, repetitive statements, or irrelevant tangents.
 - ONLY return the summary, no other text, annotations, or comments.
-- Aim for a summary that is 3-5 sentences long and no more than 200 characters.`;
+- Make a description in the format that would be expected from a Youtube video description.
+- The description should be at least 400 characters long.`;
 
 export const POST = async (request: NextRequest) => {
     console.log("API Post request on video/workflows/description");
@@ -74,7 +75,7 @@ export const POST = async (request: NextRequest) => {
 
                 const finalPrompt = `Video Title: ${video.title ?? "Untitled"}\nCategory:${video.category?.name ?? "No Category"}\nTranscript: ${transcript}`;
 
-                const result = await generateGeminiContent(VIDEO_DESCRIPTION_SYSTEM_PROMPT, finalPrompt);
+                const result = await generateGeminiContent(VIDEO_DESCRIPTION_SYSTEM_PROMPT, finalPrompt, 350);
 
                 if (!result.response) throw new Error("Failed to generate description");
 
