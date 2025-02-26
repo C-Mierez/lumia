@@ -1,27 +1,33 @@
+import { useState } from "react";
+
+import { User2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { commentsUpdateSchema } from "@/db/schema";
+import { useTRPC } from "@/trpc/client";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+import { Button } from "@components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@components/ui/form";
 import { Skeleton } from "@components/ui/skeleton";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { User2Icon } from "lucide-react";
 import { Textarea } from "@components/ui/textarea";
-import { useState } from "react";
-import { Button } from "@components/ui/button";
-import { useTRPC } from "@/trpc/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 interface CommentsFormProps {
     videoId: string;
+    parentId?: number;
+    isRoot?: boolean;
+    onCancel?: () => void;
 }
 
 export type CommentsUpdateSchema = z.infer<typeof commentsUpdateSchema>;
 
-export function CommentsForm({ videoId }: CommentsFormProps) {
+export function CommentsForm({ videoId, isRoot = true, onCancel, parentId }: CommentsFormProps) {
     const [isFocused, setIsFocused] = useState(false);
     const { user } = useUser();
     const clerk = useClerk();
@@ -40,8 +46,11 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
     const createComment = useMutation(
         trpc.watch.createComment.mutationOptions({
             async onSuccess() {
-                await queryClient.invalidateQueries({ queryKey: trpc.watch.getManyComments.queryKey({ videoId }) });
+                await queryClient.invalidateQueries({
+                    queryKey: trpc.watch.getManyComments.queryKey({ videoId, limit: DEFAULT_INFINITE_PREFETCH_LIMIT }),
+                });
                 toast.success("Comment posted");
+                if (onCancel) onCancel();
             },
             onError(error) {
                 if (error.data?.code === "UNAUTHORIZED") {
@@ -52,9 +61,10 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
         }),
     );
 
-    const onSubmit = form.handleSubmit((data) => {
+    const onSubmitForm = form.handleSubmit((data) => {
         createComment.mutate({
             text: data.text!,
+            parentId,
             videoId,
         });
 
@@ -64,11 +74,11 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
     return (
         <div className="flex items-start gap-3">
             <div>
-                <AvatarOrAnonymous userUrl={user?.imageUrl} userName={user?.fullName} />
+                <AvatarOrAnonymous isRoot={isRoot} userUrl={user?.imageUrl} userName={user?.fullName} />
             </div>
             <Form {...form}>
                 <form
-                    onSubmit={onSubmit}
+                    onSubmit={onSubmitForm}
                     className="flex flex-1 flex-col gap-2"
                     onFocus={() => setIsFocused(true)}
                     // onBlur={() => setIsFocused(false)}
@@ -96,6 +106,7 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
                                 variant={"destructiveMuted"}
                                 disabled={false}
                                 onClick={() => {
+                                    if (onCancel) onCancel();
                                     setIsFocused(false);
                                     form.reset();
                                 }}
@@ -103,7 +114,7 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
                                 Cancel
                             </Button>
                             <Button type="submit" disabled={!form.formState.isValid}>
-                                Comment
+                                {isRoot ? "Comment" : "Reply"}
                             </Button>
                         </div>
                     )}
@@ -116,21 +127,27 @@ export function CommentsForm({ videoId }: CommentsFormProps) {
 interface AvatarOrAnonymousProps {
     userName?: string | null;
     userUrl?: string;
+    isRoot?: boolean;
 }
 
-function AvatarOrAnonymous({ userUrl, userName }: AvatarOrAnonymousProps) {
+function AvatarOrAnonymous({ userUrl, userName, isRoot = false }: AvatarOrAnonymousProps) {
     return (
         <>
             {!!userUrl ? (
-                <Avatar className="size-10">
+                <Avatar className={cn(isRoot ? "size-10" : "size-7")}>
                     <AvatarImage src={userUrl} alt={userName ?? "user"} />
                     <AvatarFallback>
                         <Skeleton className="rounded-full" />
                     </AvatarFallback>
                 </Avatar>
             ) : (
-                <div className="bg-muted-foreground text-muted flex size-10 items-center justify-center rounded-full">
-                    <User2Icon className="size-8" />
+                <div
+                    className={cn(
+                        "bg-muted-foreground text-muted flex items-center justify-center rounded-full",
+                        isRoot ? "size-10" : "size-7",
+                    )}
+                >
+                    <User2Icon className={cn(isRoot ? "size-8" : "size-4")} />
                 </div>
             )}
         </>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import { formatDistanceToNow } from "date-fns";
 import { FlagIcon, MoreVerticalIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
 import { WatchGetManyCommentsOutput, WatchGetManyCommentsQuery } from "@/trpc/types";
@@ -12,8 +13,11 @@ import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Separator } from "@components/ui/separator";
 import { Skeleton } from "@components/ui/skeleton";
+import { cn } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
+import { CommentsForm } from "./comments-form";
+import { CommentReplies } from "./comments-replies";
 
 interface CommentsListProps {
     comments: WatchGetManyCommentsOutput["comments"];
@@ -24,7 +28,14 @@ export function CommentsList({ comments, query }: CommentsListProps) {
     return (
         <div className="mt-2 flex flex-col gap-6">
             {comments.map((comment, i) => (
-                <CommentItem key={`${i}${comment.comments.id}`} comment={comment} />
+                <div key={`${i}${comment.comments.id}`}>
+                    <CommentItem comment={comment} />
+                    <CommentReplies
+                        videoId={comment.comments.videoId}
+                        parentId={comment.comments.id}
+                        count={comment.reactions.repliesCount}
+                    />
+                </div>
             ))}
             <InfiniteScroll
                 hasNextPage={query.hasNextPage}
@@ -41,10 +52,12 @@ interface CommentItemProps {
     comment: WatchGetManyCommentsOutput["comments"][0];
 }
 
-function CommentItem({ comment }: CommentItemProps) {
+export function CommentItem({ comment }: CommentItemProps) {
     const { isSignedIn, user } = useUser();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
+
+    const [isEditing, setIsEditing] = useState(false);
 
     const commentDate = useMemo(() => {
         return formatDistanceToNow(comment.comments.updatedAt, { addSuffix: true });
@@ -68,10 +81,12 @@ function CommentItem({ comment }: CommentItemProps) {
 
     const isUserComment = isSignedIn ? true : false && comment.users.clerkId === user?.id;
 
+    const isRoot = comment.comments.parentId === null;
+
     return (
         // TODO Add links to user profiles
         <div className="flex items-start gap-3">
-            <Avatar className="size-10">
+            <Avatar className={cn(isRoot ? "size-10" : "size-7")}>
                 <AvatarImage src={comment.users.imageUrl} alt={comment.users.name ?? "Anonymous"} />
                 <AvatarFallback>
                     <Skeleton className="rounded-full" />
@@ -82,7 +97,7 @@ function CommentItem({ comment }: CommentItemProps) {
                     <p className="text-xs">@{comment.users.name}</p>
                     <span className="text-muted-foreground text-xs">{commentDate}</span>
                 </div>
-                <p className="break-words">{comment.comments.text}</p>
+                <p className="text-sm break-words">{comment.comments.text}</p>
                 <CommentInteractions comment={comment} />
             </div>
             <div className="z-10">
@@ -100,6 +115,10 @@ function CommentInteractions({ comment }: CommentInteractionsProps) {
     const { isSignedIn } = useAuth();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
+
+    const isRoot = comment.comments.parentId === null;
+
+    const [isReplying, setIsReplying] = useState(false);
 
     const [optimisticReaction, setOptimisticReaction] = useState(comment.currentUserReaction);
 
@@ -147,28 +166,49 @@ function CommentInteractions({ comment }: CommentInteractionsProps) {
     const dislikeCount = comment.reactions.dislikesCount + (createReaction.isPending && didUserDislike ? 1 : 0);
 
     return (
-        <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-                <Button variant={didUserLike ? "secondary" : "ghost"} size={"smallIcon"} onClick={onLike}>
-                    <ThumbsUpIcon />
-                </Button>
-                <div className="text-muted-foreground text-xs">{likeCount}</div>
+        <>
+            <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                    <Button variant={didUserLike ? "secondary" : "ghost"} size={"smallIcon"} onClick={onLike}>
+                        <ThumbsUpIcon />
+                    </Button>
+                    <div className="text-muted-foreground text-xs">{likeCount}</div>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Button
+                        size={"smallIcon"}
+                        variant={didUserDislike ? "destructive" : "ghost"}
+                        className="hover:bg-destructive"
+                        onClick={onDislike}
+                    >
+                        <ThumbsDownIcon />
+                    </Button>
+                    <div className="text-muted-foreground text-xs">{dislikeCount}</div>
+                </div>
+                {isRoot && (
+                    <Button
+                        className="text-xs font-semibold"
+                        size={"sm"}
+                        variant={"link"}
+                        onClick={() => setIsReplying(!isReplying)}
+                    >
+                        Reply
+                    </Button>
+                )}
             </div>
-            <div className="flex items-center gap-1">
-                <Button
-                    size={"smallIcon"}
-                    variant={didUserDislike ? "destructive" : "ghost"}
-                    className="hover:bg-destructive"
-                    onClick={onDislike}
-                >
-                    <ThumbsDownIcon />
-                </Button>
-                <div className="text-muted-foreground text-xs">{dislikeCount}</div>
-            </div>
-            <Button className="text-xs font-semibold" size={"sm"} variant={"link"}>
-                Reply
-            </Button>
-        </div>
+            {isReplying && (
+                <div className="mt-3">
+                    <CommentsForm
+                        videoId={comment.comments.videoId}
+                        parentId={comment.comments.id}
+                        isRoot={false}
+                        onCancel={() => {
+                            setIsReplying(false);
+                        }}
+                    />
+                </div>
+            )}
+        </>
     );
 }
 

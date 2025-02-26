@@ -142,7 +142,7 @@ export const subscriptionsTable = pgTable(
 export const commentsTable = pgTable(
     "comments",
     {
-        id: serial("id"),
+        id: serial("id").primaryKey(),
         text: text("text").notNull(),
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -153,8 +153,15 @@ export const commentsTable = pgTable(
         videoId: uuid("video_id")
             .references(() => videosTable.id, { onDelete: "cascade" })
             .notNull(),
+        parentId: integer("parent_id"),
     },
-    (t) => [primaryKey({ name: "comments_pk", columns: [t.id, t.videoId] })],
+    (t) => [
+        foreignKey({
+            name: "comments_parent_id_fk",
+            columns: [t.parentId],
+            foreignColumns: [t.id],
+        }).onDelete("cascade"),
+    ],
 );
 
 export const commentsSelectSchema = createSelectSchema(commentsTable);
@@ -179,17 +186,14 @@ export const commentReactionsTable = pgTable(
         userId: uuid("user_id")
             .references(() => usersTable.id, { onDelete: "cascade" })
             .notNull(),
-        commentId: integer("comment_id").notNull(),
+        commentId: integer("comment_id")
+            .notNull()
+            .references(() => commentsTable.id, {
+                onDelete: "cascade",
+            }),
         videoId: uuid("video_id").notNull(),
     },
-    (t) => [
-        primaryKey({ name: "comment_reactions_pk", columns: [t.userId, t.commentId] }),
-        foreignKey({
-            name: "comment_reactions_comment_id_fk",
-            columns: [t.commentId, t.videoId],
-            foreignColumns: [commentsTable.id, commentsTable.videoId],
-        }),
-    ],
+    (t) => [primaryKey({ name: "comment_reactions_pk", columns: [t.userId, t.commentId] })],
 );
 
 export const commentReactionsSelectSchema = createSelectSchema(commentReactionsTable);

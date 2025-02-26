@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, inArray, isNotNull, desc, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, inArray, isNotNull, isNull, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -12,7 +12,7 @@ import {
     videosTable,
     viewsTable,
 } from "@/db/schema";
-import { authedProcedure, baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
+import { authedProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
 export const watchRouter = createTRPCRouter({
@@ -160,10 +160,30 @@ export const watchRouter = createTRPCRouter({
             return entry;
         }),
     createComment: authedProcedure
-        .input(z.object({ videoId: z.string().uuid(), text: z.string().nonempty() }))
+        .input(
+            z.object({
+                videoId: z.string().uuid(),
+                parentId: z.number().nullish(),
+                text: z.string().nonempty(),
+            }),
+        )
         .mutation(async ({ ctx, input }) => {
             const { user } = ctx;
-            const { videoId, text } = input;
+            const { videoId, text, parentId } = input;
+
+            // Enforce only one level of nesting
+            if (parentId) {
+                const [parentComment] = await db
+                    .select()
+                    .from(commentsTable)
+                    .where(and(eq(commentsTable.id, parentId), eq(commentsTable.videoId, videoId)));
+
+                if (!parentComment) throw new TRPCError({ code: "NOT_FOUND" });
+
+                if (parentComment.parentId) {
+                    throw new TRPCError({ code: "BAD_REQUEST", message: "Only one level of nesting is allowed" });
+                }
+            }
 
             // Create a single entry in the comments table
             const [entry] = await db
@@ -171,6 +191,7 @@ export const watchRouter = createTRPCRouter({
                 .values({
                     userId: user.id,
                     videoId,
+                    parentId,
                     text,
                 })
                 .returning();
@@ -183,6 +204,7 @@ export const watchRouter = createTRPCRouter({
         .input(
             z.object({
                 videoId: z.string().uuid(),
+                parentId: z.number().nullish(),
                 cursor: z
                     .object({
                         id: z.number().positive(),
@@ -212,8 +234,19 @@ export const watchRouter = createTRPCRouter({
                     ),
             );
 
+            const commentRepliesSQ = db.$with("comment_replies").as(
+                db
+                    .select({
+                        parentId: commentsTable.parentId,
+                        count: count(commentsTable.id).as("count"),
+                    })
+                    .from(commentsTable)
+                    .where(isNotNull(commentsTable.parentId))
+                    .groupBy(commentsTable.parentId),
+            );
+
             const comments = await db
-                .with(currentUserReactionsSQ)
+                .with(currentUserReactionsSQ, commentRepliesSQ)
                 .select({
                     comments: { ...getTableColumns(commentsTable) },
                     users: { ...getTableColumns(usersTable) },
@@ -235,6 +268,7 @@ export const watchRouter = createTRPCRouter({
                                 eq(commentReactionsTable.reactionType, "dislike"),
                             ),
                         ),
+                        repliesCount: commentRepliesSQ.count,
                     },
                     currentUserReaction: currentUserReactionsSQ.type,
                 })
@@ -242,6 +276,9 @@ export const watchRouter = createTRPCRouter({
                 .where(
                     and(
                         eq(commentsTable.videoId, videoId),
+                        // If no parentId  is provided, only fetch root comments
+                        // Otherwise, fetch replies to the provided parentId
+                        input.parentId ? eq(commentsTable.parentId, input.parentId) : isNull(commentsTable.parentId),
                         cursor
                             ? or(
                                   lt(commentsTable.updatedAt, cursor.updatedAt),
@@ -258,6 +295,7 @@ export const watchRouter = createTRPCRouter({
                         eq(currentUserReactionsSQ.videoId, videoId),
                     ),
                 )
+                .leftJoin(commentRepliesSQ, eq(commentRepliesSQ.parentId, commentsTable.id))
                 .orderBy(desc(commentsTable.updatedAt), desc(commentsTable.id))
                 .limit(limit + 1);
 
