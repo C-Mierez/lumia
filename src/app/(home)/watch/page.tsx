@@ -19,6 +19,10 @@ export default async function VideoPage({ searchParams }: VideoPageProps) {
         trpc.watch.getManyComments.infiniteQueryOptions({ videoId: v, limit: DEFAULT_INFINITE_PREFETCH_LIMIT }),
     );
 
+    void prefetch(
+        trpc.suggestions.getMany.infiniteQueryOptions({ videoId: v, limit: DEFAULT_INFINITE_PREFETCH_LIMIT }),
+    );
+
     return (
         <HydrateClient>
             <WatchView videoId={v} />

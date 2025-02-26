@@ -15,3 +15,5 @@ export type WatchGetOneQuery = UseSuspenseQueryResult<WatchGetOneOutput, unknown
 
 export type WatchGetManyCommentsOutput = RouterOutput["watch"]["getManyComments"];
 export type WatchGetManyCommentsQuery = UseSuspenseInfiniteQueryResult<WatchGetManyCommentsOutput, unknown>;
+
+export type SuggestionsGetManyOutput = RouterOutput["suggestions"]["getMany"];

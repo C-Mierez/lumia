@@ -22,13 +22,13 @@ export default function VideoDescription({ video }: VideoDescriptionProps) {
     const compactViews = useMemo(() => {
         return Intl.NumberFormat("en", {
             notation: "compact",
-        }).format(video.views.count); // TODO Make actual videos views
-    }, [video, video.views.count]); // TODO Add proper dependency
+        }).format(video.views.count);
+    }, [video, video.views.count]);
     const expandedViews = useMemo(() => {
         return Intl.NumberFormat("en", {
             notation: "standard",
-        }).format(video.views.count); // TODO Make actual videos views
-    }, [video, video.views.count]); // TODO Add proper dependency
+        }).format(video.views.count);
+    }, [video, video.views.count]);
 
     const compactCreation = useMemo(() => {
         return formatDistanceToNow(video.createdAt, { addSuffix: true });
