@@ -79,7 +79,7 @@ export function CommentItem({ comment }: CommentItemProps) {
         deleteComment.mutate({ commentId: comment.comments.id });
     };
 
-    const isUserComment = isSignedIn ? true : false && comment.users.clerkId === user?.id;
+    const isUserComment = !!isSignedIn && comment.users.clerkId === user?.id;
 
     const isRoot = comment.comments.parentId === null;
 
