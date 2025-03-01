@@ -3,7 +3,8 @@ export const SEARCH_KEY_VALUES = {
     Home: {
         category: "category",
         test: "test",
-        v: "v",
+        v: "v", // Video
+        s: "s", // Search
     },
     Studio: {
         video: "video",

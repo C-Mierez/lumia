@@ -12,7 +12,7 @@ import SearchInput from "./search-input";
 export default function HomeNavbar() {
     return (
         <>
-            <div className="flex items-center gap-4">
+            <div className="col-start-1 col-end-3 flex items-center gap-4">
                 {/* Sidebar Button */}
                 <SidebarTrigger variant={"glow"} className="size-5 [&_svg]:size-5"></SidebarTrigger>
                 {/* Branding */}
@@ -23,12 +23,12 @@ export default function HomeNavbar() {
             </div>
 
             {/* Search Bar */}
-            <div className="absolute right-0 bottom-0 left-0 mx-auto flex max-w-4xl flex-1 translate-y-[-40%] justify-center">
+            <div className="col-start-3 col-end-9 flex w-full max-w-4xl flex-1 justify-center place-self-center">
                 <SearchInput />
             </div>
 
             {/* Auth or User Profile */}
-            <div className="flex items-center gap-4">
+            <div className="col-start-9 col-end-11 flex items-center justify-end gap-4">
                 {/* Studio Link */}
                 <Link href="/studio">
                     <Button variant={"muted"} className="[&_svg]:size-4">

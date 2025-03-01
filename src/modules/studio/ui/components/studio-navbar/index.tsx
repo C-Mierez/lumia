@@ -10,7 +10,7 @@ import CreateVideoButton from "../create-video-button";
 export default function StudioNavbar() {
     return (
         <>
-            <div className="flex items-center gap-4">
+            <div className="col-start-1 col-end-6 flex items-center gap-4">
                 {/* Sidebar Button */}
                 <SidebarTrigger variant={"glow"} className="size-5 [&_svg]:size-5"></SidebarTrigger>
                 {/* Branding */}
@@ -21,7 +21,7 @@ export default function StudioNavbar() {
             </div>
 
             {/* Auth and Quick Actions */}
-            <div className="flex items-center gap-4">
+            <div className="col-start-6 col-end-11 flex items-center justify-end gap-4">
                 <CreateVideoButton />
                 <AuthButton />
             </div>
