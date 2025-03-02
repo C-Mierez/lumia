@@ -1,3 +1,4 @@
+import { prefetch, trpc } from "@/trpc/server";
 import BaseLayout from "@components/layout/base-layout";
 
 import HomeNavbar from "../components/home-navbar";
@@ -8,6 +9,8 @@ interface HomeLayoutProps {
 }
 
 export function HomeLayout({ children }: HomeLayoutProps) {
+    prefetch(trpc.subscriptions.getMany.queryOptions());
+
     return (
         <BaseLayout navbar={<HomeNavbar />} sidebar={<HomeSidebar />}>
             {children}

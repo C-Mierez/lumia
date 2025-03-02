@@ -1,9 +1,10 @@
+import { and, eq, getTableColumns } from "drizzle-orm";
+import { z } from "zod";
+
 import { db } from "@/db";
-import { subscriptionsTable } from "@/db/schema";
+import { subscriptionsTable, usersTable } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
-import { z } from "zod";
 
 export const subscriptionsRouter = createTRPCRouter({
     createSubscription: authedProcedure
@@ -50,4 +51,21 @@ export const subscriptionsRouter = createTRPCRouter({
 
             return deleted;
         }),
+    getMany: authedProcedure.query(async ({ ctx }) => {
+        const { user } = ctx;
+
+        const subscriptions = await db
+            .select({
+                ...getTableColumns(usersTable),
+            })
+            .from(subscriptionsTable)
+            .where(eq(subscriptionsTable.subscriberId, user.id))
+            .innerJoin(usersTable, eq(subscriptionsTable.subscribedToId, usersTable.id));
+
+        if (!subscriptions) {
+            return [];
+        }
+
+        return subscriptions;
+    }),
 });

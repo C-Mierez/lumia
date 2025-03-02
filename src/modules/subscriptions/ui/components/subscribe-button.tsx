@@ -34,6 +34,7 @@ export function SubscribeButton({
         if (shouldRevalidate) {
             await queryClient.invalidateQueries({ queryKey: trpc.watch.getOne.queryKey() });
             await queryClient.invalidateQueries({ queryKey: trpc.home.searchManySubscriptions.queryKey() });
+            await queryClient.invalidateQueries({ queryKey: trpc.subscriptions.getMany.queryKey() });
         }
         toast.success(isSubscribedState ? "Unsubscribed" : "Subscribed");
     };

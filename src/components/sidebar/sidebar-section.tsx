@@ -2,22 +2,24 @@
 
 import { useAuth } from "@clerk/clerk-react";
 import { useClerk } from "@clerk/nextjs";
-import { SidebarGroup, SidebarGroupContent, SidebarMenu } from "@components/ui/sidebar";
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu } from "@components/ui/sidebar";
 
 import SidebarItem from "./sidebar-item";
 import { SidebarItemType } from "./types";
 
 interface SidebarSectionProps {
     items: SidebarItemType[];
+    label?: string;
 }
 
-export default function SidebarSection({ items }: SidebarSectionProps) {
+export default function SidebarSection({ items, label }: SidebarSectionProps) {
     const clerk = useClerk();
     const { isSignedIn } = useAuth();
 
     return (
         <SidebarGroup>
             <SidebarGroupContent>
+                {label && <SidebarGroupLabel className="whitespace-nowrap">{label}</SidebarGroupLabel>}
                 <SidebarMenu>
                     {items.map((item) => (
                         <SidebarItem
