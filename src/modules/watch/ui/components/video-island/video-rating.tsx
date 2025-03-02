@@ -27,6 +27,9 @@ export function VideoRating({ video }: VideoRatingProps) {
                 if (data) {
                     toast.success(`${data.reactionType === "like" ? "Liked" : "Disliked"} video`);
                     setOptimisticReaction(data.reactionType);
+                    await queryClient.invalidateQueries({
+                        queryKey: trpc.playlists.getManyLiked.queryKey(),
+                    });
                 }
                 if (data === null) {
                     toast.success("Removed reaction");

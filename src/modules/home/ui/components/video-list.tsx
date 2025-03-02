@@ -1,3 +1,5 @@
+"use client";
+
 import { HomeSearchManyOutput } from "@/trpc/types";
 import { useIsMobile } from "@hooks/use-mobile";
 import { GridVideoCard } from "@modules/videos/ui/components/video-cards/grid-video-card";
@@ -11,7 +13,8 @@ export function VideoList({ videos }: VideoListProps) {
     const isMobile = useIsMobile();
 
     if (videos.length === 0)
-        return <div className="text-brand text-muted-foreground mx-auto text-sm">No videos found</div>;
+        // return <div className="text-brand text-muted-foreground mx-auto text-sm">No videos found</div>;
+        return null;
 
     return (
         <div className="mx-auto grid w-full max-w-7xl auto-rows-fr grid-cols-1 gap-4">
