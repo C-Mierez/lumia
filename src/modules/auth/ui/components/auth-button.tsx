@@ -9,16 +9,7 @@ export default function AuthButton() {
     return (
         <>
             <SignedIn>
-                <UserButton>
-                    {/* TODO: Use the Clerk menu to give access to user profile instead */}
-                    {/* <UserButton.MenuItems>
-                        <UserButton.Link
-                            label="Studio"
-                            href="/studio"
-                            labelIcon={<ClapperboardIcon className="size-4" />}
-                        />
-                    </UserButton.MenuItems> */}
-                </UserButton>
+                <UserButton></UserButton>
             </SignedIn>
             <SignedOut>
                 <SignInButton mode="modal">

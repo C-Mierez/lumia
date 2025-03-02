@@ -89,7 +89,6 @@ export const videosRouter = createTRPCRouter({
 
         if (!input.id) throw new TRPCError({ code: "BAD_REQUEST", message: "id is required" });
 
-        // TODO Enforce visibility restrictions server-side
         // Video cant be made public if it has not been processed
         const [updatedVideo] = await db
             .update(videosTable)
@@ -104,7 +103,7 @@ export const videosRouter = createTRPCRouter({
                 and(
                     eq(videosTable.id, input.id),
                     eq(videosTable.userId, user.id),
-                    input.visibility === "public" ? isNotNull(videosTable.muxPlaybackId) : undefined,
+                    input.visibility === "public" ? isNotNull(videosTable.muxPlaybackId) : undefined, // Enforce muxPlaybackId if visibility is public
                 ),
             )
             .returning();

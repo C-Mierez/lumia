@@ -31,7 +31,6 @@ export function VideoAuthor({ video, showButton = false }: VideoAuthorProps) {
                 <div className="pl-3">
                     {/* Subscribe button if not owner */}
                     {auth.userId !== video.user.clerkId ? (
-                        // TODO Implement subscription state
                         <SubscribeButton
                             shouldRevalidate
                             userId={video.user.id}

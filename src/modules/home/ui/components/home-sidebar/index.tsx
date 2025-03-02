@@ -12,8 +12,6 @@ export default function HomeSidebar() {
                 <SidebarSection items={mainItems} label="Home" />
                 <Separator />
                 <SidebarSection items={personalItems} label="Your activity" />
-
-                {/* TODO Subscriptions section */}
                 <SubscriptionsList />
             </SidebarContent>
         </Sidebar>
