@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 
 import { format } from "date-fns";
 import { GlobeIcon, LockIcon } from "lucide-react";
@@ -108,9 +108,15 @@ function VideosSectionSuspense() {
                                 <TableCell className="truncate px-6 py-4 text-xs">
                                     <div>{format(new Date(video.createdAt), "d MMM yyyy")}</div>
                                 </TableCell>
-                                <TableCell className="px-6 py-4 text-xs">views</TableCell>
-                                <TableCell className="px-6 py-4 text-xs">comments</TableCell>
-                                <TableCell className="px-6 py-4 text-xs">likes</TableCell>
+                                <TableCell className="px-6 py-4 text-xs">
+                                    <IntlNumber value={video.viewsCount} />
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-xs">
+                                    <IntlNumber value={video.commentsCount} />
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-xs">
+                                    <IntlNumber value={video.likesCount} />
+                                </TableCell>
                             </TableRow>
                         </Link>
                     ))}
@@ -125,6 +131,16 @@ function VideosSectionSuspense() {
             />
         </div>
     );
+}
+
+function IntlNumber({ value }: { value: number }) {
+    const intlValue = useMemo(() => {
+        return Intl.NumberFormat("en", {
+            notation: "compact",
+        }).format(value);
+    }, [value]);
+
+    return <>{intlValue}</>;
 }
 
 function VideoSectionSkeleton() {
