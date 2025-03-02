@@ -13,31 +13,28 @@ import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 
 import { VideoGrid } from "../components/video-grid";
 
-interface HomeSectionProps {
+interface SubscriptionsSectionProps {
     searchCategoryId?: string;
-    isTrending?: boolean;
 }
 
-export default function HomeSection({ isTrending = false, searchCategoryId }: HomeSectionProps) {
+export default function SubscriptionsSection({ searchCategoryId }: SubscriptionsSectionProps) {
     return (
         // We add a key to Suspense to force a re-render when the searchQuery or searchCategoryId changes
         <Suspense key={searchCategoryId} fallback={<HomeFallback />}>
             <ErrorBoundary fallback={<p>Something went wrong</p>}>
-                <HomeSectionSuspense searchCategoryId={searchCategoryId} isTrending={isTrending} />
+                <SubscriptionsSectionSuspense searchCategoryId={searchCategoryId} />
             </ErrorBoundary>
         </Suspense>
     );
 }
 
-function HomeSectionSuspense({ searchCategoryId, isTrending }: HomeSectionProps) {
+function SubscriptionsSectionSuspense({ searchCategoryId }: SubscriptionsSectionProps) {
     const trpc = useTRPC();
 
     const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useSuspenseInfiniteQuery(
-        trpc.home.searchMany.infiniteQueryOptions(
+        trpc.home.searchManySubscriptions.infiniteQueryOptions(
             {
-                searchQuery: null,
                 searchCategory: searchCategoryId,
-                isTrending,
                 limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
             },
             {

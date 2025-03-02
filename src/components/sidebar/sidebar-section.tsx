@@ -1,19 +1,11 @@
 "use client";
 
-import Link from "next/link";
-
 import { useAuth } from "@clerk/clerk-react";
 import { useClerk } from "@clerk/nextjs";
-import {
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-} from "@components/ui/sidebar";
+import { SidebarGroup, SidebarGroupContent, SidebarMenu } from "@components/ui/sidebar";
 
-import { SidebarItemType } from "./types";
 import SidebarItem from "./sidebar-item";
+import { SidebarItemType } from "./types";
 
 interface SidebarSectionProps {
     items: SidebarItemType[];

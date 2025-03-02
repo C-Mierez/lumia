@@ -1,19 +1,18 @@
 import { Separator } from "@components/ui/separator";
 
 import CategoriesSection from "../sections/categories-section";
-import HomeSection from "../sections/home-section";
+import SubscriptionsSection from "../sections/subscriptions-section";
 
-interface HomeViewProps {
+interface SubscriptionsViewProps {
     searchCategoryId?: string;
-    isTrending?: boolean;
 }
 
-export default function HomeView({ isTrending = false, searchCategoryId }: HomeViewProps) {
+export default function SubscriptionsView({ searchCategoryId }: SubscriptionsViewProps) {
     return (
         <div className="flex max-w-[var(--screen-max)] flex-col gap-y-6 px-4 py-2">
             <CategoriesSection categoryId={searchCategoryId} />
             <Separator />
-            <HomeSection searchCategoryId={searchCategoryId} isTrending={isTrending} />
+            <SubscriptionsSection searchCategoryId={searchCategoryId} />
         </div>
     );
 }

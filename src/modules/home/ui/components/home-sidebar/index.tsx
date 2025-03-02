@@ -13,7 +13,6 @@ export default function HomeSidebar() {
                 <SidebarSection items={personalItems} />
                 <Separator />
                 {/* TODO Subscriptions section */}
-                <SidebarSection items={mainItems} />
             </SidebarContent>
         </Sidebar>
     );

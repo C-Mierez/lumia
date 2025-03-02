@@ -33,6 +33,7 @@ export function SubscribeButton({
     const onSuccess = async () => {
         if (shouldRevalidate) {
             await queryClient.invalidateQueries({ queryKey: trpc.watch.getOne.queryKey() });
+            await queryClient.invalidateQueries({ queryKey: trpc.home.searchManySubscriptions.queryKey() });
         }
         toast.success(isSubscribedState ? "Unsubscribed" : "Subscribed");
     };
