@@ -1,4 +1,5 @@
 import { categoriesRouter } from "@modules/categories/server/procedures";
+import { homeRouter } from "@modules/home/server/procedures";
 import { studioRouter } from "@modules/studio/server/procedures";
 import { subscriptionsRouter } from "@modules/subscriptions/server/procedures";
 import { suggestionsRouter } from "@modules/suggestions/server/procedures";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
     watch: watchRouter,
     subscriptions: subscriptionsRouter,
     suggestions: suggestionsRouter,
+    home: homeRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

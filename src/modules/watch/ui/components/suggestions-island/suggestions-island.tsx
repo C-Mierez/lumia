@@ -1,6 +1,6 @@
 import { SuggestionsGetManyOutput } from "@/trpc/types";
 import { getFullVideoUrl } from "@lib/utils";
-import { HorizontalVideoCard } from "@modules/suggestions/ui/components/horizontal-video-card";
+import { HorizontalVideoCard } from "@modules/videos/ui/components/video-cards/horizontal-video-card";
 
 interface SuggestionsIslandProps {
     videoId: string;

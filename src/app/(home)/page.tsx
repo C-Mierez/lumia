@@ -1,4 +1,5 @@
 import { HydrateClient, prefetch, trpc } from "@/trpc/server";
+import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { SEARCH_PARAMS } from "@lib/searchParams";
 import HomeView from "@modules/home/ui/views/home-view";
 
@@ -13,9 +14,17 @@ export default async function Home({ searchParams }: HomeProps) {
 
     prefetch(trpc.categories.getMany.queryOptions());
 
+    void prefetch(
+        trpc.home.searchMany.infiniteQueryOptions({
+            searchQuery: null,
+            searchCategory: category,
+            limit: DEFAULT_INFINITE_PREFETCH_LIMIT,
+        }),
+    );
+
     return (
         <HydrateClient>
-            <HomeView categoryId={category} />
+            <HomeView searchCategoryId={category} />
         </HydrateClient>
     );
 }

@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { EmblaCarouselType } from "embla-carousel";
-import Link from "next/link";
 
-import { buildSearchQuery, SEARCH_KEYS_ALL } from "@lib/searchParams";
+import useSafeQueryState from "@hooks/use-safe-query-state";
+import { SEARCH_KEYS_ALL } from "@lib/searchParams";
 import { cn, range } from "@lib/utils";
 
 import { Badge } from "./ui/badge";
@@ -76,9 +76,9 @@ export default function CarouselFilter({
                     {!isLoading && (
                         <>
                             <CarouselBadge
-                                id={"AllBadge"}
+                                id={null}
                                 label={"All"}
-                                selectedItemId={!selectedItemId ? "AllBadge" : ""}
+                                selectedItemId={!selectedItemId ? null : ""}
                                 searchKey={searchKey}
                                 isDefault
                             ></CarouselBadge>
@@ -88,7 +88,7 @@ export default function CarouselFilter({
                                         key={item.id}
                                         id={item.id}
                                         label={item.label}
-                                        selectedItemId={selectedItemId}
+                                        selectedItemId={selectedItemId ?? null}
                                         searchKey={searchKey}
                                     ></CarouselBadge>
                                 );
@@ -106,33 +106,33 @@ export default function CarouselFilter({
 }
 
 interface CarouselBadgeProps {
-    id?: string;
+    id: string | null;
     label?: string;
-    selectedItemId?: string;
+    selectedItemId: string | null;
     isDefault?: boolean;
     searchKey: SEARCH_KEYS_ALL;
 }
 
-function CarouselBadge({ label, id, selectedItemId, isDefault = false, searchKey }: CarouselBadgeProps) {
+function CarouselBadge({ label, id, isDefault = false, searchKey }: CarouselBadgeProps) {
     const [clicked, setClicked] = useState(false);
-    const [currentValue, setCurrentValue] = useState(selectedItemId);
+    const [query, setQuery] = useSafeQueryState(searchKey);
+
+    const onClick = () => {
+        setClicked(true);
+        setQuery(id ?? null);
+    };
 
     useEffect(() => {
-        if (currentValue !== selectedItemId && clicked) {
-            setCurrentValue(selectedItemId);
-            setClicked(false);
-        }
-    }, [selectedItemId, clicked, currentValue]);
-
-    const href = isDefault ? "/" : `/${buildSearchQuery({ [searchKey]: id })}`;
+        if (clicked && query === id) setClicked(false);
+    }, [query]);
 
     return (
-        <Link href={href} onClick={() => setClicked(true)}>
+        <button onClick={onClick}>
             <CarouselItem
                 className={cn("basis-auto pl-3 transition-opacity duration-300", clicked && "opacity-50 duration-0")}
             >
                 <Badge
-                    variant={selectedItemId === id || clicked ? "selected" : "default"}
+                    variant={query === id || clicked ? "selected" : "default"}
                     className={cn(
                         "cursor-pointer rounded-md px-3 py-1 text-xs whitespace-nowrap",
                         // clicked ? "bg-red-500" : "",
@@ -141,7 +141,7 @@ function CarouselBadge({ label, id, selectedItemId, isDefault = false, searchKey
                     {label}
                 </Badge>
             </CarouselItem>
-        </Link>
+        </button>
     );
 }
 
