@@ -124,7 +124,7 @@ function CarouselBadge({ label, id, isDefault = false, searchKey }: CarouselBadg
 
     useEffect(() => {
         if (clicked && query === id) setClicked(false);
-    }, [query]);
+    }, [query, clicked, id]);
 
     return (
         <button onClick={onClick}>

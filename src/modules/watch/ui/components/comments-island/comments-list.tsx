@@ -61,7 +61,7 @@ export function CommentItem({ comment }: CommentItemProps) {
 
     const commentDate = useMemo(() => {
         return formatDistanceToNow(comment.comments.updatedAt, { addSuffix: true });
-    }, [comment, comment.comments.updatedAt]);
+    }, [comment]);
 
     const deleteComment = useMutation(
         trpc.watch.deleteComment.mutationOptions({

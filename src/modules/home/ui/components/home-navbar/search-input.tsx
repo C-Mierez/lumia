@@ -41,7 +41,7 @@ export default function SearchInput() {
                 })}`,
             );
         }
-    }, [categoryQuery]);
+    }, [categoryQuery, router, searchQuery]);
 
     const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (!e.target.value || e.target.value.length === 0) {

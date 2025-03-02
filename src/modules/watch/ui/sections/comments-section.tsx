@@ -41,6 +41,7 @@ function CommentsSectionSuspense({ videoId }: CommentsSectionProps) {
 
     const comments = commentsQuery.data.pages.flatMap((page) => page.comments);
 
+    // eslint-disable-next-line
     return <CommentsIsland videoId={videoId} comments={comments} query={commentsQuery as any} />;
 }
 

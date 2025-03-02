@@ -20,7 +20,7 @@ export function HorizontalVideoCard({ video, href }: HorizontalVideoCardProps) {
         return Intl.NumberFormat("en", {
             notation: "compact",
         }).format(video.viewCount);
-    }, [video, video.viewCount]);
+    }, [video]);
 
     return (
         <div className="relative flex gap-3">

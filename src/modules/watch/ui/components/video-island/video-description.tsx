@@ -23,19 +23,19 @@ export default function VideoDescription({ video }: VideoDescriptionProps) {
         return Intl.NumberFormat("en", {
             notation: "compact",
         }).format(video.views.count);
-    }, [video, video.views.count]);
+    }, [video]);
     const expandedViews = useMemo(() => {
         return Intl.NumberFormat("en", {
             notation: "standard",
         }).format(video.views.count);
-    }, [video, video.views.count]);
+    }, [video]);
 
     const compactCreation = useMemo(() => {
         return formatDistanceToNow(video.createdAt, { addSuffix: true });
-    }, [video, video.createdAt]);
+    }, [video]);
     const expandedCreation = useMemo(() => {
         return format(video.createdAt, "d MMM yyyy");
-    }, [video, video.createdAt]);
+    }, [video]);
 
     const views = isExpanded ? expandedViews : compactViews;
     const creation = isExpanded ? expandedCreation : compactCreation;

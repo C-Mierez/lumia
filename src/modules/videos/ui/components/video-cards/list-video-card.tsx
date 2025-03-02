@@ -22,7 +22,7 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
         return Intl.NumberFormat("en", {
             notation: "compact",
         }).format(video.viewCount);
-    }, [video, video.viewCount]);
+    }, [video]);
 
     return (
         <div className="relative grid w-full max-w-full grid-cols-3 gap-3">

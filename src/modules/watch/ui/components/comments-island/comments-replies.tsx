@@ -78,7 +78,7 @@ function CommentRepliesList({
 
     useEffect(() => {
         onLoading(isLoading);
-    }, [isLoading]);
+    }, [isLoading, onLoading]);
 
     const comments = data?.pages.flatMap((page) => page.comments) ?? [];
 

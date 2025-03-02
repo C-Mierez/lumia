@@ -22,7 +22,7 @@ export function GridVideoCard({ video }: GridVideoCardProps) {
         return Intl.NumberFormat("en", {
             notation: "compact",
         }).format(video.viewCount);
-    }, [video, video.viewCount]);
+    }, [video]);
 
     return (
         <div className="relative flex max-h-full max-w-full flex-col gap-2">
