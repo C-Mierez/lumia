@@ -16,12 +16,14 @@ A Youtube-inspired video-sharing website.
 - Svix Webhook
 - Upstash Redis + Ratelimit
 - Upstash Workflow
+- Google Gemini 2.0 API
+- Cloudflare Workers AI
 - Tailwind V4
 
 --- Local:
 
 - Ngrok: Local development tunnel for Clerk webhooks
-- [Concurrently](https://github.com/open-cli-tools/concurrently): Run multiple commands concurrently (NexJS + Ngrok)
+- [Concurrently](https://github.com/open-cli-tools/concurrently): Run multiple commands concurrently (NextJS + Ngrok)
 
 ### Features
 
