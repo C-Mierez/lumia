@@ -29,8 +29,8 @@ A Youtube-inspired video-sharing website.
 - [ ] Custom-built video player
 - [x] Video processing service (Mux)
 - [ ] Video playlist creation and management
-- [ ] Channel subscriptions
-- [ ] Video comments and likes system
+- [x] Channel subscriptions
+- [x] Video comments and likes system
 - [x] AI-Generation tools for the user to use (Video title, description, thumbnail)
 - [x] Real-time status updates for long-running tasks using SSE
 
