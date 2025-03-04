@@ -11,6 +11,7 @@ import {
     uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import { z } from "zod";
 
 /* -------------------------------- Entities -------------------------------- */
 export const usersTable = pgTable(
@@ -199,3 +200,49 @@ export const commentReactionsTable = pgTable(
 export const commentReactionsSelectSchema = createSelectSchema(commentReactionsTable);
 export const commentReactionsInsertSchema = createInsertSchema(commentReactionsTable);
 export const commentReactionsUpdateSchema = createUpdateSchema(commentReactionsTable);
+
+export const playlistsTable = pgTable("playlists", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    /* --------------------------------- Foreign -------------------------------- */
+    userId: uuid("user_id")
+        .references(() => usersTable.id, { onDelete: "cascade" })
+        .notNull(),
+});
+
+export const playlistSelectSchema = createSelectSchema(playlistsTable);
+export const playlistInsertSchema = createInsertSchema(playlistsTable).extend({
+    userId: z.string().uuid().nullish(),
+    name: z.string().nonempty(),
+});
+export const playlistUpdateSchema = createUpdateSchema(playlistsTable);
+
+export const playlistVideosTable = pgTable(
+    "playlist_videos",
+    {
+        /**
+         * position will be an integer that will denote the order of the videos in the playlist
+         * When a new video is added, it will be added to the end of the playlist
+         * When a video is moved, the position of all videos between the old and new position will be increased by 1 and
+         * the video will be inserted at the new position
+         * When a video is removed, the position of all videos after the removed video will be decreased by 1
+         */
+        position: integer("position").notNull(),
+        addedAt: timestamp("added_at").defaultNow().notNull(),
+        /* --------------------------------- Foreign -------------------------------- */
+        playlistId: uuid("playlist_id")
+            .references(() => playlistsTable.id, { onDelete: "cascade" })
+            .notNull(),
+        videoId: uuid("video_id")
+            .references(() => videosTable.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (t) => [primaryKey({ name: "playlist_videos_pk", columns: [t.playlistId, t.videoId] })],
+);
+
+export const playlistVideosSelectSchema = createSelectSchema(playlistVideosTable);
+export const playlistVideosInsertSchema = createInsertSchema(playlistVideosTable);
+export const playlistVideosUpdateSchema = createUpdateSchema(playlistVideosTable);

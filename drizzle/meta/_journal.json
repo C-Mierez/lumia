@@ -148,6 +148,13 @@
       "when": 1740434629774,
       "tag": "0020_lean_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1740948903815,
+      "tag": "0021_daily_thor",
+      "breakpoints": true
     }
   ]
 }

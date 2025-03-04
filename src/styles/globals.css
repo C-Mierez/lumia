@@ -249,4 +249,32 @@
     .interpolate-size {
         interpolate-size: allow-keywords;
     }
+
+    .playlistCard {
+        position: relative;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: -5px;
+            bottom: 25%;
+            left: 10px;
+            right: 10px;
+
+            z-index: -1;
+
+            @apply bg-accent/75 rounded-md;
+        }
+        &::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            bottom: 25%;
+            left: 20px;
+            right: 20px;
+            z-index: -2;
+
+            @apply bg-accent/50 rounded-md;
+        }
+    }
 }

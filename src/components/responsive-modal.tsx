@@ -1,6 +1,4 @@
-import { DialogTitle } from "@radix-ui/react-dialog";
-
-import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 interface ResponsiveModalProps {
     children: React.ReactNode;
@@ -9,6 +7,7 @@ interface ResponsiveModalProps {
     onOpenChange: (isOpen: boolean) => void;
     className?: string;
     hideClose?: boolean;
+    modal?: boolean;
 }
 
 export default function ResponsiveModal({
@@ -18,6 +17,7 @@ export default function ResponsiveModal({
     onOpenChange,
     className,
     hideClose,
+    modal = true,
 }: ResponsiveModalProps) {
     // const isMobile = useIsMobile();
 
@@ -34,7 +34,7 @@ export default function ResponsiveModal({
     //     );
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange} modal>
+        <Dialog open={isOpen} onOpenChange={onOpenChange} modal={modal}>
             <DialogContent className={className} hideClose={hideClose}>
                 <DialogHeader>
                     <DialogTitle>{header}</DialogTitle>

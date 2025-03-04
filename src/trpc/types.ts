@@ -19,3 +19,5 @@ export type WatchGetManyCommentsQuery = UseSuspenseInfiniteQueryResult<WatchGetM
 export type SuggestionsGetManyOutput = RouterOutput["suggestions"]["getMany"];
 
 export type HomeSearchManyOutput = RouterOutput["home"]["searchMany"];
+
+export type PlaylistsGetManyOutput = RouterOutput["playlists"]["getManyPlaylists"];
