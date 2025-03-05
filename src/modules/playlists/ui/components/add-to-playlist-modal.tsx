@@ -10,9 +10,10 @@ import ResponsiveModal from "@components/responsive-modal";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 
 import CreatePlaylistModal from "./create-playlist-modal";
+import { useAuth } from "@clerk/nextjs";
 
 interface AddToPlaylistModalProps {
     isOpen: boolean;
@@ -21,13 +22,18 @@ interface AddToPlaylistModalProps {
 }
 
 export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToPlaylistModalProps) {
+    const { isSignedIn } = useAuth();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
     const { data: playlists } = useQuery(
-        trpc.playlists.listPlaylistsForVideo.queryOptions({
-            videoId,
-        }),
+        trpc.playlists.listPlaylistsForVideo.queryOptions(
+            isSignedIn
+                ? {
+                      videoId,
+                  }
+                : skipToken,
+        ),
     );
 
     const addToPlaylist = useMutation(
@@ -71,7 +77,9 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
 
     return (
         <>
-            <CreatePlaylistModal isOpen={isNewPlaylist} onClose={onCloseNew} onConfirm={() => {}} />
+            {isNewPlaylist && (
+                <CreatePlaylistModal isOpen={isNewPlaylist} onClose={onCloseNew} onConfirm={onCloseNew} />
+            )}
             <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
                 <div className="flex flex-col gap-4 p-4">
                     <div className="text-start text-balance">
@@ -81,7 +89,7 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
 
                     <div className="grid auto-rows-fr grid-cols-1 gap-4">
                         {playlists?.map((playlist) => {
-                            const isAlreadyAdded = !!playlist.video;
+                            const isAlreadyAdded = !!playlist.hasVideo;
                             return (
                                 <Button
                                     key={playlist.id}

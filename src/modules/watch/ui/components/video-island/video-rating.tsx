@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
 import { WatchGetOneOutput } from "@/trpc/types";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -16,6 +16,7 @@ interface VideoRatingProps {
 
 export function VideoRating({ video }: VideoRatingProps) {
     const { isSignedIn } = useAuth();
+    const { openSignIn } = useClerk();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -46,13 +47,19 @@ export function VideoRating({ video }: VideoRatingProps) {
     );
 
     const onLike = () => {
-        if (!isSignedIn) return;
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         setOptimisticReaction(optimisticReaction === "like" ? null : "like");
         createReaction.mutate({ videoId: video.id, reaction: "like" });
     };
 
     const onDislike = () => {
-        if (!isSignedIn) return;
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         setOptimisticReaction(optimisticReaction === "dislike" ? null : "dislike");
         createReaction.mutate({ videoId: video.id, reaction: "dislike" });
     };

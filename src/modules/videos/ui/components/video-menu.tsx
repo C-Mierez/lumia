@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BookmarkIcon, ClockIcon, MoreVerticalIcon, Share2Icon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Separator } from "@components/ui/separator";
@@ -21,6 +21,7 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
     const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false);
 
     const { isSignedIn } = useAuth();
+    const { openSignIn } = useClerk();
 
     const onShare = () => {
         toast.promise(window.navigator.clipboard.writeText(getFullVideoUrl(videoId)), {
@@ -32,13 +33,15 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
 
     return (
         <>
-            <AddToPlaylistModal
-                videoId={videoId}
-                isOpen={isAddToPlaylistModalOpen}
-                onCancel={() => {
-                    setIsAddToPlaylistModalOpen(false);
-                }}
-            />
+            {isAddToPlaylistModalOpen && (
+                <AddToPlaylistModal
+                    videoId={videoId}
+                    isOpen={isAddToPlaylistModalOpen}
+                    onCancel={() => {
+                        setIsAddToPlaylistModalOpen(false);
+                    }}
+                />
+            )}
             <DropdownMenu modal>
                 <DropdownMenuTrigger asChild>
                     <Button variant={"outlineLight"} className="aspect-square size-10 border">
@@ -60,7 +63,7 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
                         <DropdownMenuItem
                             onClick={(e) => {
                                 if (!isSignedIn) {
-                                    toast.error("You need to be signed in to save to a playlist");
+                                    openSignIn();
                                     return;
                                 }
 

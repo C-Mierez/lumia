@@ -23,14 +23,12 @@ export default function SubscriptionsList() {
     const { isSignedIn } = useAuth();
     const pathname = usePathname();
 
-    if (!isSignedIn) return null;
-
     return (
         <>
             <Separator />
 
             <Suspense fallback={<p>Loading...</p>}>
-                <SubscriptionsListSuspense pathname={pathname} />
+                {isSignedIn && <SubscriptionsListSuspense pathname={pathname} />}
             </Suspense>
         </>
     );

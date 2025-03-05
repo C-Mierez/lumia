@@ -232,18 +232,17 @@ export const playlistsRouter = createTRPCRouter({
                 .select({
                     ...getTableColumns(playlistsTable),
                     videosCount: db.$count(playlistVideosTable, eq(playlistVideosTable.playlistId, playlistsTable.id)),
-                    video: playlistVideosTable.videoId,
+                    hasVideo: sql`(
+                        SELECT EXISTS (
+                            SELECT 1
+                            FROM ${playlistVideosTable}
+                            WHERE ${playlistVideosTable.playlistId} = ${playlistsTable.id}
+                            AND ${playlistVideosTable.videoId} = ${input.videoId}
+                        )
+                    )`,
                 })
                 .from(playlistsTable)
                 .where(eq(playlistsTable.userId, user.id))
-                .leftJoin(
-                    playlistVideosTable,
-
-                    and(
-                        eq(playlistsTable.id, playlistVideosTable.playlistId),
-                        eq(playlistVideosTable.videoId, input.videoId),
-                    ),
-                )
                 .orderBy(desc(playlistsTable.updatedAt));
 
             return data;

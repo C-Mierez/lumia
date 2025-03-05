@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
 import { WatchGetManyCommentsOutput, WatchGetManyCommentsQuery } from "@/trpc/types";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 import InfiniteScroll from "@components/infinite-scroll";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Button } from "@components/ui/button";
@@ -113,6 +113,7 @@ interface CommentInteractionsProps {
 
 function CommentInteractions({ comment }: CommentInteractionsProps) {
     const { isSignedIn } = useAuth();
+    const { openSignIn } = useClerk();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -144,13 +145,19 @@ function CommentInteractions({ comment }: CommentInteractionsProps) {
     );
 
     const onLike = () => {
-        if (!isSignedIn) return;
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         setOptimisticReaction(optimisticReaction === "like" ? null : "like");
         createReaction.mutate({ videoId: comment.comments.videoId, commentId: comment.comments.id, reaction: "like" });
     };
 
     const onDislike = () => {
-        if (!isSignedIn) return;
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         setOptimisticReaction(optimisticReaction === "dislike" ? null : "dislike");
         createReaction.mutate({
             videoId: comment.comments.videoId,

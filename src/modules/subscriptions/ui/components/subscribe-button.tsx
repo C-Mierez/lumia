@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
+import { useAuth, useClerk } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -25,6 +26,8 @@ export function SubscribeButton({
     size,
     shouldRevalidate = false,
 }: SubscribeButtonProps) {
+    const { isSignedIn } = useAuth();
+    const { openSignIn } = useClerk();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -43,11 +46,19 @@ export function SubscribeButton({
     const deleteSubscription = useMutation(trpc.subscriptions.deleteSubscription.mutationOptions({ onSuccess }));
 
     const onSubscribe = async () => {
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         await createSubscription.mutateAsync({ userId: userId });
         setIsSubscribedState(true);
     };
 
     const onUnsubscribe = async () => {
+        if (!isSignedIn) {
+            openSignIn();
+            return;
+        }
         await deleteSubscription.mutateAsync({ userId: userId });
         setIsSubscribedState(false);
     };
