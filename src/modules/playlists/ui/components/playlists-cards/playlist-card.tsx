@@ -94,7 +94,7 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
                     </p>
                 </div>
                 <div className="z-50 size-min">
-                    <PlaylistMenu playlistId={playlist.id} onDestructive={onDestructive} />
+                    <PlaylistMenu playlist={playlist} onDestructive={onDestructive} />
                 </div>
             </div>
             <Link href={getFullPlaylistUrl(playlist.id)} className="absolute inset-0" />

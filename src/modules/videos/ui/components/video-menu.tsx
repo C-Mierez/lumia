@@ -31,63 +31,66 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
     };
 
     return (
-        <DropdownMenu modal>
-            <DropdownMenuTrigger asChild>
-                <Button variant={"outlineLight"} className="aspect-square size-10 border">
-                    <MoreVerticalIcon />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-                className="border-muted-foreground/25 border"
-                align="end"
-                onClick={(e) => {
-                    e.stopPropagation();
+        <>
+            <AddToPlaylistModal
+                videoId={videoId}
+                isOpen={isAddToPlaylistModalOpen}
+                onCancel={() => {
+                    setIsAddToPlaylistModalOpen(false);
                 }}
-            >
-                <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={() => {}}>
-                        <ClockIcon />
-                        <span>Watch Later</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={(e) => {
-                            if (!isSignedIn) {
-                                toast.error("You need to be signed in to save to a playlist");
-                                return;
-                            }
+            />
+            <DropdownMenu modal>
+                <DropdownMenuTrigger asChild>
+                    <Button variant={"outlineLight"} className="aspect-square size-10 border">
+                        <MoreVerticalIcon />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    className="border-muted-foreground/25 border"
+                    align="end"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                    }}
+                >
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={() => {}}>
+                            <ClockIcon />
+                            <span>Watch Later</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={(e) => {
+                                if (!isSignedIn) {
+                                    toast.error("You need to be signed in to save to a playlist");
+                                    return;
+                                }
 
-                            e.stopPropagation();
-                            e.preventDefault();
-                            setIsAddToPlaylistModalOpen(true);
-                        }}
-                    >
-                        <BookmarkIcon />
-                        <span>Save to Playlist</span>
-                    </DropdownMenuItem>
-                    <AddToPlaylistModal
-                        videoId={videoId}
-                        isOpen={isAddToPlaylistModalOpen}
-                        onCancel={() => {
-                            setIsAddToPlaylistModalOpen(false);
-                        }}
-                    />
-                    <DropdownMenuItem onClick={onShare}>
-                        <Share2Icon />
-                        <span>Share</span>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                {!!onDestructive && (
-                    <>
-                        <Separator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem variant="destructive" onClick={onDestructive}>
-                                <Trash2 />
-                                <span>Remove</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                    </>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+                                e.stopPropagation();
+                                e.preventDefault();
+                                setIsAddToPlaylistModalOpen(true);
+                            }}
+                        >
+                            <BookmarkIcon />
+                            <span>Save to Playlist</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem onClick={onShare}>
+                            <Share2Icon />
+                            <span>Share</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    {!!onDestructive && (
+                        <>
+                            <Separator />
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem variant="destructive" onClick={onDestructive}>
+                                    <Trash2 />
+                                    <span>Remove</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     );
 }

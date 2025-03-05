@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { playlistInsertSchema } from "@/db/schema";
+import { playlistUpdateSchema } from "@/db/schema";
 import { useTRPC } from "@/trpc/client";
 import ResponsiveModal from "@components/responsive-modal";
 import { Button } from "@components/ui/button";
@@ -12,40 +12,44 @@ import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface CreatePlaylistModalProps {
+interface EditPlaylistModalProps {
     isOpen: boolean;
     onConfirm: () => void;
     onClose: () => void;
+    defaultData: {
+        name: string;
+        description: string;
+    };
 }
 
-export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: CreatePlaylistModalProps) {
+export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConfirm }: EditPlaylistModalProps) {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
-    const createPlaylist = useMutation(
-        trpc.playlists.createPlaylist.mutationOptions({
-            onMutate: async () => {
-                toast.info("Creating playlist...");
+    const updatePlaylist = useMutation(
+        trpc.playlists.updatePlaylist.mutationOptions({
+            onMutate: async (data) => {
+                toast.info("Updating playlist...");
             },
             async onSuccess(data) {
-                await queryClient.invalidateQueries({ queryKey: trpc.playlists.listPlaylistsForVideo.queryKey() });
                 await queryClient.invalidateQueries({ queryKey: trpc.playlists.getManyPlaylists.queryKey() });
+                await queryClient.invalidateQueries({ queryKey: trpc.playlists.listPlaylistsForVideo.queryKey() });
                 await queryClient.invalidateQueries({
                     queryKey: trpc.playlists.getOnePlaylist.queryKey({ playlistId: data.id }),
                 });
-                toast.success("Playlist created");
+                toast.success("Playlist updated");
             },
             onError() {
-                toast.error("Failed to create playlist");
+                toast.error("Failed to update playlist");
             },
         }),
     );
 
-    const form = useForm<z.infer<typeof playlistInsertSchema>>({
-        resolver: zodResolver(playlistInsertSchema),
+    const form = useForm<z.infer<typeof playlistUpdateSchema>>({
+        resolver: zodResolver(playlistUpdateSchema),
         defaultValues: {
-            name: undefined,
-            description: undefined,
+            name: defaultData.name,
+            description: defaultData.description,
         },
     });
 
@@ -65,7 +69,7 @@ export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: Crea
                         e.preventDefault();
                         // the void is for eslint because `handleSubmit` returns a promise.
                         void form.handleSubmit((data) => {
-                            createPlaylist.mutate(data);
+                            updatePlaylist.mutate(data);
                             onConfirm();
                             onOpenChange(false);
                         })(e);
@@ -110,7 +114,12 @@ export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: Crea
                     />
 
                     <div className="flex justify-end gap-2">
-                        <Button variant={"secondary"}>Create</Button>
+                        <Button
+                            variant={"secondary"}
+                            disabled={updatePlaylist.isPending || !form.formState.isValid || !form.formState.isDirty}
+                        >
+                            Save
+                        </Button>
                         <Button type="button" variant={"muted"} onClick={onClose}>
                             Cancel
                         </Button>

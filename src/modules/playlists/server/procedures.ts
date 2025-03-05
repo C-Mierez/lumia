@@ -412,6 +412,14 @@ export const playlistsRouter = createTRPCRouter({
                     message: "Failed to add video to playlist",
                 });
 
+            // Update playlist updatedAt
+            await db
+                .update(playlistsTable)
+                .set({
+                    updatedAt: new Date(),
+                })
+                .where(eq(playlistsTable.id, playlistId));
+
             return { result: res, didAdd };
         }),
     updateVideoPosition: authedProcedure
@@ -480,6 +488,14 @@ export const playlistsRouter = createTRPCRouter({
                 .returning();
 
             if (!res) throw new TRPCError({ code: "BAD_REQUEST", message: "Failed to update video position" });
+
+            // Update playlist updatedAt
+            await db
+                .update(playlistsTable)
+                .set({
+                    updatedAt: new Date(),
+                })
+                .where(eq(playlistsTable.id, playlistId));
 
             return res;
         }),

@@ -71,7 +71,6 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
 
     return (
         <>
-            {" "}
             <CreatePlaylistModal isOpen={isNewPlaylist} onClose={onCloseNew} onConfirm={() => {}} />
             <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
                 <div className="flex flex-col gap-4 p-4">
