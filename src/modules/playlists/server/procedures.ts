@@ -1,5 +1,4 @@
-import { and, desc, eq, getTableColumns, gt, gte, lt, lte, min, or, sql } from "drizzle-orm";
-import { integer } from "drizzle-orm/pg-core";
+import { and, desc, eq, getTableColumns, gt, gte, lt, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -281,28 +280,46 @@ export const playlistsRouter = createTRPCRouter({
             const { user } = ctx;
             const { cursor, limit } = input;
 
+            const firstPlaylistVideoSQ = db.$with("firstPlaylistVideo").as(
+                db
+                    .select({
+                        playlistId: playlistVideosTable.playlistId,
+                        minPosition: sql`min(${playlistVideosTable.position})`.as("minPosition"),
+                    })
+                    .from(playlistVideosTable)
+                    .groupBy(playlistVideosTable.playlistId),
+            );
+
+            const firstPlaylistVideoThumbnailSQ = db.$with("firstPlaylistVideoThumbnail").as(
+                db
+                    .with(firstPlaylistVideoSQ)
+                    .select({
+                        ...getTableColumns(playlistVideosTable),
+                        thumbnailUrl: videosTable.thumbnailUrl,
+                    })
+                    .from(playlistVideosTable)
+                    .innerJoin(
+                        firstPlaylistVideoSQ,
+                        and(
+                            eq(playlistVideosTable.playlistId, firstPlaylistVideoSQ.playlistId),
+                            eq(playlistVideosTable.position, firstPlaylistVideoSQ.minPosition),
+                        ),
+                    )
+                    .innerJoin(videosTable, eq(playlistVideosTable.videoId, videosTable.id)),
+            );
+
             const data = await db
+                .with(firstPlaylistVideoThumbnailSQ)
                 .select({
                     ...getTableColumns(playlistsTable),
                     videosCount: db.$count(playlistVideosTable, eq(playlistVideosTable.playlistId, playlistsTable.id)),
-                    video: { ...getTableColumns(videosTable) },
+                    thumbnailUrl: firstPlaylistVideoThumbnailSQ.thumbnailUrl,
                 })
                 .from(playlistsTable)
-
-                .leftJoin(
-                    playlistVideosTable,
-
-                    and(
-                        eq(playlistsTable.id, playlistVideosTable.playlistId),
-                        eq(
-                            playlistVideosTable.position,
-                            sql`(select ${min(playlistVideosTable.position)} from ${playlistVideosTable} where ${playlistVideosTable.playlistId} = ${playlistsTable.id})`.mapWith(
-                                integer,
-                            ),
-                        ),
-                    ),
+                .innerJoin(
+                    firstPlaylistVideoThumbnailSQ,
+                    eq(playlistsTable.id, firstPlaylistVideoThumbnailSQ.playlistId),
                 )
-                .leftJoin(videosTable, eq(videosTable.id, playlistVideosTable.videoId))
                 .where(
                     and(
                         eq(playlistsTable.userId, user.id),

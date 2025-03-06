@@ -56,13 +56,13 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
                         <p className="text-muted-foreground">This playlist is empty</p>
                     </div>
                 )}
-                {playlist.video && playlist.videosCount > 0 && (
+                {playlist.thumbnailUrl && playlist.videosCount > 0 && (
                     <>
                         <div className="playlistCard">
                             <VideoThumbnail
                                 title={playlist.name}
-                                imageUrl={playlist.video.thumbnailUrl}
-                                previewUrl={playlist.video.previewUrl}
+                                imageUrl={playlist.thumbnailUrl}
+                                previewUrl={playlist.thumbnailUrl}
                                 duration={0}
                             />
                         </div>
