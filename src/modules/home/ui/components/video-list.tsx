@@ -2,8 +2,10 @@
 
 import { HomeSearchManyOutput } from "@/trpc/types";
 import { useIsMobile } from "@hooks/use-mobile";
-import { GridVideoCard } from "@modules/videos/ui/components/video-cards/grid-video-card";
-import { ListVideoCard } from "@modules/videos/ui/components/video-cards/list-video-card";
+import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { range } from "@lib/utils";
+import { GridVideoCard, GridVideoCardSkeleton } from "@modules/videos/ui/components/video-cards/grid-video-card";
+import { ListVideoCard, ListVideoCardSkeleton } from "@modules/videos/ui/components/video-cards/list-video-card";
 
 interface VideoListProps {
     videos: HomeSearchManyOutput["items"];
@@ -24,6 +26,17 @@ export function VideoList({ videos }: VideoListProps) {
                 ) : (
                     <ListVideoCard key={`${i}${video.id}`} video={video} />
                 ),
+            )}
+        </div>
+    );
+}
+
+export function VideoListSkeleton() {
+    const isMobile = useIsMobile();
+    return (
+        <div className="mx-auto grid w-full max-w-7xl auto-rows-fr grid-cols-1 gap-4">
+            {range(DEFAULT_INFINITE_PREFETCH_LIMIT).map((i) =>
+                isMobile ? <GridVideoCardSkeleton key={i} /> : <ListVideoCardSkeleton key={i} />,
             )}
         </div>
     );

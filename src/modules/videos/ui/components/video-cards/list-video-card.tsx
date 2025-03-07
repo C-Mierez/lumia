@@ -12,6 +12,7 @@ import UserName from "@modules/users/ui/components/user-name";
 
 import VideoThumbnail from "../video-thumbnail";
 import { getFullVideoUrl } from "@lib/utils";
+import { Skeleton } from "@components/ui/skeleton";
 
 interface ListVideoCardProps {
     video: HomeSearchManyOutput["items"][0];
@@ -65,6 +66,26 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
                     </Button>
                 </div>
                 <Link href={getFullVideoUrl(video.id)} className="absolute inset-0" />
+            </div>
+        </div>
+    );
+}
+
+export function ListVideoCardSkeleton() {
+    return (
+        <div className="relative grid w-full max-w-full grid-cols-3 gap-3">
+            <Skeleton className="aspect-video size-full" />
+            <div className="col-span-2 flex w-full items-start justify-between gap-3">
+                <div className="z-20 flex flex-1 flex-col gap-2">
+                    <Skeleton className="h-6 w-1/2" />
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="size-8 rounded-full"></Skeleton>
+                        <Skeleton className="h-fit w-1/10 text-sm">&nbsp;</Skeleton>
+                    </div>
+                </div>
+                <div className="z-50 size-min">
+                    <Skeleton className="h-6 w-6" />
+                </div>
             </div>
         </div>
     );

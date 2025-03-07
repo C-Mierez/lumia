@@ -12,6 +12,7 @@ import UserName from "@modules/users/ui/components/user-name";
 
 import VideoThumbnail from "../video-thumbnail";
 import { getFullVideoUrl } from "@lib/utils";
+import { Skeleton } from "@components/ui/skeleton";
 
 interface GridVideoCardProps {
     video: HomeSearchManyOutput["items"][0];
@@ -57,6 +58,20 @@ export function GridVideoCard({ video }: GridVideoCardProps) {
                     </Button>
                 </div>
                 <Link href={getFullVideoUrl(video.id)} className="absolute inset-0" />
+            </div>
+        </div>
+    );
+}
+
+export function GridVideoCardSkeleton() {
+    return (
+        <div className="relative flex max-h-full max-w-full flex-col gap-2">
+            <Skeleton className="aspect-video size-full" />
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-1 items-center gap-3">
+                    <Skeleton className="size-8 rounded-full" />
+                    <Skeleton className="h-fit w-1/3 text-base">&nbsp;</Skeleton>
+                </div>
             </div>
         </div>
     );

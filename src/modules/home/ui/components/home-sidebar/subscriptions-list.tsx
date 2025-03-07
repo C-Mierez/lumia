@@ -18,6 +18,7 @@ import {
     SidebarMenuItem,
 } from "@components/ui/sidebar";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Loader2Icon } from "lucide-react";
 
 export default function SubscriptionsList() {
     const { isSignedIn } = useAuth();
@@ -27,7 +28,7 @@ export default function SubscriptionsList() {
         <>
             <Separator />
 
-            <Suspense fallback={<p>Loading...</p>}>
+            <Suspense fallback={<SubscriptionsListSkeleton />}>
                 {isSignedIn && <SubscriptionsListSuspense pathname={pathname} />}
             </Suspense>
         </>
@@ -68,4 +69,8 @@ function SubscriptionsListSuspense({ pathname }: SubscriptionsListSuspenseProps)
             </SidebarGroupContent>
         </SidebarGroup>
     );
+}
+
+function SubscriptionsListSkeleton() {
+    return <Loader2Icon className="mx-auto mt-4 size-4 animate-spin" />;
 }
