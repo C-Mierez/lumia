@@ -16,7 +16,7 @@ export default function BaseLayout({ children, navbar, sidebar, className }: Bas
             <NavbarWrapper>{navbar}</NavbarWrapper>
             <div className="flex shrink-0">
                 <SidebarWrapper>{sidebar}</SidebarWrapper>
-                <main className={cn("flex flex-1 flex-col overflow-y-auto", className)}>{children}</main>
+                <main className={cn("flex flex-1 flex-col overflow-x-auto", className)}>{children}</main>
             </div>
         </SidebarProvider>
     );

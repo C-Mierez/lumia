@@ -39,7 +39,7 @@ export default function PlaylistMenu({ playlist, onDestructive }: PlaylistMenuPr
                 onConfirm={() => {
                     setIsEditModalOpen(false);
                 }}
-                defaultData={{ name: playlist.name, description: playlist.description ?? "" }}
+                defaultData={{ playlistId: playlist.id, name: playlist.name, description: playlist.description ?? "" }}
             />
 
             <DropdownMenu modal>

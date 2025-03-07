@@ -17,6 +17,7 @@ interface EditPlaylistModalProps {
     onConfirm: () => void;
     onClose: () => void;
     defaultData: {
+        playlistId: string;
         name: string;
         description: string;
     };
@@ -48,6 +49,7 @@ export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConf
     const form = useForm<z.infer<typeof playlistUpdateSchema>>({
         resolver: zodResolver(playlistUpdateSchema),
         defaultValues: {
+            id: defaultData.playlistId,
             name: defaultData.name,
             description: defaultData.description,
         },

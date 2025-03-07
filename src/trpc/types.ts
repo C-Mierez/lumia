@@ -21,3 +21,4 @@ export type SuggestionsGetManyOutput = RouterOutput["suggestions"]["getMany"];
 export type HomeSearchManyOutput = RouterOutput["home"]["searchMany"];
 
 export type PlaylistsGetManyOutput = RouterOutput["playlists"]["getManyPlaylists"];
+export type PlaylistsGetOneOutput = RouterOutput["playlists"]["getOnePlaylist"];

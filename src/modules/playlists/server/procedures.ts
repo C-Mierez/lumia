@@ -1,4 +1,4 @@
-import { and, desc, eq, getTableColumns, gt, gte, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, gt, gte, lt, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -253,13 +253,29 @@ export const playlistsRouter = createTRPCRouter({
             }),
         )
         .query(async ({ ctx, input }) => {
+            const latestVideo = db.$with("latest_video").as(
+                db
+                    .select({
+                        ...getTableColumns(playlistVideosTable),
+                        thumbnailUrl: videosTable.thumbnailUrl,
+                    })
+                    .from(playlistVideosTable)
+                    .where(eq(playlistVideosTable.playlistId, input.playlistId))
+                    .innerJoin(videosTable, eq(videosTable.id, playlistVideosTable.videoId))
+                    .orderBy(asc(playlistVideosTable.position))
+                    .limit(1),
+            );
+
             const [data] = await db
+                .with(latestVideo)
                 .select({
                     ...getTableColumns(playlistsTable),
                     videosCount: db.$count(playlistVideosTable, eq(playlistVideosTable.playlistId, playlistsTable.id)),
+                    thumbnailUrl: latestVideo.thumbnailUrl,
                 })
                 .from(playlistsTable)
                 .where(eq(playlistsTable.id, input.playlistId))
+                .leftJoin(latestVideo, eq(latestVideo.playlistId, playlistsTable.id))
                 .limit(1);
 
             return data;

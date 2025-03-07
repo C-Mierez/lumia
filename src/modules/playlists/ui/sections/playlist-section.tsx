@@ -11,6 +11,8 @@ import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { VideoList } from "@modules/home/ui/components/video-list";
 import { useSuspenseInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query";
 
+import PlaylistIsland from "../components/playlist-island";
+
 interface PlaylistSectionProps {
     playlistId: string;
 }
@@ -48,18 +50,17 @@ function PlaylistSectionSuspense({ playlistId }: PlaylistSectionProps) {
 
     return (
         <>
-            <div className="mb-12 p-4">
-                <h1 className="font-brand text-2xl font-bold">{playlist.name}</h1>
-                <p className="text-muted-foreground text-sm">
-                    {playlist.description ? playlist.description : "No description"}
-                </p>
+            <div className="relative flex flex-col gap-8 p-4 xl:flex-row xl:gap-4">
+                <PlaylistIsland playlist={playlist} />
+                <div>
+                    <VideoList videos={videos} />
+                    <InfiniteScroll
+                        hasNextPage={hasNextPage}
+                        isFetchingNextPage={isFetchingNextPage}
+                        fetchNextPage={fetchNextPage}
+                    />
+                </div>
             </div>
-            <VideoList videos={videos} />
-            <InfiniteScroll
-                hasNextPage={hasNextPage}
-                isFetchingNextPage={isFetchingNextPage}
-                fetchNextPage={fetchNextPage}
-            />
         </>
     );
 }
