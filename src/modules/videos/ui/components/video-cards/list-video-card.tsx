@@ -53,8 +53,11 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
                                 <AvatarFallback>2</AvatarFallback>
                             </Avatar>
                         </Link>
-                        {/* // TODO Link to user channel */}
-                        <UserName name={video.users.name} className="text-muted-foreground text-sm font-normal" />
+                        <UserName
+                            userId={video.users.id}
+                            name={video.users.name}
+                            className="text-muted-foreground text-sm font-normal"
+                        />
                     </div>
                     <div>
                         <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">{video.description}</p>

@@ -44,8 +44,11 @@ export function GridVideoCard({ video }: GridVideoCardProps) {
 
                 <div className="z-20 flex flex-1 flex-col">
                     <div className="text-brand line-clamp-2 text-start font-bold lg:text-base">{video.title}</div>
-                    {/* // TODO Link to user channel */}
-                    <UserName name={video.users.name} className="text-muted-foreground text-sm font-normal" />
+                    <UserName
+                        userId={video.users.id}
+                        name={video.users.name}
+                        className="text-muted-foreground text-sm font-normal"
+                    />
                     <p className="text-muted-foreground line-clamp-1 text-sm">
                         <span>{compactViews} views</span>
                         <span>{" - "}</span>

@@ -5,6 +5,7 @@ export const SEARCH_KEY_VALUES = {
         test: "test",
         v: "v", // Video
         s: "s", // Search
+        u: "u", // User
     },
     Studio: {
         video: "video",

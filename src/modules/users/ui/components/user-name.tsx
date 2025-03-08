@@ -1,17 +1,23 @@
+import Link from "next/link";
+
 import BasicTooltip from "@components/basic-tooltip";
-import { cn } from "@lib/utils";
+import { cn, getFullChannelUrl } from "@lib/utils";
 
 interface UserNameProps {
     name: string;
+    userId: string;
     className?: string;
 }
 
-export default function UserName({ name, className }: UserNameProps) {
+export default function UserName({ name, userId, className }: UserNameProps) {
     return (
         <BasicTooltip label={name} contentProps={{ side: "top" }}>
-            <div className={cn("text-foreground line-clamp-1 w-fit text-base leading-4 font-semibold", className)}>
+            <Link
+                href={getFullChannelUrl(userId)}
+                className={cn("text-foreground line-clamp-1 w-fit text-base leading-4 font-semibold", className)}
+            >
                 {name}
-            </div>
+            </Link>
         </BasicTooltip>
     );
 }

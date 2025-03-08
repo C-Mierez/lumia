@@ -4,6 +4,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher(["/studio(.*)", "/playlists(.*)", "/feed/subscriptions(.*)"]);
 const isWatchRoute = createRouteMatcher(["/watch(.*)"]);
+const isChannelRoute = createRouteMatcher(["/channel(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
     if (isProtectedRoute(req)) {
@@ -15,6 +16,15 @@ export default clerkMiddleware(async (auth, req) => {
         const v = url.searchParams.get("v");
 
         if (!v) {
+            return NextResponse.redirect(new URL("/", req.url));
+        }
+    }
+
+    if (isChannelRoute(req)) {
+        const url = new URL(req.url);
+        const u = url.searchParams.get("u");
+
+        if (!u) {
             return NextResponse.redirect(new URL("/", req.url));
         }
     }

@@ -74,6 +74,7 @@ function ExpandedArea({ video }: VideoDescriptionProps) {
             <div>
                 <h2 className="text-foreground text-lg">Transcription</h2>
                 <p className="text-sm">Follow along with the transcript</p>
+                {/* // TODO Add transcript functionality */}
                 <Button variant={"muted"} size={"sm"} className="mt-4">
                     Get Transcription
                 </Button>

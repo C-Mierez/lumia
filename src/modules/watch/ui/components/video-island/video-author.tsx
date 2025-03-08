@@ -23,7 +23,7 @@ export function VideoAuthor({ video, showButton = false }: VideoAuthorProps) {
             </Avatar>
             {/* User Info */}
             <div className="flex flex-col justify-center">
-                <UserName name={video.user.name} />
+                <UserName userId={video.user.id} name={video.user.name} />
                 <div className="text-muted-foreground text-xs leading-4">{video.user.subscriberCount} Subscribers</div>
             </div>
             {/* CTA*/}

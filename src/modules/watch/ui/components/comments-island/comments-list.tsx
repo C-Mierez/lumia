@@ -13,11 +13,12 @@ import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Separator } from "@components/ui/separator";
 import { Skeleton } from "@components/ui/skeleton";
-import { cn } from "@lib/utils";
+import { cn, getFullChannelUrl } from "@lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { CommentsForm } from "./comments-form";
 import { CommentReplies } from "./comments-replies";
+import Link from "next/link";
 
 interface CommentsListProps {
     comments: WatchGetManyCommentsOutput["comments"];
@@ -84,17 +85,20 @@ export function CommentItem({ comment }: CommentItemProps) {
     const isRoot = comment.comments.parentId === null;
 
     return (
-        // TODO Add links to user profiles
         <div className="flex items-start gap-3">
-            <Avatar className={cn(isRoot ? "size-10" : "size-7")}>
-                <AvatarImage src={comment.users.imageUrl} alt={comment.users.name ?? "Anonymous"} />
-                <AvatarFallback>
-                    <Skeleton className="rounded-full" />
-                </AvatarFallback>
-            </Avatar>
+            <Link prefetch={false} href={getFullChannelUrl(comment.users.id)}>
+                <Avatar className={cn(isRoot ? "size-10" : "size-7")}>
+                    <AvatarImage src={comment.users.imageUrl} alt={comment.users.name ?? "Anonymous"} />
+                    <AvatarFallback>
+                        <Skeleton className="rounded-full" />
+                    </AvatarFallback>
+                </Avatar>
+            </Link>
             <div className="flex flex-1 flex-col gap-0.5">
                 <div className="flex items-end gap-2">
-                    <p className="text-xs">@{comment.users.name}</p>
+                    <Link prefetch={false} href={getFullChannelUrl(comment.users.id)} className="text-xs">
+                        @{comment.users.name}
+                    </Link>
                     <span className="text-muted-foreground text-xs">{commentDate}</span>
                 </div>
                 <p className="text-sm break-words">{comment.comments.text}</p>

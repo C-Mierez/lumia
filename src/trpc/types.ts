@@ -22,3 +22,11 @@ export type HomeSearchManyOutput = RouterOutput["home"]["searchMany"];
 
 export type PlaylistsGetManyOutput = RouterOutput["playlists"]["getManyPlaylists"];
 export type PlaylistsGetOneOutput = RouterOutput["playlists"]["getOnePlaylist"];
+
+export type ChannelsGetOneOutput = RouterOutput["channels"]["getOne"];
+
+export type SubscriptionsGetSubscribersOutput = RouterOutput["subscriptions"]["getSubscribers"];
+export type SubscriptionsGetSubscribersQuery = UseSuspenseInfiniteQueryResult<
+    SubscriptionsGetSubscribersOutput,
+    unknown
+>;

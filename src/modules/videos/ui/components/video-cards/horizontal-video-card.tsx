@@ -9,6 +9,7 @@ import Link from "next/link";
 import { SuggestionsGetManyOutput } from "@/trpc/types";
 import { Button } from "@components/ui/button";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+import { getFullChannelUrl } from "@lib/utils";
 
 interface HorizontalVideoCardProps {
     video: SuggestionsGetManyOutput["items"][0];
@@ -39,8 +40,7 @@ export function HorizontalVideoCard({ video, href }: HorizontalVideoCardProps) {
                 </p> */}
                 <div className="pointer-events-none z-20">
                     <Link
-                        // TODO Link to user channel
-                        href={"/"}
+                        href={getFullChannelUrl(video.users.id)}
                         className="text-muted-foreground pointer-events-auto z-50 line-clamp-1 w-fit text-xs"
                     >
                         {video.users.name}

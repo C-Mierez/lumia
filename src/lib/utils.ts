@@ -47,6 +47,10 @@ export function getFullPlaylistUrl(playlistId: string) {
     return `${process.env.VERCEL_URL || "http://localhost:3000"}/playlists/${playlistId}`;
 }
 
+export function getFullChannelUrl(userId: string) {
+    return `${process.env.VERCEL_URL || "http://localhost:3000"}/channel${buildSearchQuery({ u: userId })}`;
+}
+
 // Format string to uppercase first letter only
 export function formatUppercaseFirstLetter(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

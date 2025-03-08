@@ -20,7 +20,10 @@ export const usersTable = pgTable(
         id: uuid("id").primaryKey().defaultRandom(),
         clerkId: text("clerk_id").unique().notNull(),
         name: text("name").notNull(),
-        imageUrl: text("image_url").notNull(),
+        description: text("description"), // Bio
+        imageUrl: text("image_url").notNull(), // Hosted by Clerk
+        bannerUrl: text("banner_url"), // Hosted by us in Uploadthing
+        bannerKey: text("banner_key"), // Hosted by us in Uploadthing
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at").defaultNow().notNull(),
     },

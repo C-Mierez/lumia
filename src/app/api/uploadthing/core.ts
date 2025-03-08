@@ -55,6 +55,48 @@ export const ourFileRouter = {
             // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
             return { uploadedBy: metadata.user.id };
         }),
+    /* --------------------------------- Banner --------------------------------- */
+    bannerUploader: f({
+        image: {
+            maxFileSize: "4MB",
+            maxFileCount: 1,
+        },
+    })
+        .input(
+            z.object({
+                userId: z.string().uuid(),
+            }),
+        )
+        .middleware(async ({ input }) => {
+            const { userId } = input;
+            const clerk = await auth();
+
+            if (!clerk.userId) throw new UploadThingError("Unauthorized");
+
+            const [user] = await db
+                .select()
+                .from(usersTable)
+                .where(and(eq(usersTable.clerkId, clerk.userId), eq(usersTable.id, userId)));
+
+            if (!user) throw new UploadThingError("User not found");
+
+            // Delete all files from Uploadthing for this user and video before uploading a new one, if they exist
+            if (!!user.bannerKey) {
+                const utapi = new UTApi();
+                await utapi.deleteFiles([user.bannerKey]);
+            }
+
+            return { user, ...input };
+        })
+        .onUploadComplete(async ({ metadata, file }) => {
+            await db
+                .update(usersTable)
+                .set({ bannerUrl: file.ufsUrl, bannerKey: file.key, updatedAt: new Date() })
+                .where(and(eq(usersTable.id, metadata.user.id)));
+
+            // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
+            return { uploadedBy: metadata.user.id };
+        }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

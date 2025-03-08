@@ -19,6 +19,7 @@ import {
 } from "@components/ui/sidebar";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+import { getFullChannelUrl } from "@lib/utils";
 
 export default function SubscriptionsList() {
     const { isSignedIn } = useAuth();
@@ -42,6 +43,7 @@ interface SubscriptionsListSuspenseProps {
 function SubscriptionsListSuspense({ pathname }: SubscriptionsListSuspenseProps) {
     const trpc = useTRPC();
     const { data } = useSuspenseQuery(trpc.subscriptions.getMany.queryOptions());
+
     return (
         <SidebarGroup>
             <SidebarGroupContent>
@@ -51,12 +53,10 @@ function SubscriptionsListSuspense({ pathname }: SubscriptionsListSuspenseProps)
                         <SidebarMenuItem key={subscription.id}>
                             <SidebarMenuButton
                                 tooltip={subscription.name}
-                                // TODO User profile url
-                                isActive={pathname === "item.href"}
+                                isActive={pathname === getFullChannelUrl(subscription.id)}
                                 asChild
                             >
-                                {/* // TODO User profile url */}
-                                <Link href={"item.href"} className="flex items-center gap-1">
+                                <Link href={getFullChannelUrl(subscription.id)} className="flex items-center gap-1">
                                     <Avatar className="size-5">
                                         <AvatarImage src={subscription.imageUrl} alt={subscription.name} />
                                     </Avatar>

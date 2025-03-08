@@ -155,6 +155,20 @@
       "when": 1740948903815,
       "tag": "0021_daily_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1741450168773,
+      "tag": "0022_stale_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1741455060175,
+      "tag": "0023_clumsy_mister_sinister",
+      "breakpoints": true
     }
   ]
 }
