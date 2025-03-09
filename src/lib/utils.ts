@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { env } from "@/env";
 import { MuxStatus } from "@modules/videos/constants";
 
 import { buildSearchQuery } from "./searchParams";
@@ -40,11 +41,11 @@ export function formatMuxStatus(status: string | null) {
 
 // Get current URL in Vercel deployment
 export function getFullVideoUrl(videoId: string) {
-    return `${process.env.VERCEL_URL || "http://localhost:3000"}/watch${buildSearchQuery({ v: videoId })}`;
+    return `${env.NEXT_PUBLIC_WEBSITE_URL}/watch${buildSearchQuery({ v: videoId })}`;
 }
 
 export function getFullPlaylistUrl(playlistId: string) {
-    return `${process.env.VERCEL_URL || "http://localhost:3000"}/playlists/${playlistId}`;
+    return `${env.NEXT_PUBLIC_WEBSITE_URL}/playlists/${playlistId}`;
 }
 
 export enum ChannelSubroute {
@@ -54,7 +55,7 @@ export enum ChannelSubroute {
 }
 export function getFullChannelUrl(userId: string, sub?: ChannelSubroute) {
     const subroute = sub ? `/${sub}` : "";
-    return `${process.env.VERCEL_URL || "http://localhost:3000"}/channel${subroute}${buildSearchQuery({ u: userId })}`;
+    return `${env.NEXT_PUBLIC_WEBSITE_URL}/channel${subroute}${buildSearchQuery({ u: userId })}`;
 }
 
 // Format string to uppercase first letter only

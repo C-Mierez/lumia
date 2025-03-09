@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import superjson from "superjson";
 
+import { env } from "@/env";
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink, splitLink, unstable_httpSubscriptionLink } from "@trpc/client";
@@ -28,7 +29,7 @@ function getQueryClient() {
 function getUrl() {
     const base = (() => {
         if (typeof window !== "undefined") return "";
-        if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+        if (env.NEXT_PUBLIC_WEBSITE_URL) return `https://${env.NEXT_PUBLIC_WEBSITE_URL}`;
         return "http://localhost:3000";
     })();
     return `${base}/api/trpc`;

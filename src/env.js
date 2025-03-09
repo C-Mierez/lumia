@@ -41,6 +41,7 @@ export const env = createEnv({
         NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
         NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string(),
         NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string(),
+        NEXT_PUBLIC_WEBSITE_URL: z.string().url(),
     },
 
     /**
@@ -69,6 +70,7 @@ export const env = createEnv({
         GEMINI_API_KEY: process.env.GEMINI_API_KEY,
         WORKERSAI_API_KEY: process.env.WORKERSAI_API_KEY,
         WORKERSAI_ACCOUNT_ID: process.env.WORKERSAI_ACCOUNT_ID,
+        NEXT_PUBLIC_WEBSITE_URL: process.env.NEXT_PUBLIC_WEBSITE_URL,
         NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
         NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
         NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
