@@ -115,14 +115,14 @@ function ExpandedArea({ video }: VideoDescriptionProps) {
                 <VideoAuthor video={video} />
                 {/* TODO Add Links */}
                 <div className="flex gap-2">
-                    <Link href={`${getFullChannelUrl(video.userId, ChannelSubroute.About)}`}>
-                        <Button variant={"muted"} size={"sm"}>
-                            <User2Icon /> About
-                        </Button>
-                    </Link>
                     <Link href={`${getFullChannelUrl(video.userId, ChannelSubroute.Videos)}`}>
                         <Button variant={"muted"} size={"sm"}>
                             <VideoIcon /> Videos
+                        </Button>
+                    </Link>
+                    <Link href={`${getFullChannelUrl(video.userId, ChannelSubroute.About)}`}>
+                        <Button variant={"muted"} size={"sm"}>
+                            <User2Icon /> About
                         </Button>
                     </Link>
                     <Button variant={"muted"} size={"sm"}>

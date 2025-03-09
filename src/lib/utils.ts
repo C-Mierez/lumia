@@ -53,7 +53,8 @@ export enum ChannelSubroute {
     About = "about",
 }
 export function getFullChannelUrl(userId: string, sub?: ChannelSubroute) {
-    return `${process.env.VERCEL_URL || "http://localhost:3000"}/channel${!!sub && `/${sub}`}${buildSearchQuery({ u: userId })}`;
+    const subroute = sub ? `/${sub}` : "";
+    return `${process.env.VERCEL_URL || "http://localhost:3000"}/channel${subroute}${buildSearchQuery({ u: userId })}`;
 }
 
 // Format string to uppercase first letter only

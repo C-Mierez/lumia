@@ -26,7 +26,7 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
     }, [video]);
 
     return (
-        <div className="relative grid w-full max-w-full grid-cols-3 gap-3">
+        <div className="group relative grid w-full max-w-full grid-cols-3 gap-3">
             <div className="aspect-video size-full">
                 <VideoThumbnail
                     title={video.title}

@@ -24,7 +24,7 @@ export function HorizontalVideoCard({ video, href }: HorizontalVideoCardProps) {
     }, [video]);
 
     return (
-        <div className="relative flex gap-3">
+        <div className="group relative flex gap-3">
             <div className="w-[35%]">
                 <VideoThumbnail
                     title={video.title}
