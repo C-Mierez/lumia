@@ -52,7 +52,7 @@ function PlaylistSectionSuspense({ playlistId }: PlaylistSectionProps) {
         <>
             <div className="relative flex flex-col gap-8 p-4 xl:flex-row xl:gap-4">
                 <PlaylistIsland playlist={playlist} />
-                <div>
+                <div className="flex-1">
                     <VideoList videos={videos} />
                     <InfiniteScroll
                         hasNextPage={hasNextPage}

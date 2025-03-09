@@ -332,7 +332,7 @@ export const playlistsRouter = createTRPCRouter({
                     thumbnailUrl: firstPlaylistVideoThumbnailSQ.thumbnailUrl,
                 })
                 .from(playlistsTable)
-                .innerJoin(
+                .leftJoin(
                     firstPlaylistVideoThumbnailSQ,
                     eq(playlistsTable.id, firstPlaylistVideoThumbnailSQ.playlistId),
                 )
