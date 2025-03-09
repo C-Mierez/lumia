@@ -10,7 +10,7 @@ import { useSuspenseInfiniteQuery, useSuspenseQuery } from "@tanstack/react-quer
 
 import ChannelHeader from "../components/channel-header";
 import { ListVideoCard } from "@modules/videos/ui/components/video-cards/list-video-card";
-import { GridVideoCard } from "@modules/videos/ui/components/video-cards/grid-video-card";
+import { GridVideoCard, GridVideoCardSkeleton } from "@modules/videos/ui/components/video-cards/grid-video-card";
 import {
     Carousel,
     CarouselApi,
@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { buildSearchQuery } from "@lib/searchParams";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { range } from "@lib/utils";
 
 interface VideoPreviewSectionProps {
     userId: string;
@@ -32,7 +33,7 @@ export default function VideoPreviewSection({ userId }: VideoPreviewSectionProps
         <div className="flex flex-col gap-4">
             <h1 className="font-brand text-xl">Latest Uploads</h1>
 
-            <Suspense fallback={<Loader2Icon className="mx-auto animate-spin" />}>
+            <Suspense fallback={<VideoPreviewSectionSkeleton />}>
                 <ErrorBoundary fallback={<p>Something went wrong</p>}>
                     <VideoPreviewSectionSuspense userId={userId} />
                 </ErrorBoundary>
@@ -88,6 +89,30 @@ function VideoPreviewSectionSuspense({ userId }: VideoPreviewSectionProps) {
             ) : (
                 <p className="text-muted-foreground text-sm">No videos have been uploaded yet</p>
             )}
+        </>
+    );
+}
+function VideoPreviewSectionSkeleton() {
+    return (
+        <>
+            <Carousel
+                opts={{
+                    align: "start",
+                    active: false,
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="-ml-3">
+                    {range(DEFAULT_INFINITE_PREFETCH_LIMIT).map((i) => (
+                        <CarouselItem key={i} className="md:max-w-1/2 xl:max-w-1/3">
+                            <GridVideoCardSkeleton />
+                        </CarouselItem>
+                    ))}
+                    <CarouselItem className="md:max-w-1/4 xl:max-w-1/6">
+                        <div className="bg-background-alt grid h-full place-items-center rounded-md">See all</div>
+                    </CarouselItem>
+                </CarouselContent>
+            </Carousel>
         </>
     );
 }

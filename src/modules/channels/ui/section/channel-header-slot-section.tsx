@@ -8,7 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-import ChannelHeader from "../components/channel-header";
+import ChannelHeader, { ChannelHeaderSkeleton } from "../components/channel-header";
 
 interface ChannelHeaderSlotSectionProps {
     userId: string;
@@ -17,7 +17,7 @@ interface ChannelHeaderSlotSectionProps {
 export default function ChannelHeaderSlotSection({ userId }: ChannelHeaderSlotSectionProps) {
     return (
         <>
-            <Suspense fallback={<Loader2Icon className="mx-auto animate-spin" />}>
+            <Suspense fallback={<ChannelHeaderSkeleton />}>
                 <ErrorBoundary fallback={<p>Something went wrong</p>}>
                     <ChannelHeaderSlotSectionSuspense userId={userId} />
                 </ErrorBoundary>

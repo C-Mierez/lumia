@@ -1,11 +1,12 @@
 import { ChannelsGetOneOutput } from "@/trpc/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import Image from "next/image";
-import ChannelBanner from "./channel-banner";
+import ChannelBanner, { ChannelBannerSkeleton } from "./channel-banner";
 import { SubscribeButton } from "@modules/subscriptions/ui/components/subscribe-button";
 import SubscribersPreview from "@modules/subscriptions/ui/components/subscribers-preview";
 import { Button } from "@components/ui/button";
 import Link from "next/link";
+import { Skeleton } from "@components/ui/skeleton";
 
 interface ChannelHeaderProps {
     channel: ChannelsGetOneOutput;
@@ -54,6 +55,22 @@ export default function ChannelHeader({ channel }: ChannelHeaderProps) {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export function ChannelHeaderSkeleton() {
+    return (
+        <div className="flex w-full flex-col gap-8">
+            <ChannelBannerSkeleton />
+            <div className="flex gap-4">
+                <Skeleton className="size-36 rounded-full" />
+                <div className="flex flex-1 flex-col gap-2">
+                    <Skeleton className="line-clamp-1 w-1/4 text-4xl">&nbsp;</Skeleton>
+                    <Skeleton className="line-clamp-1 w-1/2 text-sm">&nbsp;</Skeleton>
+                    <Skeleton className="line-clamp-1 w-1/2 text-sm">&nbsp;</Skeleton>
                 </div>
             </div>
         </div>

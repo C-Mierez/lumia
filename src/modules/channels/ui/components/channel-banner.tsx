@@ -6,6 +6,7 @@ import { Button } from "@components/ui/button";
 import useModal from "@hooks/use-modal";
 
 import EditBannerModal from "./edit-banner-modal";
+import { Skeleton } from "@components/ui/skeleton";
 
 interface ChannelBannerProps {
     channel: ChannelsGetOneOutput;
@@ -31,4 +32,8 @@ export default function ChannelBanner({ channel }: ChannelBannerProps) {
             )}
         </div>
     );
+}
+
+export function ChannelBannerSkeleton() {
+    return <Skeleton className="bg-background-alt aspect-[6.2] w-full rounded-md" />;
 }

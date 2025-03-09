@@ -14,6 +14,10 @@ export default async function ChannelPage({ searchParams }: ChannelPageProps) {
 
     prefetch(trpc.channels.getManyLatest.infiniteQueryOptions({ userId: u!, limit: DEFAULT_INFINITE_PREFETCH_LIMIT }));
 
+    prefetch(
+        trpc.channels.getManyPlaylists.infiniteQueryOptions({ userId: u!, limit: DEFAULT_INFINITE_PREFETCH_LIMIT }),
+    );
+
     return (
         <HydrateClient>
             <ChannelHomeView userId={u!} />

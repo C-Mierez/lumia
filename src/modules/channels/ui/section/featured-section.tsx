@@ -9,7 +9,7 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseInfiniteQuery, useSuspenseQuery } from "@tanstack/react-query";
 
 import ChannelHeader from "../components/channel-header";
-import { ListVideoCard } from "@modules/videos/ui/components/video-cards/list-video-card";
+import { ListVideoCard, ListVideoCardSkeleton } from "@modules/videos/ui/components/video-cards/list-video-card";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 
 interface FeaturedSectionProps {
@@ -21,7 +21,7 @@ export default function FeaturedSection({ userId }: FeaturedSectionProps) {
         <div className="flex flex-col gap-4">
             <h1 className="font-brand text-xl">Featured</h1>
 
-            <Suspense fallback={<Loader2Icon className="mx-auto animate-spin" />}>
+            <Suspense fallback={<ListVideoCardSkeleton />}>
                 <ErrorBoundary fallback={<p>Something went wrong</p>}>
                     <FeaturedSectionSuspense userId={userId} />
                 </ErrorBoundary>
