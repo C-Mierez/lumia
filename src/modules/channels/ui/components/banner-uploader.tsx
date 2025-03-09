@@ -18,7 +18,6 @@ export default function BannerUploader({ userId }: BannerUploaderProps) {
 
     const onUploadComplete = async () => {
         toast.success("Banner uploaded successfully");
-        // TODO Invalidate corresponding queries
         await queryClient.invalidateQueries({ queryKey: trpc.channels.getOne.queryKey({ userId }) });
     };
     const onUploadBegin = () => {

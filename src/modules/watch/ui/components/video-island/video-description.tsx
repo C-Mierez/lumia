@@ -3,14 +3,18 @@
 import { useMemo, useState } from "react";
 
 import { format, formatDistanceToNow } from "date-fns";
-import { CircleDollarSignIcon, User2Icon, VideoIcon } from "lucide-react";
+import { CircleDollarSignIcon, Loader2Icon, User2Icon, VideoIcon } from "lucide-react";
 
 import { WatchGetOneOutput } from "@/trpc/types";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
-import { cn } from "@lib/utils";
+import { ChannelSubroute, cn, getFullChannelUrl } from "@lib/utils";
 
 import { VideoAuthor } from "./video-author";
+import Link from "next/link";
+import { useTRPC } from "@/trpc/client";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface VideoDescriptionProps {
     video: NonNullable<WatchGetOneOutput>;
@@ -67,6 +71,22 @@ export default function VideoDescription({ video }: VideoDescriptionProps) {
 }
 
 function ExpandedArea({ video }: VideoDescriptionProps) {
+    const trpc = useTRPC();
+
+    const fetchTranscript = useMutation(
+        trpc.videos.getTranscript.mutationOptions({
+            onMutate() {
+                toast.info("Fetching transcript...");
+            },
+            async onSuccess() {
+                toast.success("Transcript fetched successfully");
+            },
+            onError(error) {
+                toast.error(`An error occurred: ${error.message}`);
+            },
+        }),
+    );
+
     return (
         <>
             <Separator />
@@ -74,10 +94,20 @@ function ExpandedArea({ video }: VideoDescriptionProps) {
             <div>
                 <h2 className="text-foreground text-lg">Transcription</h2>
                 <p className="text-sm">Follow along with the transcript</p>
-                {/* // TODO Add transcript functionality */}
-                <Button variant={"muted"} size={"sm"} className="mt-4">
-                    Get Transcription
-                </Button>
+                {fetchTranscript.data ? (
+                    <p className="text-muted-foreground mt-2 text-sm">{fetchTranscript.data}</p>
+                ) : (
+                    <Button
+                        variant={"muted"}
+                        size={"sm"}
+                        className="mt-4"
+                        disabled={fetchTranscript.isPending}
+                        onClick={() => fetchTranscript.mutate({ videoId: video.id })}
+                    >
+                        {fetchTranscript.isPending && <Loader2Icon className="animate-spin" />}
+                        Get Transcription
+                    </Button>
+                )}
             </div>
             <Separator />
             {/* User Area */}
@@ -85,12 +115,16 @@ function ExpandedArea({ video }: VideoDescriptionProps) {
                 <VideoAuthor video={video} />
                 {/* TODO Add Links */}
                 <div className="flex gap-2">
-                    <Button variant={"muted"} size={"sm"}>
-                        <User2Icon /> About
-                    </Button>
-                    <Button variant={"muted"} size={"sm"}>
-                        <VideoIcon /> Videos
-                    </Button>
+                    <Link href={`${getFullChannelUrl(video.userId, ChannelSubroute.About)}`}>
+                        <Button variant={"muted"} size={"sm"}>
+                            <User2Icon /> About
+                        </Button>
+                    </Link>
+                    <Link href={`${getFullChannelUrl(video.userId, ChannelSubroute.Videos)}`}>
+                        <Button variant={"muted"} size={"sm"}>
+                            <VideoIcon /> Videos
+                        </Button>
+                    </Link>
                     <Button variant={"muted"} size={"sm"}>
                         <CircleDollarSignIcon /> Support
                     </Button>

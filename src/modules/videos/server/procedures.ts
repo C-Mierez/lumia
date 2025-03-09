@@ -5,11 +5,11 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { videosTable, videoUpdateSchema } from "@/db/schema";
-import { authedProcedure, createTRPCRouter } from "@/trpc/init";
+import { authedProcedure, baseProcedure, createTRPCRouter } from "@/trpc/init";
 import { cacheEvent, getCachedEvent, publishToEventChannel, subscribeToEventChannel } from "@lib/server/event-channel";
 import { mux } from "@lib/server/mux";
 import { buildWorkflowURL, workflowClient } from "@lib/server/workflow";
-import { getDefaultMuxThumbnailUrl } from "@lib/utils";
+import { getDefaultMuxThumbnailUrl, getDefaultMuxTrackUrl } from "@lib/utils";
 import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
@@ -182,6 +182,32 @@ export const videosRouter = createTRPCRouter({
 
             return video;
         }),
+    getTranscript: baseProcedure.input(z.object({ videoId: z.string().uuid() })).mutation(async ({ input }) => {
+        const { videoId } = input;
+
+        const [video] = await db
+            .select()
+            .from(videosTable)
+            .where(
+                and(
+                    eq(videosTable.id, videoId),
+                    isNotNull(videosTable.muxPlaybackId),
+                    isNotNull(videosTable.muxTrackId),
+                ),
+            );
+
+        if (!video) throw new TRPCError({ code: "NOT_FOUND" });
+
+        const trackUrl = getDefaultMuxTrackUrl(video.muxPlaybackId!, video.muxTrackId!);
+        // Fetch the transcript from the Mux track URL
+        const response = await fetch(trackUrl);
+
+        if (!response.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const responseText = await response.text();
+
+        return responseText;
+    }),
     generateThumbnail: authedProcedure
         .input(z.object({ videoId: z.string().uuid(), prompt: z.string() }))
         .mutation(async ({ ctx, input }) => {
