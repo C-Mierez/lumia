@@ -88,7 +88,6 @@ function GenWithAIWrapper({
 
     const isGenerationDisabled =
         generateTitle.isPending ||
-        onTitleStatus.status === "connecting" ||
         isDisablingStatus(onTitleStatus.data?.status ?? null) ||
         !canGenerateAIContent(video);
 

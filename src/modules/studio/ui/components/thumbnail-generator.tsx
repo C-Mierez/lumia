@@ -58,12 +58,7 @@ export default function ThumbnailGenerator({ video, disabled }: ThumbnailGenerat
 
     const canGenerate = canGenerateAIContent(video);
 
-    const isDisabled =
-        disabled ||
-        generateThumbnail.isPending ||
-        onThumbnailStatus.status === "connecting" ||
-        isDisablingStatus(thumbnailStatus) ||
-        !canGenerate;
+    const isDisabled = disabled || generateThumbnail.isPending || isDisablingStatus(thumbnailStatus) || !canGenerate;
 
     return (
         <>
