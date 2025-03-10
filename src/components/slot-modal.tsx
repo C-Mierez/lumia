@@ -16,9 +16,9 @@ export default function SlotModal({ children, onOpenChange, isOpen = true, class
             isOpen={isOpen}
             onOpenChange={onOpenChange}
             hideClose
-            className={cn("max-h-screen w-full overflow-y-auto sm:max-w-7xl", "focus:outline-0", className)}
+            className={cn("w-full sm:max-w-7xl", "focus:outline-0", className)}
         >
-            {children}
+            <div className="max-h-screen overflow-y-auto">{children}</div>
         </ResponsiveModal>
     );
 }
