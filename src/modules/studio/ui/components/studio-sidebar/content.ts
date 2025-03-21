@@ -20,23 +20,23 @@ export const mainItems: SidebarItem[] = [
         needsAuth: false,
     },
     {
-        title: "Content",
-        href: "/studio/content",
-        icon: ClapperboardIcon,
-        needsAuth: true,
-    },
-    {
-        title: "Analytics",
-        href: "/studio/analytics",
+        title: "Activity",
+        href: "/studio/activity",
         icon: ChartColumnIcon,
         needsAuth: true,
     },
-    {
-        title: "Earn",
-        href: "/studio/earn",
-        icon: CircleDollarSignIcon,
-        needsAuth: true,
-    },
+    // {
+    //     title: "Analytics",
+    //     href: "/studio/analytics",
+    //     icon: ChartColumnIcon,
+    //     needsAuth: true,
+    // },
+    // {
+    //     title: "Earn",
+    //     href: "/studio/earn",
+    //     icon: CircleDollarSignIcon,
+    //     needsAuth: true,
+    // },
 ];
 
 export const metaItems: SidebarItem[] = [

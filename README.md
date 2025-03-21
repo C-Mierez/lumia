@@ -50,5 +50,8 @@ A Youtube-inspired video-sharing website.
 - [ ] Make admin-made Categories for homepage filters. Make user-made Tags for videos
     - [ ] Keep track of the amount a times a Tag is used on videos (Increment and Decrement accordingly in db table). Use this metric to show the most popular tags as a search filter.
 - [ ] Clean up Modal implementation with a reusable hook for managing modal state.
+- [ ] Verify proper state handling in video update form (Not disabling the user while fetching status)
+- [ ] Add a way to go to user's profile
+- [ ] Make a DB trigger to automatically create a default Watch Later playlist for the user on creation
 
 ---

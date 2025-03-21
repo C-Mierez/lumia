@@ -1,8 +1,8 @@
-import { and, desc, eq, getTableColumns, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, getTableColumns, lt, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { commentsTable, reactionsTable, videosTable, viewsTable } from "@/db/schema";
+import { commentsTable, reactionsTable, subscriptionsTable, usersTable, videosTable, viewsTable } from "@/db/schema";
 import { authedProcedure, createTRPCRouter } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
@@ -84,4 +84,125 @@ export const studioRouter = createTRPCRouter({
 
             return video;
         }),
+    getChannelStats: authedProcedure.query(async ({ ctx }) => {
+        const { user } = ctx;
+
+        const userVideosSQ = db.$with("user-videos").as(
+            db
+                .select({
+                    ...getTableColumns(videosTable),
+                })
+                .from(videosTable)
+                .where(eq(videosTable.userId, user.id)),
+        );
+
+        const viewsPerVidSQ = db.$with("views-per-video").as(
+            db
+                .with(userVideosSQ)
+                .select({
+                    videoId: userVideosSQ.id,
+                    viewsCount: count().as("views-count"),
+                })
+                .from(userVideosSQ)
+                .innerJoin(viewsTable, eq(viewsTable.videoId, userVideosSQ.id))
+                .groupBy(userVideosSQ.userId, userVideosSQ.id),
+        );
+
+        const commentsPerVidSQ = db.$with("comments-per-video").as(
+            db
+                .with(userVideosSQ)
+                .select({
+                    videoId: userVideosSQ.id,
+                    commentsCount: count().as("comments-count"),
+                })
+                .from(userVideosSQ)
+                .innerJoin(commentsTable, eq(commentsTable.videoId, userVideosSQ.id))
+                .groupBy(userVideosSQ.userId, userVideosSQ.id),
+        );
+
+        const likesPerVidSQ = db.$with("likes-per-video").as(
+            db
+                .with(userVideosSQ)
+                .select({
+                    videoId: userVideosSQ.id,
+                    likesCount: count().as("likes-count"),
+                })
+                .from(userVideosSQ)
+                .innerJoin(
+                    reactionsTable,
+                    and(eq(reactionsTable.videoId, userVideosSQ.id), eq(reactionsTable.reactionType, "like")),
+                )
+                .groupBy(userVideosSQ.userId, userVideosSQ.id),
+        );
+        const dislikesPerVidSQ = db.$with("dislikes-per-video").as(
+            db
+                .with(userVideosSQ)
+                .select({
+                    videoId: userVideosSQ.id,
+                    dislikesCount: count().as("dislikes-count"),
+                })
+                .from(userVideosSQ)
+                .innerJoin(
+                    reactionsTable,
+                    and(eq(reactionsTable.videoId, userVideosSQ.id), eq(reactionsTable.reactionType, "dislike")),
+                )
+                .groupBy(userVideosSQ.userId, userVideosSQ.id),
+        );
+
+        const videoViewCountSQ = db.$count(viewsTable, eq(viewsTable.videoId, videosTable.id));
+
+        const [[videoStats], [subscribers], [popularVideo]] = await db.batch([
+            db
+                .with(userVideosSQ, viewsPerVidSQ, commentsPerVidSQ, likesPerVidSQ, dislikesPerVidSQ)
+                .select({
+                    totalViews: sum(viewsPerVidSQ.viewsCount).mapWith(Number).as("totalViews"),
+                    totalComments: sum(commentsPerVidSQ.commentsCount).mapWith(Number).as("totalComments"),
+                    totalLikes: sum(likesPerVidSQ.likesCount).mapWith(Number).as("totalLikes"),
+                    totalDislikes: sum(dislikesPerVidSQ.dislikesCount).mapWith(Number).as("totalDislikes"),
+                })
+                .from(userVideosSQ)
+                .leftJoin(viewsPerVidSQ, eq(userVideosSQ.id, viewsPerVidSQ.videoId))
+                .leftJoin(commentsPerVidSQ, eq(userVideosSQ.id, commentsPerVidSQ.videoId))
+                .leftJoin(likesPerVidSQ, eq(userVideosSQ.id, likesPerVidSQ.videoId))
+                .leftJoin(dislikesPerVidSQ, eq(userVideosSQ.id, dislikesPerVidSQ.videoId)),
+            db
+                .select({
+                    subscriberCount: count().as("subscriber-count"),
+                })
+                .from(subscriptionsTable)
+                .where(eq(subscriptionsTable.subscribedToId, user.id))
+                .groupBy(subscriptionsTable.subscribedToId),
+            db
+                .select({
+                    ...getTableColumns(videosTable),
+                    users: { ...getTableColumns(usersTable) },
+                    likeCount: db.$count(
+                        reactionsTable,
+                        and(eq(reactionsTable.videoId, videosTable.id), eq(reactionsTable.reactionType, "like")),
+                    ),
+                    dislikeCount: db.$count(
+                        reactionsTable,
+                        and(eq(reactionsTable.videoId, videosTable.id), eq(reactionsTable.reactionType, "dislike")),
+                    ),
+                    viewCount: videoViewCountSQ,
+                })
+                .from(videosTable)
+                .where(eq(videosTable.visibility, "public"))
+                .innerJoin(usersTable, eq(videosTable.userId, usersTable.id))
+                .orderBy(desc(videoViewCountSQ), desc(videosTable.updatedAt), desc(videosTable.id))
+                .limit(1),
+        ]);
+
+        if (!videoStats) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!subscribers) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!popularVideo) throw new TRPCError({ code: "NOT_FOUND" });
+
+        return {
+            ...videoStats,
+            ...subscribers,
+            video: {
+                ...popularVideo,
+            },
+        };
+    }),
 });
