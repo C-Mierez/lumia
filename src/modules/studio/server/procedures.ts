@@ -205,4 +205,27 @@ export const studioRouter = createTRPCRouter({
             },
         };
     }),
+    getLatestComments: authedProcedure.query(async ({ ctx }) => {
+        const { user } = ctx;
+
+        const userVideosSQ = db.$with("user-videos").as(
+            db
+                .select({
+                    ...getTableColumns(videosTable),
+                })
+                .from(videosTable)
+                .where(eq(videosTable.userId, user.id)),
+        );
+
+        const res = await db
+            .with(userVideosSQ)
+            .select()
+            .from(userVideosSQ)
+            .innerJoin(commentsTable, eq(commentsTable.videoId, userVideosSQ.id))
+            .innerJoin(usersTable, eq(usersTable.id, commentsTable.userId))
+            .orderBy(desc(commentsTable.createdAt), desc(commentsTable.id))
+            .limit(3);
+
+        return res;
+    }),
 });
