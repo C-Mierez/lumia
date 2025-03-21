@@ -8,6 +8,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Separator } from "@components/ui/separator";
 
 import StatsCard from "../components/stats-card";
+import SubscribersPreview from "@modules/subscriptions/ui/components/subscribers-preview";
+import { useAuth } from "@clerk/nextjs";
+import SubscribersPreviewList from "@modules/subscriptions/ui/components/subscribers-preview-list";
 
 interface ChannelSubscribersProps {}
 
@@ -24,20 +27,14 @@ export default function ChannelSubscribers(props: ChannelSubscribersProps) {
 }
 
 function ChannelSubscribersSuspense({}: ChannelSubscribersProps) {
+    const { userId } = useAuth();
+
     return (
         <>
             <StatsCard>
                 <h2 className="text-lg">Recent Subscribers</h2>
 
-                <p className="text-muted-foreground text-sm">Current Subscribers</p>
-                <p className="text-sm">10</p>
-
-                <Separator />
-
-                <div className="flex justify-between gap-2">
-                    <p className="text-muted-foreground text-sm">Current Subscribers</p>
-                    <p className="text-sm">10</p>
-                </div>
+                <SubscribersPreviewList />
             </StatsCard>
         </>
     );

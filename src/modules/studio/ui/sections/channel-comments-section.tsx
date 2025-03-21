@@ -11,7 +11,7 @@ import { useTRPC } from "@/trpc/client";
 import BasicTooltip from "@components/basic-tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Separator } from "@components/ui/separator";
-import { getFullVideoUrl } from "@lib/utils";
+import { getFullChannelUrl, getFullVideoUrl } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -40,41 +40,39 @@ function ChannelCommentsSuspense({}: ChannelCommentsProps) {
         <StatsCard>
             <h2 className="text-lg">Latest Comments</h2>
 
-            <div className="flex flex-col gap-3">
-                {data.map((comment) => (
-                    <>
-                        <div key={comment.comments.id} className="flex items-end justify-between gap-3">
-                            <div className="flex flex-1 gap-2">
+            {data.map((comment) => (
+                <div key={comment.comments.id} className="flex flex-col gap-3">
+                    <div className="flex items-end justify-between gap-3">
+                        <div className="flex flex-1 gap-2">
+                            <Link href={getFullChannelUrl(comment.users.id)}>
                                 <Avatar className="size-6">
                                     <AvatarImage src={comment.users.imageUrl}></AvatarImage>
                                     <AvatarFallback>{comment.users.name}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col justify-between gap-2">
-                                    <p className="text-muted-foreground line-clamp-1 text-xs">
-                                        <span>{comment.users.name}</span>
-                                        <span>{" - "}</span>
-                                        <span>
-                                            {formatDistanceToNow(comment.comments.createdAt, { addSuffix: true })}
-                                        </span>
-                                    </p>
-                                    <p className="line-clamp-2 text-sm">{comment.comments.text}</p>
-                                </div>
+                            </Link>
+                            <div className="flex flex-col justify-between gap-2">
+                                <p className="text-muted-foreground line-clamp-1 text-xs">
+                                    <span>{comment.users.name}</span>
+                                    <span>{" - "}</span>
+                                    <span>{formatDistanceToNow(comment.comments.createdAt, { addSuffix: true })}</span>
+                                </p>
+                                <p className="line-clamp-2 text-sm">{comment.comments.text}</p>
                             </div>
-                            <BasicTooltip contentProps={{ side: "right" }} label={comment["user-videos"].title}>
-                                <Link className="w-20" href={getFullVideoUrl(comment["user-videos"].id)}>
-                                    <VideoThumbnail
-                                        duration={comment["user-videos"].duration ?? 0}
-                                        title=""
-                                        imageUrl={comment["user-videos"].thumbnailUrl}
-                                        previewUrl={comment["user-videos"].previewUrl}
-                                    />
-                                </Link>
-                            </BasicTooltip>
                         </div>
-                        <Separator key={`sep-${comment.comments.id}`} />
-                    </>
-                ))}
-            </div>
+                        <BasicTooltip contentProps={{ side: "right" }} label={comment["user-videos"].title}>
+                            <Link className="w-20" href={getFullVideoUrl(comment["user-videos"].id)}>
+                                <VideoThumbnail
+                                    duration={comment["user-videos"].duration ?? 0}
+                                    title=""
+                                    imageUrl={comment["user-videos"].thumbnailUrl}
+                                    previewUrl={comment["user-videos"].previewUrl}
+                                />
+                            </Link>
+                        </BasicTooltip>
+                    </div>
+                    <Separator />
+                </div>
+            ))}
         </StatsCard>
     );
 }

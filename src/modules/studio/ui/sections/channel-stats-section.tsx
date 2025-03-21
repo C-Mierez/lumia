@@ -94,8 +94,8 @@ function ChannelStatsSuspense({}: ChannelStatsProps) {
                 </div>
                 <Separator />
 
-                <div className="flex flex-col gap-4">
-                    <h3>Top Video</h3>
+                <div className="flex flex-col gap-3">
+                    <h3 className="text-sm">Most Popular Video</h3>
                     <GridVideoCard video={data.video} />
                 </div>
             </StatsCard>

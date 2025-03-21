@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { subscriptionsTable, usersTable } from "@/db/schema";
-import { authedProcedure, baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { authedProcedure, baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
 import { TRPCError } from "@trpc/server";
 
 export const subscriptionsRouter = createTRPCRouter({
@@ -69,10 +69,10 @@ export const subscriptionsRouter = createTRPCRouter({
 
         return subscriptions;
     }),
-    getSubscribers: baseProcedure
+    getSubscribers: maybeAuthedProcedure
         .input(
             z.object({
-                userId: z.string().uuid(),
+                userId: z.string().uuid().nullish(),
                 cursor: z
                     .object({
                         id: z.string().uuid(),
@@ -82,8 +82,11 @@ export const subscriptionsRouter = createTRPCRouter({
                 limit: z.number().min(1),
             }),
         )
-        .query(async ({ input }) => {
-            const { userId, cursor, limit } = input;
+        .query(async ({ ctx, input }) => {
+            const { maybeUser } = ctx;
+            const { cursor, limit } = input;
+
+            const userId = !!input.userId ? input.userId : maybeUser?.id!;
 
             const data = await db
                 .select({

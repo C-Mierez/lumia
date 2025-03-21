@@ -15,7 +15,7 @@ import { getFullChannelUrl } from "@lib/utils";
 interface SubscribersListProps extends ModalProps {
     subscribersQuery: SubscriptionsGetSubscribersQuery;
     subscribers: SubscriptionsGetSubscribersOutput["items"];
-    userName: string;
+    userName?: string;
 }
 
 export default function SubscribersList({
@@ -30,8 +30,13 @@ export default function SubscribersList({
     return (
         <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
             <div className="flex flex-col gap-4 p-4">
-                <h1>{userName}&apos;s Subscribers</h1>
-                <Separator />
+                {!!userName && (
+                    <>
+                        <h1>{userName}&apos;s Subscribers</h1>
+                        <Separator />
+                    </>
+                )}
+
                 <div className="flex flex-col gap-4">
                     {subscribers.map((subscriber) => (
                         <div key={subscriber.id} className="flex items-center gap-4">

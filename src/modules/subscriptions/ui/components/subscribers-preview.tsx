@@ -13,8 +13,8 @@ import SubscribersList from "./subscribers-list-modal";
 import useModal from "@hooks/use-modal";
 
 interface SubscribersPreviewProps {
-    userId: string;
-    userName: string;
+    userId?: string;
+    userName?: string;
 }
 
 export default function SubscribersPreview(props: SubscribersPreviewProps) {
