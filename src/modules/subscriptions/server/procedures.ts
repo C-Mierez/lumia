@@ -86,7 +86,9 @@ export const subscriptionsRouter = createTRPCRouter({
             const { maybeUser } = ctx;
             const { cursor, limit } = input;
 
-            const userId = !!input.userId ? input.userId : maybeUser?.id!;
+            const userId = !!input.userId ? input.userId : maybeUser?.id;
+
+            if (!userId) throw new TRPCError({code: "BAD_REQUEST"})
 
             const data = await db
                 .select({
