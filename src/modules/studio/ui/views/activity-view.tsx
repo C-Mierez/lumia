@@ -3,8 +3,6 @@ import ChannelStats from "../sections/channel-stats-section";
 import ChannelSubscribers from "../sections/channel-subscribers-section";
 import Features from "../sections/features-section";
 
-import VideosSection from "../sections/videos-section";
-
 export default function ActivityView() {
     return (
         <div className="flex w-full max-w-7xl flex-col gap-8">

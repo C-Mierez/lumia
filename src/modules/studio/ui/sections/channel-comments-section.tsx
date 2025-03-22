@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 
 import { formatDistanceToNow } from "date-fns";
-import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -11,7 +10,9 @@ import { useTRPC } from "@/trpc/client";
 import BasicTooltip from "@components/basic-tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Separator } from "@components/ui/separator";
-import { getFullChannelUrl, getFullVideoUrl } from "@lib/utils";
+import { Skeleton } from "@components/ui/skeleton";
+import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { getFullChannelUrl, getFullVideoUrl, range } from "@lib/utils";
 import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -22,7 +23,7 @@ interface ChannelCommentsProps {}
 export default function ChannelComments(props: ChannelCommentsProps) {
     return (
         <>
-            <Suspense fallback={<Loader2Icon className="mx-auto animate-spin" />}>
+            <Suspense fallback={<ChannelCommentsSkeleton />}>
                 <ErrorBoundary fallback={<p>Something went wrong</p>}>
                     <ChannelCommentsSuspense {...props} />
                 </ErrorBoundary>
@@ -69,6 +70,29 @@ function ChannelCommentsSuspense({}: ChannelCommentsProps) {
                                 />
                             </Link>
                         </BasicTooltip>
+                    </div>
+                    <Separator />
+                </div>
+            ))}
+        </StatsCard>
+    );
+}
+
+function ChannelCommentsSkeleton() {
+    return (
+        <StatsCard>
+            <h2 className="text-lg">Latest Comments</h2>
+            {range(DEFAULT_INFINITE_PREFETCH_LIMIT).map((i) => (
+                <div key={i} className="flex flex-col gap-3">
+                    <div className="flex items-end justify-between gap-3">
+                        <div className="flex flex-1 gap-2">
+                            <Skeleton className="size-6 rounded-full" />
+                            <div className="flex w-full flex-col justify-between gap-2">
+                                <Skeleton className="w-1/3 text-xs">&nbsp;</Skeleton>
+                                <Skeleton className="w-3/4 text-xs">&nbsp;</Skeleton>
+                            </div>
+                        </div>
+                        <Skeleton className="w-20" />
                     </div>
                     <Separator />
                 </div>

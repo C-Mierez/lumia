@@ -1,11 +1,9 @@
 import { Suspense } from "react";
 
 import { formatDistanceToNow } from "date-fns";
-import { PlusIcon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { useTRPC } from "@/trpc/client";
-import BasicTooltip from "@components/basic-tooltip";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import useModal from "@hooks/use-modal";
@@ -88,7 +86,14 @@ export function SubscribersPreviewListSkeleton() {
     return (
         <div className="flex flex-col gap-4">
             {range(DEFAULT_INFINITE_PREFETCH_LIMIT + 1).map((i) => {
-                return <Skeleton key={i} className="size-8 rounded-full" />;
+                return (
+                    <div key={i} className="flex gap-2">
+                        <Skeleton className="size-8 rounded-full" />
+                        <div className="flex w-full flex-col gap-2">
+                            <Skeleton className="w-1/2 text-xs">&nbsp;</Skeleton>
+                        </div>
+                    </div>
+                );
             })}
         </div>
     );

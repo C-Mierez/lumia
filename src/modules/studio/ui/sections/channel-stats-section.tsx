@@ -2,11 +2,11 @@
 
 import { Suspense, useMemo } from "react";
 
-import { Loader2Icon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { useTRPC } from "@/trpc/client";
 import { Separator } from "@components/ui/separator";
+import { Skeleton } from "@components/ui/skeleton";
 import { GridVideoCard } from "@modules/videos/ui/components/video-cards/grid-video-card";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -17,7 +17,7 @@ interface ChannelStatsProps {}
 export default function ChannelStats(props: ChannelStatsProps) {
     return (
         <>
-            <Suspense fallback={<Loader2Icon className="mx-auto animate-spin" />}>
+            <Suspense fallback={<ChannelStatsSkeleton />}>
                 <ErrorBoundary fallback={<p>Something went wrong</p>}>
                     <ChannelStatsSuspense {...props} />
                 </ErrorBoundary>
@@ -100,5 +100,30 @@ function ChannelStatsSuspense({}: ChannelStatsProps) {
                 </div>
             </StatsCard>
         </>
+    );
+}
+
+function ChannelStatsSkeleton() {
+    return (
+        <StatsCard>
+            <h2 className="text-lg">Channel Analytics</h2>
+
+            <p className="text-muted-foreground text-sm">Current Subscribers</p>
+            <Skeleton className="w-full text-2xl">&nbsp;</Skeleton>
+
+            <Separator />
+            <Skeleton className="w-full text-sm">&nbsp;</Skeleton>
+            <Skeleton className="w-full text-sm">&nbsp;</Skeleton>
+            <Skeleton className="w-full text-sm">&nbsp;</Skeleton>
+            <Skeleton className="w-full text-sm">&nbsp;</Skeleton>
+
+            <Skeleton />
+            <Separator />
+
+            <div className="flex flex-col gap-3">
+                <h3 className="text-sm">Most Popular Video</h3>
+                <Skeleton className="aspect-video w-full" />
+            </div>
+        </StatsCard>
     );
 }

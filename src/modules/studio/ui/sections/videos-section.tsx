@@ -164,10 +164,8 @@ function VideoSectionSkeleton() {
                             <TableCell className="flex items-stretch gap-4 px-6 py-4">
                                 <Skeleton className="aspect-video w-full max-w-26 shrink-0" />
                                 <div className="flex flex-1 flex-col items-start justify-start gap-2">
-                                    <Skeleton className="font-brand w-full max-w-18">&nbsp;</Skeleton>
-                                    <Skeleton className="text-muted-foreground w-full max-w-26 text-xs">
-                                        &nbsp;
-                                    </Skeleton>
+                                    <Skeleton className="font-brand w-1/4">&nbsp;</Skeleton>
+                                    <Skeleton className="text-muted-foreground w-3/4 text-xs">&nbsp;</Skeleton>
                                 </div>
                             </TableCell>
                         </TableRow>
