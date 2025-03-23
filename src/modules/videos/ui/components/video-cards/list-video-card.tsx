@@ -13,6 +13,7 @@ import UserName from "@modules/users/ui/components/user-name";
 import VideoThumbnail from "../video-thumbnail";
 import { getFullVideoUrl } from "@lib/utils";
 import { Skeleton } from "@components/ui/skeleton";
+import VideoMenu from "../video-menu";
 
 interface ListVideoCardProps {
     video: HomeSearchManyOutput["items"][0];
@@ -64,9 +65,7 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
                     </div>
                 </div>
                 <div className="z-50 size-min">
-                    <Button size={"smallIcon"} variant={"ghost"}>
-                        <MoreVerticalIcon />
-                    </Button>
+                    <VideoMenu videoId={video.id} isSmall />
                 </div>
                 <Link href={getFullVideoUrl(video.id)} className="absolute inset-0" />
             </div>

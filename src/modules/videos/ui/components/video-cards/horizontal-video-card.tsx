@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 
 import { formatDistanceToNow } from "date-fns";
-import { MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
 
 import { SuggestionsGetManyOutput } from "@/trpc/types";
-import { Button } from "@components/ui/button";
-import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
 import { getFullChannelUrl } from "@lib/utils";
+import VideoThumbnail from "@modules/videos/ui/components/video-thumbnail";
+
+import VideoMenu from "../video-menu";
 
 interface HorizontalVideoCardProps {
     video: SuggestionsGetManyOutput["items"][0];
@@ -53,9 +53,7 @@ export function HorizontalVideoCard({ video, href }: HorizontalVideoCardProps) {
                 </div>
             </div>
             <div className="z-50 size-min">
-                <Button size={"smallIcon"} variant={"ghost"}>
-                    <MoreVerticalIcon />
-                </Button>
+                <VideoMenu videoId={video.id} isSmall />
             </div>
             <Link href={href} className="absolute inset-0" />
         </div>

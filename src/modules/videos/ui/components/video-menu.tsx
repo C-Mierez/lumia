@@ -8,17 +8,18 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Separator } from "@components/ui/separator";
-import { getFullVideoUrl } from "@lib/utils";
+import { cn, getFullVideoUrl } from "@lib/utils";
 import AddToPlaylistModal from "@modules/playlists/ui/components/add-to-playlist-modal";
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
 import useModal from "@hooks/use-modal";
 
 interface VideoMenuProps {
     videoId: string;
+    isSmall?: boolean;
     onDestructive?: () => void;
 }
 
-export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
+export default function VideoMenu({ videoId, onDestructive, isSmall = false }: VideoMenuProps) {
     const { isSignedIn } = useAuth();
     const { openSignIn } = useClerk();
 
@@ -37,7 +38,11 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
             {addToPlaylistModal.isOpen && <AddToPlaylistModal {...addToPlaylistModal} videoId={videoId} />}
             <DropdownMenu modal>
                 <DropdownMenuTrigger asChild>
-                    <Button variant={"outlineLight"} className="aspect-square size-10 border">
+                    <Button
+                        variant={isSmall ? "ghost" : "outlineLight"}
+                        size={isSmall ? "smallIcon" : "default"}
+                        className={cn("aspect-square", isSmall ? "" : "size-10 border")}
+                    >
                         <MoreVerticalIcon />
                     </Button>
                 </DropdownMenuTrigger>
