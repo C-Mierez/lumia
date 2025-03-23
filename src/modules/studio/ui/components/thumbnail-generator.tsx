@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
 import { BanIcon, Loader2Icon, SparklesIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
 import { StudioGetOneOutput } from "@/trpc/types";
 import PromptModal from "@components/prompt-modal";
+import useModal from "@hooks/use-modal";
 import { VideoStatus } from "@modules/videos/server/constants";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSubscription } from "@trpc/tanstack-react-query";
@@ -20,7 +19,6 @@ interface ThumbnailGeneratorProps {
 }
 
 export default function ThumbnailGenerator({ video, disabled }: ThumbnailGeneratorProps) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -54,6 +52,8 @@ export default function ThumbnailGenerator({ video, disabled }: ThumbnailGenerat
         ),
     );
 
+    const modal = useModal({});
+
     const thumbnailStatus = onThumbnailStatus.data?.status ?? null;
 
     const canGenerate = canGenerateAIContent(video);
@@ -63,21 +63,19 @@ export default function ThumbnailGenerator({ video, disabled }: ThumbnailGenerat
     return (
         <>
             <PromptModal
-                isOpen={isModalOpen}
+                {...modal}
                 title="Generate Thumbnail"
                 message="Provide a descriptive prompt for the AI to generate a thumbnail"
                 placeholder="Leave empty to let the AI surprise you"
                 onConfirm={(prompt) => {
-                    setIsModalOpen(false);
                     generateThumbnail.mutate({ videoId: video.id, prompt });
                 }}
-                onCancel={() => setIsModalOpen(false)}
             />
             <button
                 type="button"
                 className="bg-background-alt border-muted-foreground/50 group-hover:bg-muted flex size-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed disabled:cursor-default disabled:opacity-50"
                 disabled={isDisabled}
-                onClick={() => setIsModalOpen(true)}
+                onClick={modal.openModal}
             >
                 {isDisabled ? (
                     canGenerate ? (

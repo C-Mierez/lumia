@@ -1,6 +1,4 @@
 "use client";
-import { useState } from "react";
-
 import { EditIcon, MoreVerticalIcon, Share2Icon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,6 +6,7 @@ import { PlaylistsGetManyOutput } from "@/trpc/types";
 import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@components/ui/dropdown-menu";
 import { Separator } from "@components/ui/separator";
+import useModal from "@hooks/use-modal";
 import { getFullPlaylistUrl } from "@lib/utils";
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
 
@@ -19,8 +18,6 @@ interface PlaylistMenuProps {
 }
 
 export default function PlaylistMenu({ playlist, onDestructive }: PlaylistMenuProps) {
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
     const onShare = () => {
         toast.promise(window.navigator.clipboard.writeText(getFullPlaylistUrl(playlist.id)), {
             loading: "Copying link...",
@@ -29,16 +26,12 @@ export default function PlaylistMenu({ playlist, onDestructive }: PlaylistMenuPr
         });
     };
 
+    const editPlaylistModal = useModal({});
+
     return (
         <>
             <EditPlaylistModal
-                isOpen={isEditModalOpen}
-                onClose={() => {
-                    setIsEditModalOpen(false);
-                }}
-                onConfirm={() => {
-                    setIsEditModalOpen(false);
-                }}
+                {...editPlaylistModal}
                 defaultData={{ playlistId: playlist.id, name: playlist.name, description: playlist.description ?? "" }}
             />
 
@@ -63,11 +56,7 @@ export default function PlaylistMenu({ playlist, onDestructive }: PlaylistMenuPr
                     <DropdownMenuGroup>
                         <Separator />
 
-                        <DropdownMenuItem
-                            onClick={() => {
-                                setIsEditModalOpen(true);
-                            }}
-                        >
+                        <DropdownMenuItem onClick={editPlaylistModal.openModal}>
                             <EditIcon />
                             <span>Edit</span>
                         </DropdownMenuItem>

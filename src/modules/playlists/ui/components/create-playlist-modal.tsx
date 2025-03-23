@@ -10,15 +10,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ModalProps } from "@hooks/use-modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface CreatePlaylistModalProps {
-    isOpen: boolean;
-    onConfirm: () => void;
-    onClose: () => void;
+interface CreatePlaylistModalProps extends ModalProps {
+    onConfirm?: () => void;
+    onClose?: () => void;
 }
 
-export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: CreatePlaylistModalProps) {
+export default function CreatePlaylistModal(props: CreatePlaylistModalProps) {
+    const { onOpenChange, onClose, onConfirm } = props;
+
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -49,15 +51,16 @@ export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: Crea
         },
     });
 
-    const onOpenChange = (isOpen: boolean) => {
+    const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
             form.reset();
-            onClose();
+            onClose?.();
         }
+        onOpenChange(isOpen);
     };
 
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} onOpenChange={handleOpenChange} hideClose className="m-0 p-0">
             <Form {...form}>
                 <form
                     onSubmit={(e) => {
@@ -66,8 +69,8 @@ export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: Crea
                         // the void is for eslint because `handleSubmit` returns a promise.
                         void form.handleSubmit((data) => {
                             createPlaylist.mutate(data);
-                            onConfirm();
-                            onOpenChange(false);
+                            onConfirm?.();
+                            handleOpenChange(false);
                         })(e);
                     }}
                     className="flex flex-col gap-4 p-4"
@@ -111,7 +114,13 @@ export default function CreatePlaylistModal({ isOpen, onClose, onConfirm }: Crea
 
                     <div className="flex justify-end gap-2">
                         <Button variant={"secondary"}>Create</Button>
-                        <Button type="button" variant={"muted"} onClick={onClose}>
+                        <Button
+                            type="button"
+                            variant={"muted"}
+                            onClick={() => {
+                                handleOpenChange(false);
+                            }}
+                        >
                             Cancel
                         </Button>
                     </div>

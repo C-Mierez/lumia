@@ -10,12 +10,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ModalProps } from "@hooks/use-modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface EditPlaylistModalProps {
-    isOpen: boolean;
-    onConfirm: () => void;
-    onClose: () => void;
+interface EditPlaylistModalProps extends ModalProps {
+    onConfirm?: () => void;
+    onClose?: () => void;
     defaultData: {
         playlistId: string;
         name: string;
@@ -23,7 +23,9 @@ interface EditPlaylistModalProps {
     };
 }
 
-export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConfirm }: EditPlaylistModalProps) {
+export default function EditPlaylistModal(props: EditPlaylistModalProps) {
+    const { defaultData, onOpenChange, onClose, onConfirm } = props;
+
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
@@ -55,15 +57,16 @@ export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConf
         },
     });
 
-    const onOpenChange = (isOpen: boolean) => {
+    const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
             form.reset();
-            onClose();
+            onClose?.();
         }
+        onOpenChange(isOpen);
     };
 
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} onOpenChange={handleOpenChange} hideClose className="m-0 p-0">
             <Form {...form}>
                 <form
                     onSubmit={(e) => {
@@ -72,14 +75,14 @@ export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConf
                         // the void is for eslint because `handleSubmit` returns a promise.
                         void form.handleSubmit((data) => {
                             updatePlaylist.mutate(data);
-                            onConfirm();
-                            onOpenChange(false);
+                            onConfirm?.();
+                            handleOpenChange(false);
                         })(e);
                     }}
                     className="flex flex-col gap-4 p-4"
                 >
                     <div className="text-start text-balance">
-                        <h2 className="flex justify-between text-xl font-bold">New playlist</h2>
+                        <h2 className="flex justify-between text-xl font-bold">Edit playlist</h2>
                     </div>
                     {/* <Separator /> */}
 
@@ -122,7 +125,13 @@ export default function EditPlaylistModal({ defaultData, isOpen, onClose, onConf
                         >
                             Save
                         </Button>
-                        <Button type="button" variant={"muted"} onClick={onClose}>
+                        <Button
+                            type="button"
+                            variant={"muted"}
+                            onClick={() => {
+                                handleOpenChange(false);
+                            }}
+                        >
                             Cancel
                         </Button>
                     </div>

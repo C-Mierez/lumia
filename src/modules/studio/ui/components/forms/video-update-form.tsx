@@ -13,6 +13,7 @@ import { Button } from "@components/ui/button";
 import { Form } from "@components/ui/form";
 import { Separator } from "@components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useModal from "@hooks/use-modal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { RestoreThumbnailButton } from "../restore-thumbnail-button";
@@ -26,7 +27,7 @@ import { VisibilityField } from "./visibility-field";
 function useVideoUpdateTRPC(
     video: StudioGetOneOutput,
     resetForm: (video: StudioGetOneOutput) => void,
-    onOpenChange: (isOpen: boolean) => void,
+    closeModal: () => void,
 ) {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
@@ -58,7 +59,7 @@ function useVideoUpdateTRPC(
                 await queryClient.invalidateQueries({ queryKey: trpc.studio.getMany.queryKey() });
                 await queryClient.invalidateQueries({ queryKey: trpc.studio.getOne.queryKey({ id: video.id }) });
                 toast.success("Video deleted successfully");
-                onOpenChange(false);
+                closeModal();
             },
             onError: () => {
                 toast.error("Failed to delete video");
@@ -72,22 +73,20 @@ function useVideoUpdateTRPC(
     };
 }
 
-function useOnFieldChange() {}
-
 interface VideoUpdateFormProps {
     video: StudioGetOneOutput;
     videoQuery: StudioGetOneQuery;
-    onOpenChange: (isOpen: boolean) => void;
+    closeModal: () => void;
 }
 
 export type VideoUpdateSchema = z.infer<typeof videoUpdateSchema>;
 
-export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: VideoUpdateFormProps) {
+export default function VideoUpdateForm({ video, videoQuery, closeModal }: VideoUpdateFormProps) {
     /* ---------------------------------- State --------------------------------- */
     const [isFormDisabled, setIsFormDisabled] = useState<true | undefined>(undefined);
 
     /* ---------------------------------- tRPC ---------------------------------- */
-    const { updateVideo, deleteVideo } = useVideoUpdateTRPC(video, resetForm, onOpenChange);
+    const { updateVideo, deleteVideo } = useVideoUpdateTRPC(video, resetForm, closeModal);
 
     /* ----------------------------- React Hook Form ---------------------------- */
     const form = useForm<VideoUpdateSchema>({
@@ -145,7 +144,7 @@ export default function VideoUpdateForm({ video, videoQuery, onOpenChange }: Vid
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                 {/* Header */}
                 <VideoUpdateFormHeader
-                    onOpenChange={onOpenChange}
+                    closeModal={closeModal}
                     canRefresh={canRefresh}
                     canSubmit={canSubmit}
                     onDelete={onDelete}
@@ -218,18 +217,20 @@ function FormSectionHeader({
 }
 
 interface VideoUpdateFormHeaderProps {
-    onOpenChange: (isOpen: boolean) => void;
+    closeModal: () => void;
     canRefresh: boolean;
     canSubmit: boolean;
     onDelete: () => void;
     video: StudioGetOneOutput;
 }
 
-function VideoUpdateFormHeader({ onOpenChange, canRefresh, canSubmit, onDelete, video }: VideoUpdateFormHeaderProps) {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+function VideoUpdateFormHeader({ closeModal, canRefresh, canSubmit, onDelete, video }: VideoUpdateFormHeaderProps) {
     const shownVideoTitle = !!video.title ? video.title : "Untitled Video";
     const trpc = useTRPC();
     const queryClient = useQueryClient();
+
+    const deleteModal = useModal({});
+
     return (
         <div className="flex items-end justify-between">
             {/* Video title */}
@@ -267,24 +268,20 @@ function VideoUpdateFormHeader({ onOpenChange, canRefresh, canSubmit, onDelete, 
                     type="button"
                     variant={"muted"}
                     onClick={() => {
-                        onOpenChange(false);
+                        closeModal();
                     }}
                 >
                     Cancel
                 </Button>
 
                 <ConfirmationModal
-                    isOpen={showDeleteModal}
-                    onOpenChange={(isOpen) => {
-                        setShowDeleteModal(isOpen);
-                    }}
+                    {...deleteModal}
                     title={`Delete "${shownVideoTitle}"`}
                     description={"Are you sure you want to delete this video?"}
                     onConfirm={onDelete}
-                    onCancel={() => {}}
                     destructive
                 />
-                <Button type="button" variant={"destructiveMuted"} onClick={() => setShowDeleteModal(true)}>
+                <Button type="button" variant={"destructiveMuted"} onClick={deleteModal.openModal}>
                     <Trash2Icon />
                 </Button>
             </div>

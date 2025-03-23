@@ -11,6 +11,7 @@ import { Separator } from "@components/ui/separator";
 import { getFullVideoUrl } from "@lib/utils";
 import AddToPlaylistModal from "@modules/playlists/ui/components/add-to-playlist-modal";
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
+import useModal from "@hooks/use-modal";
 
 interface VideoMenuProps {
     videoId: string;
@@ -18,8 +19,6 @@ interface VideoMenuProps {
 }
 
 export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
-    const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false);
-
     const { isSignedIn } = useAuth();
     const { openSignIn } = useClerk();
 
@@ -31,17 +30,11 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
         });
     };
 
+    const addToPlaylistModal = useModal({});
+
     return (
         <>
-            {isAddToPlaylistModalOpen && (
-                <AddToPlaylistModal
-                    videoId={videoId}
-                    isOpen={isAddToPlaylistModalOpen}
-                    onCancel={() => {
-                        setIsAddToPlaylistModalOpen(false);
-                    }}
-                />
-            )}
+            {addToPlaylistModal.isOpen && <AddToPlaylistModal {...addToPlaylistModal} videoId={videoId} />}
             <DropdownMenu modal>
                 <DropdownMenuTrigger asChild>
                     <Button variant={"outlineLight"} className="aspect-square size-10 border">
@@ -69,7 +62,7 @@ export default function VideoMenu({ videoId, onDestructive }: VideoMenuProps) {
 
                                 e.stopPropagation();
                                 e.preventDefault();
-                                setIsAddToPlaylistModalOpen(true);
+                                addToPlaylistModal.openModal();
                             }}
                         >
                             <BookmarkIcon />

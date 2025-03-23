@@ -1,10 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { useIsMobile } from "@hooks/use-mobile";
+import { ModalProps } from "@hooks/use-modal";
 
-interface ResponsiveModalProps {
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "./ui/drawer";
+
+interface ResponsiveModalProps extends ModalProps {
     children: React.ReactNode;
-    isOpen: boolean;
     header?: React.ReactNode;
-    onOpenChange: (isOpen: boolean) => void;
     className?: string;
     hideClose?: boolean;
     modal?: boolean;
@@ -12,26 +14,26 @@ interface ResponsiveModalProps {
 
 export default function ResponsiveModal({
     children,
-    isOpen,
     header,
-    onOpenChange,
     className,
-    hideClose,
+    hideClose = true,
     modal = true,
+    isOpen,
+    onOpenChange,
 }: ResponsiveModalProps) {
-    // const isMobile = useIsMobile();
+    const isMobile = useIsMobile();
 
-    // if (isMobile)
-    //     return (
-    //         <Drawer open={isOpen} onOpenChange={onOpenChange} modal>
-    //             <DrawerContent className={className}>
-    //                 <DrawerHeader>
-    //                     <DrawerTitle>{header}</DrawerTitle>
-    //                 </DrawerHeader>
-    //                 {children}
-    //             </DrawerContent>
-    //         </Drawer>
-    //     );
+    if (isMobile)
+        return (
+            <Drawer open={isOpen} onOpenChange={onOpenChange} modal={modal}>
+                <DrawerContent className={className}>
+                    <DrawerHeader>
+                        <DrawerTitle>{header}</DrawerTitle>
+                    </DrawerHeader>
+                    {children}
+                </DrawerContent>
+            </Drawer>
+        );
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange} modal={modal}>
@@ -39,7 +41,6 @@ export default function ResponsiveModal({
                 <DialogHeader>
                     <DialogTitle>{header}</DialogTitle>
                 </DialogHeader>
-
                 {children}
             </DialogContent>
         </Dialog>

@@ -1,36 +1,34 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
-
-import { SubscriptionsGetSubscribersOutput, SubscriptionsGetSubscribersQuery } from "@/trpc/types";
-import InfiniteScroll from "@components/infinite-scroll";
-import ResponsiveModal from "@components/responsive-modal";
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-import { Button } from "@components/ui/button";
-import { Separator } from "@components/ui/separator";
-import useModal, { ModalProps } from "@hooks/use-modal";
-import { getFullChannelUrl } from "@lib/utils";
-import BannerUploader from "./banner-uploader";
-import ConfirmationModal from "@components/confirmation-modal";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+import { useTRPC } from "@/trpc/client";
+import ConfirmationModal from "@components/confirmation-modal";
+import ResponsiveModal from "@components/responsive-modal";
+import { Button } from "@components/ui/button";
+import useModal, { ModalProps } from "@hooks/use-modal";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import BannerUploader from "./banner-uploader";
 
 interface EditBannerModalProps extends ModalProps {
     userId: string;
 }
 
-export default function EditBannerModal({
-    isOpen = false,
-    onOpenChange,
-    openModal,
-    closeModal,
-    userId,
-}: EditBannerModalProps) {
+export default function EditBannerModal(props: EditBannerModalProps) {
+    const { onOpenChange, userId } = props;
+
     const trpc = useTRPC();
     const queryClient = useQueryClient();
+
     const removeModal = useModal({});
+
+    const handleOpenChange = (isOpen: boolean) => {
+        if (!isOpen) {
+            removeModal.closeModal();
+        }
+        onOpenChange(isOpen);
+    };
 
     const removeBanner = useMutation(
         trpc.users.removeBanner.mutationOptions({
@@ -48,19 +46,16 @@ export default function EditBannerModal({
     );
 
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} onOpenChange={handleOpenChange} hideClose className="m-0 p-0">
             <>
                 <ConfirmationModal
-                    isOpen={removeModal.isOpen}
-                    onOpenChange={removeModal.onOpenChange}
+                    {...removeModal}
                     title={"Remove banner"}
                     description={"Are you sure you want to remove your channel banner?"}
-                    destructive
                     onConfirm={() => {
                         removeBanner.mutate();
-                        removeModal.closeModal();
                     }}
-                    onCancel={removeModal.closeModal}
+                    destructive
                 />
                 <div className="flex flex-col gap-4 p-4">
                     <h1>Edit your channel banner</h1>
@@ -69,7 +64,13 @@ export default function EditBannerModal({
                         <Button type="button" variant={"destructive"} onClick={removeModal.openModal}>
                             Remove
                         </Button>
-                        <Button type="button" variant={"muted"} onClick={closeModal}>
+                        <Button
+                            type="button"
+                            variant={"muted"}
+                            onClick={() => {
+                                handleOpenChange(false);
+                            }}
+                        >
                             Cancel
                         </Button>
                     </div>

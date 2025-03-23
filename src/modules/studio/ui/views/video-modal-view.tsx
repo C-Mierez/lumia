@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 
 import SlotModal from "@components/slot-modal";
+import useModal from "@hooks/use-modal";
 
 import VideoEditSection from "../sections/video-edit-section";
 
@@ -14,16 +15,17 @@ export default function VideoModalView({ videoId }: VideoModalViewProps) {
     const router = useRouter();
     const pathname = usePathname();
 
-    const onOpenChange = (isOpen: boolean) => {
-        if (!isOpen) {
+    const modal = useModal({
+        isOpen: true,
+        onClose() {
             if (pathname.startsWith("/studio/video/")) router.back();
-        }
-    };
+        },
+    });
 
     return (
         <>
-            <SlotModal onOpenChange={onOpenChange}>
-                <VideoEditSection videoId={videoId} onOpenChange={onOpenChange} />
+            <SlotModal {...modal}>
+                <VideoEditSection videoId={videoId} {...modal} />
             </SlotModal>
         </>
     );

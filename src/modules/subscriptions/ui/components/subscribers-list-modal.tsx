@@ -18,17 +18,11 @@ interface SubscribersListProps extends ModalProps {
     userName?: string;
 }
 
-export default function SubscribersList({
-    isOpen = false,
-    onOpenChange,
-    openModal,
-    closeModal,
-    subscribersQuery,
-    subscribers,
-    userName,
-}: SubscribersListProps) {
+export default function SubscribersList(props: SubscribersListProps) {
+    const { closeModal, subscribersQuery, subscribers, userName } = props;
+
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} hideClose className="m-0 p-0">
             <div className="flex flex-col gap-4 p-4">
                 {!!userName && (
                     <>

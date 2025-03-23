@@ -4,26 +4,28 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ModalProps } from "@hooks/use-modal";
 
 import ResponsiveModal from "./responsive-modal";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Textarea } from "./ui/textarea";
 
-interface PromptModalProps {
-    isOpen: boolean;
+interface PromptModalProps extends ModalProps {
     title?: string;
     message: string;
     placeholder?: string;
     onConfirm: (promptInput: string) => void;
-    onCancel: () => void;
+    onCancel?: () => void;
 }
 
 const promptSchema = z.object({
     prompt: z.string(),
 });
 
-export default function PromptModal({ isOpen, title, message, placeholder, onConfirm, onCancel }: PromptModalProps) {
+export default function PromptModal(props: PromptModalProps) {
+    const { onOpenChange, title, message, placeholder, onConfirm, onCancel } = props;
+
     const form = useForm<z.infer<typeof promptSchema>>({
         resolver: zodResolver(promptSchema),
         defaultValues: {
@@ -31,15 +33,16 @@ export default function PromptModal({ isOpen, title, message, placeholder, onCon
         },
     });
 
-    const onOpenChange = (isOpen: boolean) => {
+    const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
             form.reset();
-            onCancel();
+            onCancel?.();
         }
+        onOpenChange(isOpen);
     };
 
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} onOpenChange={handleOpenChange} className="m-0 p-0">
             <Form {...form}>
                 <form
                     onSubmit={(e) => {
@@ -49,7 +52,7 @@ export default function PromptModal({ isOpen, title, message, placeholder, onCon
                         // the void is for eslint because `handleSubmit` returns a promise.
                         void form.handleSubmit(({ prompt }) => {
                             onConfirm(prompt);
-                            onOpenChange(false);
+                            handleOpenChange(false);
                         })(e);
                     }}
                     className="flex flex-col gap-4 p-4"
@@ -75,7 +78,7 @@ export default function PromptModal({ isOpen, title, message, placeholder, onCon
 
                     <div className="flex justify-end gap-2">
                         <Button variant={"secondary"}>Confirm</Button>
-                        <Button type="button" variant={"muted"} onClick={onCancel}>
+                        <Button type="button" variant={"muted"} onClick={() => handleOpenChange(false)}>
                             Cancel
                         </Button>
                     </div>

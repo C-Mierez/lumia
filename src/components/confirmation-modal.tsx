@@ -1,36 +1,30 @@
 "use client";
 
+import { ModalProps } from "@hooks/use-modal";
+
 import ResponsiveModal from "./responsive-modal";
 import { Button } from "./ui/button";
 
-interface ConfirmationModalProps {
-    isOpen: boolean;
-    onOpenChange: (isOpen: boolean) => void;
+interface ConfirmationModalProps extends ModalProps {
     title?: string;
     description: string;
     destructive?: boolean;
     onConfirm: () => void;
-    onCancel: () => void;
+    onCancel?: () => void;
 }
 
-export default function ConfirmationModal({
-    isOpen,
-    onOpenChange,
-    title,
-    description,
-    destructive = false,
-    onConfirm,
-    onCancel,
-}: ConfirmationModalProps) {
-    const onChange = (isOpen: boolean) => {
-        onOpenChange(isOpen);
+export default function ConfirmationModal(props: ConfirmationModalProps) {
+    const { onOpenChange, title, description, destructive = false, onConfirm, onCancel } = props;
+
+    const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
-            onCancel();
+            onCancel?.();
         }
+        onOpenChange(isOpen);
     };
 
     return (
-        <ResponsiveModal isOpen={isOpen} onOpenChange={onChange} hideClose className="m-0 p-0">
+        <ResponsiveModal {...props} onOpenChange={handleOpenChange} hideClose className="m-0 p-0">
             <div className="flex flex-col gap-4 p-4">
                 {title && (
                     <div className="text-start text-balance">
@@ -43,8 +37,8 @@ export default function ConfirmationModal({
                         type="button"
                         variant={destructive ? "destructive" : "secondary"}
                         onClick={() => {
-                            onOpenChange(false);
                             onConfirm();
+                            handleOpenChange(false);
                         }}
                     >
                         Confirm
@@ -53,8 +47,7 @@ export default function ConfirmationModal({
                         type="button"
                         variant={"muted"}
                         onClick={() => {
-                            onOpenChange(false);
-                            onCancel();
+                            handleOpenChange(false);
                         }}
                     >
                         Cancel

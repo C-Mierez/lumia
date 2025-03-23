@@ -1,32 +1,32 @@
 "use client";
 
-import { useState } from "react";
-
-import { CheckSquareIcon, PlusIcon, SquareIcon } from "lucide-react";
+import { CheckSquareIcon, Loader2Icon, PlusIcon, SquareIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/trpc/client";
+import { useAuth } from "@clerk/nextjs";
 import ResponsiveModal from "@components/responsive-modal";
 import { Button } from "@components/ui/button";
 import { Separator } from "@components/ui/separator";
+import useModal, { ModalProps } from "@hooks/use-modal";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
-import { skipToken, useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import CreatePlaylistModal from "./create-playlist-modal";
-import { useAuth } from "@clerk/nextjs";
 
-interface AddToPlaylistModalProps {
-    isOpen: boolean;
-    onCancel: () => void;
+interface AddToPlaylistModalProps extends ModalProps {
+    onCancel?: () => void;
     videoId: string;
 }
 
-export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToPlaylistModalProps) {
+export default function AddToPlaylistModal(props: AddToPlaylistModalProps) {
+    const { onOpenChange, onCancel, videoId } = props;
+
     const { isSignedIn } = useAuth();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
-    const { data: playlists } = useQuery(
+    const { data: playlists, isLoading } = useQuery(
         trpc.playlists.listPlaylistsForVideo.queryOptions(
             isSignedIn
                 ? {
@@ -59,28 +59,19 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
         }),
     );
 
-    const [isNewPlaylist, setIsNewPlaylist] = useState(false);
-
-    const onClickNew = () => {
-        setIsNewPlaylist(true);
-    };
-
-    const onCloseNew = () => {
-        setIsNewPlaylist(false);
-    };
-
-    const onOpenChange = (isOpen: boolean) => {
+    const handleOpenChange = (isOpen: boolean) => {
         if (!isOpen) {
-            onCancel();
+            onCancel?.();
         }
+        onOpenChange(isOpen);
     };
+
+    const newPlaylistModal = useModal({});
 
     return (
         <>
-            {isNewPlaylist && (
-                <CreatePlaylistModal isOpen={isNewPlaylist} onClose={onCloseNew} onConfirm={onCloseNew} />
-            )}
-            <ResponsiveModal isOpen={isOpen} onOpenChange={onOpenChange} hideClose className="m-0 p-0">
+            {newPlaylistModal.isOpen && <CreatePlaylistModal {...newPlaylistModal} />}
+            <ResponsiveModal {...props} onOpenChange={handleOpenChange} className="m-0 p-0">
                 <div className="flex flex-col gap-4 p-4">
                     <div className="text-start text-balance">
                         <h2 className="flex justify-between text-xl font-bold">Save video to...</h2>
@@ -111,10 +102,15 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
                                 </Button>
                             );
                         })}
+                        {isLoading && (
+                            <div className="mx-auto">
+                                <Loader2Icon className="text-muted-foreground animate-spin" />
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button type="button" variant={"secondary"} onClick={onClickNew}>
+                        <Button type="button" variant={"secondary"} onClick={newPlaylistModal.openModal}>
                             <PlusIcon className="-m-1" />
                             New Playlist
                         </Button>
@@ -123,7 +119,7 @@ export default function AddToPlaylistModal({ isOpen, onCancel, videoId }: AddToP
                         </Button>
                     </div>
                 </div>
-            </ResponsiveModal>{" "}
+            </ResponsiveModal>
         </>
     );
 }

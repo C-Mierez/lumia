@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 
 import { PlusIcon } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -9,6 +9,7 @@ import { useTRPC } from "@/trpc/client";
 import InfiniteScroll from "@components/infinite-scroll";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
+import useModal from "@hooks/use-modal";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 import { range } from "@lib/utils";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
@@ -19,25 +20,17 @@ import PlaylistsGrid from "../components/playlist-grid";
 interface PlaylistsSectionProps {}
 
 export default function PlaylistsSection({}: PlaylistsSectionProps) {
-    const [isNewPlaylist, setIsNewPlaylist] = useState(false);
-
-    const onClickNew = () => {
-        setIsNewPlaylist(true);
-    };
-
-    const onCloseNew = () => {
-        setIsNewPlaylist(false);
-    };
+    const newPlaylistModal = useModal({});
 
     return (
         <div className="px-2 pt-2">
-            <CreatePlaylistModal isOpen={isNewPlaylist} onClose={onCloseNew} onConfirm={() => {}} />
+            <CreatePlaylistModal {...newPlaylistModal} />
             <div className="mb-12 flex items-end justify-between">
                 <div>
                     <h1 className="font-brand text-2xl font-bold">Your Playlists</h1>
                     <p className="text-muted-foreground text-sm">See the playlists you have created</p>
                 </div>
-                <Button variant={"secondary"} disabled={isNewPlaylist} onClick={onClickNew}>
+                <Button variant={"secondary"} disabled={newPlaylistModal.isOpen} onClick={newPlaylistModal.openModal}>
                     <PlusIcon className="-ml-1" />
                     New
                 </Button>
