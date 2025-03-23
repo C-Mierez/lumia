@@ -21,7 +21,7 @@ export default function InfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    label = "No more videos found.",
+    label = "No more videos found",
 }: InfiniteScrollProps) {
     const { targetRef, isIntersecting } = useIntersectionObserver({
         threshold: 0.5,

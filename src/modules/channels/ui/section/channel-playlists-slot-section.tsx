@@ -55,6 +55,7 @@ function ChannelPlaylistsSlotSectionSuspense({ userId }: ChannelPlaylistsSlotSec
                 isFetchingNextPage={isFetchingNextPage}
                 fetchNextPage={fetchNextPage}
                 hasNextPage={hasNextPage}
+                label="No more playlists found"
             />
         </>
     );
