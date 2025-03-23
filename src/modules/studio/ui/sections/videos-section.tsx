@@ -72,7 +72,7 @@ function VideosSectionSuspense() {
                     {videos.map((video) => (
                         <Link key={video.id} href={`/studio/video/${video.id}`} legacyBehavior>
                             <TableRow className="cursor-pointer [&_td]:text-center">
-                                <TableCell className="px-6 py-4">
+                                <TableCell className="min-w-80 py-4 md:min-w-120">
                                     <div className="flex items-stretch gap-4">
                                         <div className="relative aspect-video w-full max-w-26 shrink-0">
                                             <VideoThumbnail
@@ -161,7 +161,7 @@ function VideoSectionSkeleton() {
                 {range(DEFAULT_INFINITE_PREFETCH_LIMIT).map((_, i) => {
                     return (
                         <TableRow key={i}>
-                            <TableCell className="flex items-stretch gap-4 px-6 py-4">
+                            <TableCell className="flex min-w-80 items-stretch gap-4 py-4 md:min-w-120">
                                 <Skeleton className="aspect-video w-full max-w-26 shrink-0" />
                                 <div className="flex flex-1 flex-col items-start justify-start gap-2">
                                     <Skeleton className="font-brand w-1/4">&nbsp;</Skeleton>
