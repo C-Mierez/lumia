@@ -26,7 +26,7 @@ export function GridVideoCard({ video }: GridVideoCardProps) {
     }, [video]);
 
     return (
-        <div className="group relative flex max-h-full max-w-full flex-col gap-2">
+        <div className="group relative isolate flex max-h-full max-w-full flex-col gap-2">
             <VideoThumbnail
                 title={video.title}
                 imageUrl={video.thumbnailUrl}

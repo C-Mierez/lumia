@@ -60,7 +60,7 @@ export default function SearchInput() {
                     value={searchQuery ?? ""}
                     onChange={onInputChange}
                     placeholder="Search for videos"
-                    className="focus:bg-accent-600/20 focus:border-muted-foreground h-9 rounded-l-md rounded-r-none border-r-0 bg-transparent transition-colors focus:outline-none focus-visible:ring-0"
+                    className="focus:bg-accent-600/20 focus:border-muted-foreground h-9 rounded-l-md rounded-r-none border-r-0 bg-transparent text-sm transition-colors focus:outline-none focus-visible:ring-0 md:text-base"
                 />
                 {!!searchQuery && searchQuery.length > 0 && (
                     <Button

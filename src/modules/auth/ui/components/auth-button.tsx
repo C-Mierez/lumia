@@ -15,7 +15,6 @@ export default function AuthButton() {
                 <SignInButton mode="modal">
                     <Button variant={"ghost"} className="[&_svg]:size-5">
                         <UserCircleIcon />
-                        <span>Sign In</span>
                     </Button>
                 </SignInButton>
             </SignedOut>
@@ -23,7 +22,6 @@ export default function AuthButton() {
                 <SignInButton mode="modal">
                     <Button variant={"ghost"} className="[&_svg]:size-5">
                         <UserCircleIcon />
-                        <span>Sign In</span>
                     </Button>
                 </SignInButton>
             </ClerkLoading>

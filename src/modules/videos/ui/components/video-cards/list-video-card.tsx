@@ -26,7 +26,7 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
     }, [video]);
 
     return (
-        <div className="group relative grid w-full max-w-full grid-cols-3 gap-3">
+        <div className="group relative isolate grid w-full max-w-full grid-cols-3 gap-3">
             <div className="aspect-video size-full">
                 <VideoThumbnail
                     title={video.title}
@@ -76,10 +76,10 @@ export function ListVideoCard({ video }: ListVideoCardProps) {
 
 export function ListVideoCardSkeleton() {
     return (
-        <div className="relative grid w-full max-w-full grid-cols-3 gap-3">
+        <div className="relative isolate grid w-full max-w-full grid-cols-3 gap-3">
             <Skeleton className="aspect-video size-full" />
             <div className="col-span-2 flex w-full items-start justify-between gap-3">
-                <div className="z-20 flex flex-1 flex-col gap-2">
+                <div className="z-50 flex flex-1 flex-col gap-2">
                     <Skeleton className="h-6 w-1/2" />
                     <div className="flex items-center gap-2">
                         <Skeleton className="size-8 rounded-full"></Skeleton>

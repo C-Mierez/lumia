@@ -160,7 +160,7 @@ function VideoDetails({ video, processingState }: VideoIslandProps & { processin
             {/* Video URL */}
             <div>
                 <p className="text-muted-foreground text-xs">Video URL</p>
-                <div className="flex items-end gap-2">
+                <div className="isolate flex items-end gap-2">
                     <Button asChild type="button" variant={"link"} className="relative line-clamp-1 w-full px-0">
                         <Link href={fullVideoURL}>
                             {fullVideoURL}

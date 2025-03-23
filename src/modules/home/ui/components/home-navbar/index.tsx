@@ -1,7 +1,6 @@
 import { ClapperboardIcon } from "lucide-react";
 import Link from "next/link";
 
-import NavbarWrapper from "@components/navbar/navbar-wrapper";
 import SVG from "@components/svg/svg";
 import { Button } from "@components/ui/button";
 import { SidebarTrigger } from "@components/ui/sidebar";
@@ -23,12 +22,12 @@ export default function HomeNavbar() {
             </div>
 
             {/* Search Bar */}
-            <div className="col-start-3 col-end-9 flex w-full max-w-4xl flex-1 justify-center place-self-center">
+            <div className="col-start-5 col-end-11 flex w-full max-w-4xl flex-1 justify-center place-self-center md:col-start-3 md:col-end-9">
                 <SearchInput />
             </div>
 
             {/* Auth or User Profile */}
-            <div className="col-start-9 col-end-11 flex items-center justify-end gap-4">
+            <div className="bg-background border-t-border fixed right-0 bottom-0 left-0 flex items-center justify-between gap-4 border border-r-0 border-b-0 border-l-0 p-2 md:static md:col-start-9 md:col-end-11 md:justify-end md:border-0 md:p-0">
                 {/* Studio Link */}
                 <Link href="/studio">
                     <Button variant={"muted"} className="[&_svg]:size-4">
