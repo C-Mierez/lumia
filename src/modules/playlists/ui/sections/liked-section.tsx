@@ -16,7 +16,7 @@ interface LikedSectionProps {}
 
 export default function LikedSection({}: LikedSectionProps) {
     return (
-        <div className="px-2 pt-2">
+        <div className="px-0 pt-2 md:px-2">
             <div className="mb-6">
                 <h1 className="font-brand text-2xl font-bold">Liked Videos</h1>
                 <p className="text-muted-foreground text-sm">Go back through videos you have previously liked</p>

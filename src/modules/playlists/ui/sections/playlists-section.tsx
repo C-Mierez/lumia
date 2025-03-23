@@ -23,7 +23,7 @@ export default function PlaylistsSection({}: PlaylistsSectionProps) {
     const newPlaylistModal = useModal({});
 
     return (
-        <div className="px-2 pt-2">
+        <div className="px-0 pt-2 md:px-2">
             <CreatePlaylistModal {...newPlaylistModal} />
             <div className="mb-12 flex items-end justify-between">
                 <div>

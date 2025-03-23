@@ -49,7 +49,7 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
     };
 
     return (
-        <div className="group/playlist relative flex max-h-full max-w-full flex-col gap-2">
+        <div className="group/playlist relative isolate flex max-h-full max-w-full flex-col gap-2">
             <div className="relative aspect-video rounded-md">
                 {playlist.videosCount === 0 && (
                     <div className="playlistCard bg-background-alt relative grid aspect-video place-items-center rounded-md p-2">

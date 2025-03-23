@@ -27,7 +27,7 @@ export default function HomeNavbar() {
             </div>
 
             {/* Auth or User Profile */}
-            <div className="bg-background border-t-border fixed right-0 bottom-0 left-0 flex items-center justify-between gap-4 border border-r-0 border-b-0 border-l-0 p-2 md:static md:col-start-9 md:col-end-11 md:justify-end md:border-0 md:p-0">
+            <div className="bg-background border-t-border fixed right-0 bottom-0 left-0 flex items-center justify-between gap-4 border border-r-0 border-b-0 border-l-0 px-4 py-2 md:static md:col-start-9 md:col-end-11 md:justify-end md:border-0 md:p-0">
                 {/* Studio Link */}
                 <Link href="/studio">
                     <Button variant={"muted"} className="[&_svg]:size-4">
