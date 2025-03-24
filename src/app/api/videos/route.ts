@@ -78,7 +78,7 @@ export const POST = async (request: Request) => {
             // Set the playback ID otherwise
             const [video] = await db
                 .update(videosTable)
-                .set({ muxPlaybackId: playbackId })
+                .set({ muxPlaybackId: playbackId, muxStatus: data.status })
                 .where(and(eq(videosTable.muxAssetId, data.id), isNull(videosTable.muxPlaybackId)))
                 .returning();
 
