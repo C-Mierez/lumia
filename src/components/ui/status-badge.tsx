@@ -6,7 +6,7 @@ import { type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const statusBadgeVariants = cva(
-    "inline-flex items-center gap-x-2.5 rounded-md text-sm bg-background px-2.5 py-1.5 border",
+    "flex flex-col w-full md:w-auto md:flex-row items-center gap-x-2.5 rounded-md text-sm bg-background px-2.5 py-1.5 border",
     {
         variants: {
             status: {

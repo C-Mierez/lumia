@@ -232,12 +232,12 @@ function VideoUpdateFormHeader({ closeModal, canRefresh, canSubmit, onDelete, vi
     const deleteModal = useModal({});
 
     return (
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             {/* Video title */}
-            <h1 className="font-brand text-2xl font-bold">{shownVideoTitle}</h1>
+            <h1 className="font-brand text-xl font-bold md:text-2xl">{shownVideoTitle}</h1>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex flex-row-reverse justify-end gap-2 md:flex-row md:justify-start">
                 <Button
                     type="button"
                     variant={"ghost"}
