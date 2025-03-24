@@ -12,7 +12,8 @@ import {
     videosTable,
     viewsTable,
 } from "@/db/schema";
-import { authedProcedure, baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { authedProcedure, baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
+import { DEFAULT_WATCH_LATER_PLAYLIST_NAME, WATCH_LATER_URL_KEYWORD } from "@lib/constants";
 import { TRPCError } from "@trpc/server";
 
 export const playlistsRouter = createTRPCRouter({
@@ -246,13 +247,39 @@ export const playlistsRouter = createTRPCRouter({
 
             return data;
         }),
-    getOnePlaylist: baseProcedure
+    getOnePlaylist: maybeAuthedProcedure
         .input(
             z.object({
-                playlistId: z.string().uuid(),
+                playlistId: z.string().uuid().or(z.literal(WATCH_LATER_URL_KEYWORD)),
             }),
         )
         .query(async ({ ctx, input }) => {
+            const { maybeUser } = ctx;
+
+            async function getWatchLaterId() {
+                // This is only possible if the request is made by an authenticated user
+                // 1. The middleware shouldn't allow unauthenticated users to access this endpoint
+                // 2. The playlist ID should be {WATCH_LATER_URL_KEYWORD} which is special keyword
+                // The {WATCH_LATER_URL_KEYWORD} playlist is the only /playlists/[slug] endpoint that's not accessible by anyone other than the owner (except by sharing the url with its ID, which is intended)
+                if (!maybeUser) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid playlist ID" });
+
+                const [res] = await db
+                    .select({ id: playlistsTable.id })
+                    .from(playlistsTable)
+                    .where(
+                        and(
+                            eq(playlistsTable.userId, maybeUser.id),
+                            eq(playlistsTable.name, DEFAULT_WATCH_LATER_PLAYLIST_NAME),
+                        ),
+                    )
+                    .limit(1);
+
+                return res.id;
+            }
+
+            const playlistId =
+                input.playlistId === WATCH_LATER_URL_KEYWORD ? await getWatchLaterId() : input.playlistId;
+
             const latestVideo = db.$with("latest_video").as(
                 db
                     .select({
@@ -260,7 +287,7 @@ export const playlistsRouter = createTRPCRouter({
                         thumbnailUrl: videosTable.thumbnailUrl,
                     })
                     .from(playlistVideosTable)
-                    .where(eq(playlistVideosTable.playlistId, input.playlistId))
+                    .where(eq(playlistVideosTable.playlistId, playlistId))
                     .innerJoin(videosTable, eq(videosTable.id, playlistVideosTable.videoId))
                     .orderBy(asc(playlistVideosTable.position))
                     .limit(1),
@@ -274,7 +301,7 @@ export const playlistsRouter = createTRPCRouter({
                     thumbnailUrl: latestVideo.thumbnailUrl,
                 })
                 .from(playlistsTable)
-                .where(eq(playlistsTable.id, input.playlistId))
+                .where(eq(playlistsTable.id, playlistId))
                 .leftJoin(latestVideo, eq(latestVideo.playlistId, playlistsTable.id))
                 .limit(1);
 
@@ -561,10 +588,10 @@ export const playlistsRouter = createTRPCRouter({
 
             return res;
         }),
-    getVideos: baseProcedure
+    getVideos: maybeAuthedProcedure
         .input(
             z.object({
-                playlistId: z.string().uuid(),
+                playlistId: z.string().uuid().or(z.literal(WATCH_LATER_URL_KEYWORD)),
                 cursor: z
                     .object({
                         id: z.string().uuid(),
@@ -575,8 +602,34 @@ export const playlistsRouter = createTRPCRouter({
                 limit: z.number().min(1),
             }),
         )
-        .query(async ({ input }) => {
-            const { cursor, limit, playlistId } = input;
+        .query(async ({ ctx, input }) => {
+            const { cursor, limit } = input;
+
+            const { maybeUser } = ctx;
+
+            async function getWatchLaterId() {
+                // This is only possible if the request is made by an authenticated user
+                // 1. The middleware shouldn't allow unauthenticated users to access this endpoint
+                // 2. The playlist ID should be {WATCH_LATER_URL_KEYWORD} which is special keyword
+                // The {WATCH_LATER_URL_KEYWORD} playlist is the only /playlists/[slug] endpoint that's not accessible by anyone other than the owner (except by sharing the url with its ID, which is intended)
+                if (!maybeUser) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid playlist ID" });
+
+                const [res] = await db
+                    .select({ id: playlistsTable.id })
+                    .from(playlistsTable)
+                    .where(
+                        and(
+                            eq(playlistsTable.userId, maybeUser.id),
+                            eq(playlistsTable.name, DEFAULT_WATCH_LATER_PLAYLIST_NAME),
+                        ),
+                    )
+                    .limit(1);
+
+                return res.id;
+            }
+
+            const playlistId =
+                input.playlistId === WATCH_LATER_URL_KEYWORD ? await getWatchLaterId() : input.playlistId;
 
             const [playlist] = await db.select().from(playlistsTable).where(eq(playlistsTable.id, playlistId)).limit(1);
 

@@ -2,6 +2,8 @@
 
 import { ClockIcon, FlameIcon, HistoryIcon, HomeIcon, ListVideoIcon, PlaySquareIcon, ThumbsUpIcon } from "lucide-react";
 
+import { WATCH_LATER_URL_KEYWORD } from "@lib/constants";
+
 import { SidebarItem } from "../types";
 
 export const mainItems: SidebarItem[] = [
@@ -40,7 +42,7 @@ export const personalItems: SidebarItem[] = [
     },
     {
         title: "Watch Later",
-        href: "/playlists/watchLater",
+        href: `/playlists/${WATCH_LATER_URL_KEYWORD}`,
         icon: ClockIcon,
         needsAuth: true,
     },
