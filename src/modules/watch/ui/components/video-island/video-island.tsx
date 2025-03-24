@@ -42,7 +42,7 @@ export function VideoIsland({ video }: VideoIslandProps) {
                 {/* Title */}
                 <div className="font-brand text-xl">{video?.title}</div>
                 {/* CTA */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     {/* Author Data */}
                     <VideoAuthor video={video} showButton />
 

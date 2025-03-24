@@ -9,7 +9,7 @@ interface VideoInteractionsProps {
 
 export function VideoInteractions({ video }: VideoInteractionsProps) {
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
             <VideoRating video={video} />
             <VideoMenu videoId={video.id} />
         </div>

@@ -9,7 +9,7 @@ interface SuggestionsIslandProps {
 
 export default function SuggestionsIsland({ videoId, suggestions }: SuggestionsIslandProps) {
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 px-4 md:px-0">
             <h2 className="font-brand text-md">You might also like...</h2>
             <div className="flex flex-col gap-4">
                 {suggestions.map((suggestion) => (

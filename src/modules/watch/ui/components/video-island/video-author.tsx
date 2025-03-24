@@ -16,15 +16,19 @@ export function VideoAuthor({ video, showButton = false }: VideoAuthorProps) {
     const auth = useAuth();
 
     return (
-        <div className="flex items-center gap-3">
-            {/* Avatar */}
-            <Avatar className="size-10">
-                <AvatarImage src={video.user.imageUrl} alt={video.user.name} />
-            </Avatar>
-            {/* User Info */}
-            <div className="flex flex-col justify-center">
-                <UserName userId={video.user.id} name={video.user.name} />
-                <div className="text-muted-foreground text-xs leading-4">{video.user.subscriberCount} Subscribers</div>
+        <div className="flex items-center justify-between gap-3 md:justify-start">
+            <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <Avatar className="size-10">
+                    <AvatarImage src={video.user.imageUrl} alt={video.user.name} />
+                </Avatar>
+                {/* User Info */}
+                <div className="flex flex-col justify-center">
+                    <UserName userId={video.user.id} name={video.user.name} />
+                    <div className="text-muted-foreground text-xs leading-4">
+                        {video.user.subscriberCount} Subscribers
+                    </div>
+                </div>
             </div>
             {/* CTA*/}
             {showButton && (
