@@ -54,10 +54,6 @@ export default function VideoMenu({ videoId, onDestructive, isSmall = false }: V
                     }}
                 >
                     <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => {}}>
-                            <ClockIcon />
-                            <span>Watch Later</span>
-                        </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={(e) => {
                                 if (!isSignedIn) {
