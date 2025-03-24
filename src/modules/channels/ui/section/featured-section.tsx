@@ -11,6 +11,8 @@ import { useSuspenseInfiniteQuery, useSuspenseQuery } from "@tanstack/react-quer
 import ChannelHeader from "../components/channel-header";
 import { ListVideoCard, ListVideoCardSkeleton } from "@modules/videos/ui/components/video-cards/list-video-card";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { useIsMobile } from "@hooks/use-mobile";
+import { GridVideoCard } from "@modules/videos/ui/components/video-cards/grid-video-card";
 
 interface FeaturedSectionProps {
     userId: string;
@@ -32,6 +34,7 @@ export default function FeaturedSection({ userId }: FeaturedSectionProps) {
 
 function FeaturedSectionSuspense({ userId }: FeaturedSectionProps) {
     const trpc = useTRPC();
+    const isMobile = useIsMobile();
 
     const { data } = useSuspenseInfiniteQuery(
         trpc.channels.getManyLatest.infiniteQueryOptions(
@@ -47,7 +50,11 @@ function FeaturedSectionSuspense({ userId }: FeaturedSectionProps) {
     return (
         <>
             {video ? (
-                <ListVideoCard video={video} />
+                isMobile ? (
+                    <GridVideoCard video={video} />
+                ) : (
+                    <ListVideoCard video={video} />
+                )
             ) : (
                 <p className="text-muted-foreground text-sm">No videos have been uploaded yet</p>
             )}

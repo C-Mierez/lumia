@@ -23,7 +23,7 @@ export default function ChannelBanner({ channel }: ChannelBannerProps) {
                 <div className="bg-background-alt grid size-full place-items-center" />
             )}
             {channel.isOwner !== null && channel.isOwner && (
-                <div className="absolute right-4 bottom-4">
+                <div className="absolute right-2 bottom-2 md:right-4 md:bottom-4">
                     <EditBannerModal {...editBannerModal} userId={channel.id} />
                     <Button size={"sm"} onClick={editBannerModal.openModal}>
                         <Edit2Icon /> Edit

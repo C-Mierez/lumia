@@ -7,6 +7,7 @@ import SubscribersPreview from "@modules/subscriptions/ui/components/subscribers
 import { Button } from "@components/ui/button";
 import Link from "next/link";
 import { Skeleton } from "@components/ui/skeleton";
+import { useMemo } from "react";
 
 interface ChannelHeaderProps {
     channel: ChannelsGetOneOutput;
@@ -21,14 +22,14 @@ export default function ChannelHeader({ channel }: ChannelHeaderProps) {
             {/* User Data */}
             <div className="flex gap-4">
                 {/* User Avatar */}
-                <Avatar className="size-36">
+                <Avatar className="size-20 md:size-36">
                     <AvatarImage src={channel.imageUrl} />
                     <AvatarFallback></AvatarFallback>
                 </Avatar>
 
                 {/* User Info */}
                 <div className="flex flex-1 flex-col gap-2">
-                    <h1 className="font-brand line-clamp-1 text-4xl">{channel.name}</h1>
+                    <h1 className="font-brand line-clamp-1 text-2xl md:text-4xl">{channel.name}</h1>
                     <ChannelStats channel={channel} />
                     <p className="text-muted-foreground line-clamp-1 max-w-1/2 text-sm">
                         {channel.description ?? "No description"}
@@ -78,31 +79,60 @@ export function ChannelHeaderSkeleton() {
 }
 
 function ChannelStats({ channel }: ChannelHeaderProps) {
+    const subscriberCount = useMemo(
+        () =>
+            Intl.NumberFormat("en", {
+                notation: "compact",
+                compactDisplay: "short",
+            }).format(channel.subscriberCount),
+        [channel],
+    );
+
+    const videosCount = useMemo(
+        () =>
+            Intl.NumberFormat("en", {
+                notation: "compact",
+                compactDisplay: "short",
+            }).format(channel.videosCount),
+        [channel],
+    );
+
+    const viewsCount = useMemo(
+        () =>
+            Intl.NumberFormat("en", {
+                notation: "compact",
+                compactDisplay: "short",
+            }).format(channel.viewsCount),
+        [channel],
+    );
+
     return (
-        <div className="text-muted-foreground flex gap-[0.5ch] text-sm">
-            <p>
-                {Intl.NumberFormat("en", {
-                    notation: "compact",
-                    compactDisplay: "short",
-                }).format(channel.subscriberCount)}
+        <div className="text-muted-foreground flex flex-col gap-[0.5ch] text-sm md:flex-row">
+            <p className="shrink-0">
+                {subscriberCount}
                 {" subscribers"}
             </p>
-            <p>{"-"}</p>
-            <p>
-                {Intl.NumberFormat("en", {
-                    notation: "compact",
-                    compactDisplay: "short",
-                }).format(channel.videosCount)}
+            <p className="hidden md:block">{"-"}</p>
+            <p className="hidden shrink-0 md:block">
+                {videosCount}
                 {" videos"}
             </p>
-            <p>{"-"}</p>
-            <p>
-                {Intl.NumberFormat("en", {
-                    notation: "compact",
-                    compactDisplay: "short",
-                }).format(channel.viewsCount)}
+            <p className="hidden md:block">{"-"}</p>
+            <p className="hidden shrink-0 md:block">
+                {viewsCount}
                 {" total views"}
             </p>
+            <div className="flex gap-[0.5ch]">
+                <p className="shrink-0 md:hidden">
+                    {videosCount}
+                    {" videos"}
+                </p>
+                <p className="md:hidden">{"-"}</p>
+                <p className="shrink-0 md:hidden">
+                    {viewsCount}
+                    {" total views"}
+                </p>
+            </div>
         </div>
     );
 }

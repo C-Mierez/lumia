@@ -32,28 +32,26 @@ export default function ChannelNavigation({}: ChannelNavigationProps) {
     const userId = searchParams.get(SEARCH_KEY_VALUES.Home.u) || "";
 
     return (
-        <div className="border-border border border-t-0 border-r-0 border-l-0">
-            <nav>
-                <ul className="flex gap-2">
-                    {Items.map((item, index) => {
-                        const url = `${item.href}${buildSearchQuery({ u: userId })}`;
-                        const isActive = pathname === item.href;
-                        return (
-                            <li key={index} className="relative">
-                                <Link href={url} className="text-body block size-full px-5 py-2 text-sm font-semibold">
-                                    {item.title}
-                                </Link>
-                                <div
-                                    className={cn(
-                                        "bg-accent absolute bottom-0 left-0 h-0 w-full transition-[height]",
-                                        isActive && "h-0.5",
-                                    )}
-                                ></div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </nav>
-        </div>
+        <nav className="border-border overflow-x-auto border border-t-0 border-r-0 border-l-0">
+            <ul className="flex gap-2">
+                {Items.map((item, index) => {
+                    const url = `${item.href}${buildSearchQuery({ u: userId })}`;
+                    const isActive = pathname === item.href;
+                    return (
+                        <li key={index} className="relative">
+                            <Link href={url} className="text-body block size-full px-5 py-2 text-sm font-semibold">
+                                {item.title}
+                            </Link>
+                            <div
+                                className={cn(
+                                    "bg-accent absolute bottom-0 left-0 h-0 w-full transition-[height]",
+                                    isActive && "h-0.5",
+                                )}
+                            ></div>
+                        </li>
+                    );
+                })}
+            </ul>
+        </nav>
     );
 }
