@@ -51,5 +51,6 @@ A Youtube-inspired video-sharing website.
 - [ ] Clean up Modal implementation with a reusable hook for managing modal state.
 - [ ] Verify proper state handling in video update form (Not disabling the user while fetching status)
 - [ ] Make a DB trigger to automatically create a default Watch Later playlist for the user on creation
+- [ ] Image optimization for uploaded and generated thumbnails.
 
 ---
