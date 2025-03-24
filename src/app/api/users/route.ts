@@ -4,8 +4,10 @@ import { Webhook } from "svix";
 import { env } from "@/env";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { usersTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { usersTable, videosTable } from "@/db/schema";
+import { and, eq, getTableColumns } from "drizzle-orm";
+import { mux } from "@lib/server/mux";
+import { UTApi } from "uploadthing/server";
 
 export async function POST(req: Request) {
     const SIGNING_SECRET = env.CLERK_SIGN_IN_SECRET;
@@ -82,6 +84,28 @@ export async function POST(req: Request) {
                 return new Response("Error: Missing user ID", {
                     status: 400,
                 });
+            }
+
+            // Delete all video data on external services associated with the user
+            const videos = await db
+                .select({
+                    ...getTableColumns(videosTable),
+                })
+                .from(videosTable)
+                .innerJoin(usersTable, eq(videosTable.userId, usersTable.id))
+                .where(and(eq(usersTable.clerkId, evt.data.id)));
+
+            for (const video of videos) {
+                try {
+                    if (!!video.muxAssetId) await mux.video.assets.delete(video.muxAssetId);
+                } catch (error) {
+                    // Mux asset may have already been deleted
+                    console.error("Failed to delete mux asset", error);
+                }
+
+                const utapi = new UTApi();
+                if (!!video.thumbnailKey) await utapi.deleteFiles([video.thumbnailKey]);
+                if (!!video.previewKey) await utapi.deleteFiles([video.previewKey]);
             }
 
             await db.delete(usersTable).where(eq(usersTable.clerkId, evt.data.id));
