@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
+import useModal from "@hooks/use-modal";
+
 import VideoEditSection from "../sections/video-edit-section";
 
 interface VideoViewProps {
@@ -12,15 +14,15 @@ export default function VideoView({ videoId }: VideoViewProps) {
     const router = useRouter();
     const pathname = usePathname();
 
-    const onOpenChange = (isOpen: boolean) => {
-        if (!isOpen) {
+    const modal = useModal({
+        onClose() {
             if (pathname.startsWith("/studio/video/")) router.back();
-        }
-    };
+        },
+    });
 
     return (
         <>
-            <VideoEditSection videoId={videoId} onOpenChange={onOpenChange} />
+            <VideoEditSection videoId={videoId} {...modal} />
         </>
     );
 }
