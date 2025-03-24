@@ -114,7 +114,13 @@ export default function AddToPlaylistModal(props: AddToPlaylistModalProps) {
                             <PlusIcon className="-m-1" />
                             New Playlist
                         </Button>
-                        <Button type="button" variant={"muted"} onClick={onCancel}>
+                        <Button
+                            type="button"
+                            variant={"muted"}
+                            onClick={() => {
+                                handleOpenChange(false);
+                            }}
+                        >
                             Cancel
                         </Button>
                     </div>
