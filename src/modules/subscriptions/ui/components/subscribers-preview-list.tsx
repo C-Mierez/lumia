@@ -50,34 +50,40 @@ function SubscribersPreviewListSuspense({ userId, userName }: SubscribersPreview
 
     return (
         <>
-            <SubscribersList
-                {...subscribersModal}
-                // eslint-disable-next-line
-                subscribersQuery={getSubscribers as any}
-                subscribers={subscribers}
-                userName={userName}
-            />
-            <div className="flex flex-col gap-4">
-                {subscribers.slice(0, DEFAULT_INFINITE_PREFETCH_LIMIT).map((subscriber) => (
-                    <div key={subscriber.id} className="flex gap-2">
-                        <SubscriberAvatar className="size-8" subscriber={subscriber} />
-                        <div>
-                            <div className="line-clamp-1 text-xs">{subscriber.name}</div>
-                            <div className="text-muted-foreground line-clamp-1 text-xs">
-                                Subscribed {formatDistanceToNow(subscriber.subscribedAt, { addSuffix: true })}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                {subscribers.length > 0 && subscribers[0].totalSubscribers > DEFAULT_INFINITE_PREFETCH_LIMIT && (
-                    <SubscribersExpandAvatar
-                        onClick={() => {
-                            if (getSubscribers.hasNextPage) getSubscribers.fetchNextPage();
-                            subscribersModal.openModal();
-                        }}
+            {subscribers.length === 0 && <p className="text-muted-foreground text-sm">No subscribers found</p>}
+            {subscribers.length > 0 && (
+                <>
+                    <SubscribersList
+                        {...subscribersModal}
+                        // eslint-disable-next-line
+                        subscribersQuery={getSubscribers as any}
+                        subscribers={subscribers}
+                        userName={userName}
                     />
-                )}
-            </div>
+                    <div className="flex flex-col gap-4">
+                        {subscribers.slice(0, DEFAULT_INFINITE_PREFETCH_LIMIT).map((subscriber) => (
+                            <div key={subscriber.id} className="flex gap-2">
+                                <SubscriberAvatar className="size-8" subscriber={subscriber} />
+                                <div>
+                                    <div className="line-clamp-1 text-xs">{subscriber.name}</div>
+                                    <div className="text-muted-foreground line-clamp-1 text-xs">
+                                        Subscribed {formatDistanceToNow(subscriber.subscribedAt, { addSuffix: true })}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {subscribers.length > 0 &&
+                            subscribers[0].totalSubscribers > DEFAULT_INFINITE_PREFETCH_LIMIT && (
+                                <SubscribersExpandAvatar
+                                    onClick={() => {
+                                        if (getSubscribers.hasNextPage) getSubscribers.fetchNextPage();
+                                        subscribersModal.openModal();
+                                    }}
+                                />
+                            )}
+                    </div>
+                </>
+            )}
         </>
     );
 }

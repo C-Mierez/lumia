@@ -74,6 +74,7 @@ function ChannelCommentsSuspense({}: ChannelCommentsProps) {
                     <Separator />
                 </div>
             ))}
+            {data.length === 0 && <p className="text-muted-foreground text-sm">No comments found</p>}
         </StatsCard>
     );
 }

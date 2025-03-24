@@ -193,13 +193,11 @@ export const studioRouter = createTRPCRouter({
                 .limit(1),
         ]);
 
-        if (!videoStats) throw new TRPCError({ code: "NOT_FOUND" });
-        if (!subscribers) throw new TRPCError({ code: "NOT_FOUND" });
-        if (!popularVideo) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!videoStats) throw new TRPCError({ code: "NOT_FOUND", message: "Video stats not found" });
 
         return {
             ...videoStats,
-            ...subscribers,
+            ...(subscribers ?? { subscriberCount: 0 }),
             video: {
                 ...popularVideo,
             },
