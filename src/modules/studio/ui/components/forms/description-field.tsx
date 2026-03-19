@@ -40,7 +40,7 @@ export function DescriptionField({ form, video }: DescriptionFieldProps) {
                                 {...field}
                                 value={field.value ?? undefined}
                                 placeholder="Describe the content of your video"
-                                className="resize-none text-sm"
+                                className="max-h-[6.7lh] resize-none text-sm"
                             />
                         </FormControl>
                         <FormMessage />
