@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 
 import { MuxStatus } from "../constants";
 import { buildEventChannelName, VideoEvents, VideoEventStatusMap, VideoProcedures } from "./constants";
+import { generateGeminiContent } from "@lib/server/gemini";
 
 export const videosRouter = createTRPCRouter({
     requestUpload: authedProcedure
