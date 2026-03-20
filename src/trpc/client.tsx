@@ -29,7 +29,11 @@ function getQueryClient() {
 function getUrl() {
     const base = (() => {
         if (typeof window !== "undefined") return "";
-        if (env.NEXT_PUBLIC_WEBSITE_URL) return `https://${env.NEXT_PUBLIC_WEBSITE_URL}`;
+        if (env.NEXT_PUBLIC_WEBSITE_URL) {
+            return env.NEXT_PUBLIC_WEBSITE_URL.startsWith("http")
+                ? env.NEXT_PUBLIC_WEBSITE_URL
+                : `https://${env.NEXT_PUBLIC_WEBSITE_URL}`;
+        }
         return "http://localhost:3000";
     })();
     return `${base}/api/trpc`;
