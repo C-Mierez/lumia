@@ -16,6 +16,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@components/ui/sidebar";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Loader2Icon, Smile } from "lucide-react";
@@ -24,6 +25,7 @@ import { Button } from "@components/ui/button";
 
 export default function SubscriptionsList() {
     const { isLoaded, isSignedIn } = useAuth();
+
     const pathname = usePathname();
 
     if (!isLoaded) {
@@ -60,6 +62,7 @@ interface SubscriptionsListSuspenseProps {
 }
 
 function SubscriptionsListSuspense({ pathname }: SubscriptionsListSuspenseProps) {
+    const { state } = useSidebar();
     const trpc = useTRPC();
     const { data } = useSuspenseQuery(trpc.subscriptions.getMany.queryOptions());
 
@@ -84,7 +87,7 @@ function SubscriptionsListSuspense({ pathname }: SubscriptionsListSuspenseProps)
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}
-                    {data?.length === 0 && (
+                    {data?.length === 0 && state !== "collapsed" && (
                         <SidebarMenuItem className="flex flex-col items-center gap-2 p-2">
                             <Smile className="text-muted-foreground size-8 rotate-180" />
                             <p className="text-muted-foreground text-center text-xs">You have no subscriptions</p>
