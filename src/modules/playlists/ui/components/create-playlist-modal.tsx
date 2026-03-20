@@ -46,8 +46,8 @@ export default function CreatePlaylistModal(props: CreatePlaylistModalProps) {
     const form = useForm<z.infer<typeof playlistInsertSchema>>({
         resolver: zodResolver(playlistInsertSchema),
         defaultValues: {
-            name: undefined,
-            description: undefined,
+            name: "",
+            description: "",
         },
     });
 
