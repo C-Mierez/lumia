@@ -1,9 +1,11 @@
 import { env } from "@/env";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-export const GenAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+export const GenAI = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
-export const DEFAULT_MODEL = "gemini-3-flash-preview";
+export const DEFAULT_MODEL = "gemini-2.5-flash";
+
+export const DEFAULT_IMAGE_MODEL = "nano-banana-pro-preview";
 
 export function generateGeminiContent(
     systemPrompt: string,
@@ -11,24 +13,15 @@ export function generateGeminiContent(
     maxTokens: number = 1000,
     modelName: string = DEFAULT_MODEL,
 ) {
-    const model = GenAI.getGenerativeModel({
+    return GenAI.models.generateContent({
         model: modelName,
-        systemInstruction: systemPrompt,
-    });
-
-    return model.generateContent({
-        contents: [
-            {
-                role: "user",
-                parts: [
-                    {
-                        text: userPrompt,
-                    },
-                ],
-            },
-        ],
-        generationConfig: {
+        config: {
+            systemInstruction: systemPrompt,
             maxOutputTokens: maxTokens,
+        },
+        contents: {
+            role: "user",
+            text: userPrompt,
         },
     });
 }

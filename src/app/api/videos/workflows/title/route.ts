@@ -75,9 +75,9 @@ export const POST = async (request: NextRequest) => {
 
                 const result = await generateGeminiContent(VIDEO_TITLE_SYSTEM_PROMPT, finalPrompt);
 
-                if (!result.response) throw new Error("Failed to generate title");
+                if (!result.text) throw new Error("Failed to generate title");
 
-                return result.response.text();
+                return result.text;
             });
 
             await context.run(VideoEvents.UpdateVideo, async () => {

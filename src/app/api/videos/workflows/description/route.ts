@@ -77,9 +77,9 @@ export const POST = async (request: NextRequest) => {
 
                 const result = await generateGeminiContent(VIDEO_DESCRIPTION_SYSTEM_PROMPT, finalPrompt, 3000);
 
-                if (!result.response) throw new Error("Failed to generate description");
+                if (!result.text) throw new Error("Failed to generate description");
 
-                return result.response.text();
+                return result.text;
             });
 
             await context.run(VideoEvents.UpdateVideo, async () => {

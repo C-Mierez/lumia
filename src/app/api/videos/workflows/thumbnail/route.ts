@@ -100,9 +100,9 @@ export const POST = async (request: NextRequest) => {
 
                     const result = await generateGeminiContent(VIDEO_THUMBNAIL_SYSTEM_PROMPT, videoData);
 
-                    if (!result.response) throw new Error("Failed to generate title");
+                    if (!result.text) throw new Error("Failed to generate title");
 
-                    return result.response.text();
+                    return result.text;
                 });
             }
 

@@ -1,7 +1,12 @@
 import { env } from "@/env";
 import { Client } from "@upstash/workflow";
 
-export const workflowClient = new Client({ token: env.QSTASH_TOKEN });
+export const workflowClient = new Client({
+    token: env.QSTASH_TOKEN,
+    retry: {
+        retries: 1,
+    },
+});
 
 export const WORKFLOW_ENDPOINTS = {
     VideoTitle: "videos/workflows/title",
