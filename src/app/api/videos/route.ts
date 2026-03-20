@@ -1,5 +1,4 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { headers } from "next/headers";
 import { UTApi } from "uploadthing/server";
 
 import { db } from "@/db";
@@ -25,21 +24,43 @@ type WebhookEvent =
     | VideoAssetDeletedWebhookEvent;
 
 export const POST = async (request: Request) => {
-    const headersPayload = await headers();
-    const muxSignature = headersPayload.get("mux-signature");
+    const muxSignature = request.headers.get("mux-signature");
 
-    if (!muxSignature) return new Response("No Upload ID received", { status: 400 });
+    if (!muxSignature) return new Response("Missing mux-signature header", { status: 400 });
 
-    const payload = await request.json();
-    const body = JSON.stringify(payload);
+    const body = await request.text();
 
-    mux.webhooks.verifySignature(
-        body,
-        {
-            "mux-signature": muxSignature,
-        },
-        env.MUX_WEBHOOK_SECRET,
-    );
+    try {
+        mux.webhooks.verifySignature(
+            body,
+            {
+                "mux-signature": muxSignature,
+            },
+            env.MUX_WEBHOOK_SECRET,
+        );
+    } catch {
+        // Debug for invalid signatures. Mainly making sure that it's not an issue on my side
+        const signatureParts = muxSignature
+            .split(",")
+            .map((part) => part.trim())
+            .filter((part) => part.startsWith("t=") || part.startsWith("v1="));
+
+        console.warn("Invalid Mux webhook signature", {
+            userAgent: request.headers.get("user-agent"),
+            forwardedFor: request.headers.get("x-forwarded-for"),
+            forwardedProto: request.headers.get("x-forwarded-proto"),
+            host: request.headers.get("host"),
+            signatureParts,
+        });
+        return new Response("Invalid signature", { status: 400 });
+    }
+
+    let payload: WebhookEvent;
+    try {
+        payload = JSON.parse(body) as WebhookEvent;
+    } catch {
+        return new Response("Invalid JSON payload", { status: 400 });
+    }
 
     console.log("Mux Webhook received", payload.type as WebhookEvent["type"]);
 
