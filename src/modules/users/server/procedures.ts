@@ -32,4 +32,11 @@ export const usersRouter = createTRPCRouter({
 
         return res;
     }),
+    getCurrentUser: authedProcedure.query(async ({ ctx }) => {
+        const { user } = ctx;
+
+        return {
+            id: user.id,
+        };
+    }),
 });

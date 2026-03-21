@@ -9,6 +9,8 @@ export default function StudioPage() {
 
     prefetch(trpc.categories.getMany.queryOptions());
 
+    prefetch(trpc.users.getCurrentUser.queryOptions());
+
     return (
         <HydrateClient>
             <StudioView />
