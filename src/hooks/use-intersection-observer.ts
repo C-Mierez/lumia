@@ -5,10 +5,18 @@ export default function useIntersectionObserver(options?: IntersectionObserverIn
 
     const targetRef = useRef<HTMLDivElement>(null);
 
+    const root = options?.root ?? null;
+    const rootMargin = options?.rootMargin ?? "0px";
+    const threshold = options?.threshold ?? 0;
+    const thresholdDep = Array.isArray(threshold) ? threshold.join(",") : `${threshold}`;
+
     useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            setIsIntersecting(entry.isIntersecting);
-        }, options);
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsIntersecting((prev) => (prev === entry.isIntersecting ? prev : entry.isIntersecting));
+            },
+            { root, rootMargin, threshold },
+        );
 
         if (targetRef.current) {
             observer.observe(targetRef.current);
@@ -17,7 +25,7 @@ export default function useIntersectionObserver(options?: IntersectionObserverIn
         return () => {
             observer.disconnect();
         };
-    }, [options]);
+    }, [root, rootMargin, thresholdDep, threshold]);
 
     return { targetRef, isIntersecting };
 }
