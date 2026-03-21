@@ -21,6 +21,7 @@ export const usersTable = pgTable(
         clerkId: text("clerk_id").unique().notNull(),
         name: text("name").notNull(),
         description: text("description"), // Bio
+        about: text("about"), // A more detailed description that can have rich text
         imageUrl: text("image_url").notNull(), // Hosted by Clerk
         bannerUrl: text("banner_url"), // Hosted by us in Uploadthing
         bannerKey: text("banner_key"), // Hosted by us in Uploadthing

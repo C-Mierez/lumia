@@ -169,6 +169,13 @@
       "when": 1741455060175,
       "tag": "0023_clumsy_mister_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1774111081568,
+      "tag": "0024_wise_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }
