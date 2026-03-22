@@ -1,7 +1,6 @@
-import { HydrateClient, prefetch, trpc } from "@/trpc/server";
-import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
+import { HydrateClient } from "@/trpc/server";
 import { SEARCH_PARAMS } from "@lib/searchParams";
-import ChannelPlaylistsSlotView from "@modules/channels/ui/views/channel-playlists-slot-view";
+import ChannelAboutSlotView from "@modules/channels/ui/views/channel-about-slot-view";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +13,7 @@ export default async function ChannelPage({ searchParams }: ChannelPageProps) {
 
     return (
         <HydrateClient>
-            <div className="mx-auto">A cool description about your channel would go here, but I am tired.</div>
+            <ChannelAboutSlotView userId={u!} />
         </HydrateClient>
     );
 }

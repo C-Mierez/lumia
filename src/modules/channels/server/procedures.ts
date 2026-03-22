@@ -11,7 +11,7 @@ import {
     videosTable,
     viewsTable,
 } from "@/db/schema";
-import { baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
+import { authedProcedure, baseProcedure, createTRPCRouter, maybeAuthedProcedure } from "@/trpc/init";
 import { DEFAULT_INFINITE_PREFETCH_LIMIT } from "@lib/constants";
 
 export const channelsRouter = createTRPCRouter({
@@ -195,5 +195,40 @@ export const channelsRouter = createTRPCRouter({
                 items,
                 nextCursor,
             };
+        }),
+    getAbout: maybeAuthedProcedure
+        .input(
+            z.object({
+                userId: z.string().uuid(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            const { userId } = input;
+            const { maybeUser } = ctx;
+
+            const data = await db
+                .select({
+                    about: usersTable.about,
+                    isOwner: maybeUser
+                        ? sql<boolean>`(SELECT ${usersTable.id} = ${maybeUser.id})`.as("isOwner")
+                        : sql<null>`NULL`.as("isOwner"),
+                })
+                .from(usersTable)
+                .where(eq(usersTable.id, userId));
+
+            return data[0];
+        }),
+
+    updateAbout: authedProcedure
+        .input(
+            z.object({
+                about: z.string(),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const { about } = input;
+            const { user } = ctx;
+
+            await db.update(usersTable).set({ about }).where(eq(usersTable.id, user.id));
         }),
 });

@@ -1,0 +1,12 @@
+.menu {
+    animation: slideInBottom 0.3s ease-out;
+}
+
+@keyframes slideInBottom {
+    from {
+        transform: translateY(calc(100% + 5vw));
+    }
+    to {
+        transform: translateY(0);
+    }
+}
