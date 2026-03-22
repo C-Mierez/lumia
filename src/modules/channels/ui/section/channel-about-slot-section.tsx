@@ -118,7 +118,7 @@ function ChannelAboutSlotSectionSuspense({ userId }: ChannelAboutSlotSectionProp
                         </p>
                     </div>
                 )}
-                {isLoaded && isSignedIn && (
+                {isLoaded && isSignedIn && data.isOwner && (
                     <InteractionMenu
                         onEdit={onEdit}
                         onDiscard={onDiscard}
