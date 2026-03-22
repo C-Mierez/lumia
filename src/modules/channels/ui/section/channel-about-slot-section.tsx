@@ -105,7 +105,7 @@ function ChannelAboutSlotSectionSuspense({ userId }: ChannelAboutSlotSectionProp
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="isolate w-full">
-                {data.about ? (
+                {data.about && data.about !== "" ? (
                     isEditing ? (
                         <SimpleEditor content={dirtyContent || (data.about ?? "")} onEditorReady={setEditor} />
                     ) : (
