@@ -35,7 +35,7 @@ export default function VideoMenu({ videoId, onDestructive, isSmall = false }: V
 
     return (
         <>
-            {addToPlaylistModal.isOpen && <AddToPlaylistModal {...addToPlaylistModal} videoId={videoId} />}
+            <AddToPlaylistModal {...addToPlaylistModal} videoId={videoId} />
             <DropdownMenu modal>
                 <DropdownMenuTrigger asChild>
                     <Button

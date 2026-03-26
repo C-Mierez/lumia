@@ -68,9 +68,15 @@ export default function AddToPlaylistModal(props: AddToPlaylistModalProps) {
 
     const newPlaylistModal = useModal({});
 
+    const openCreatePlaylist = () => {
+        // Close the current modal first to avoid stacking two modal focus traps.
+        handleOpenChange(false);
+        newPlaylistModal.openModal();
+    };
+
     return (
         <>
-            {newPlaylistModal.isOpen && <CreatePlaylistModal {...newPlaylistModal} />}
+            <CreatePlaylistModal {...newPlaylistModal} />
             <ResponsiveModal {...props} onOpenChange={handleOpenChange} className="m-0 p-0">
                 <div className="flex flex-col gap-4 p-4">
                     <div className="text-start text-balance">
@@ -110,7 +116,7 @@ export default function AddToPlaylistModal(props: AddToPlaylistModalProps) {
                     </div>
 
                     <div className="flex justify-end gap-2">
-                        <Button type="button" variant={"secondary"} onClick={newPlaylistModal.openModal}>
+                        <Button type="button" variant={"secondary"} onClick={openCreatePlaylist}>
                             <PlusIcon className="-m-1" />
                             New Playlist
                         </Button>

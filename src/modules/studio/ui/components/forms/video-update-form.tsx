@@ -276,6 +276,7 @@ function VideoUpdateFormHeader({ closeModal, canRefresh, canSubmit, onDelete, vi
 
                 <ConfirmationModal
                     {...deleteModal}
+                    modal={false}
                     title={`Delete "${shownVideoTitle}"`}
                     description={"Are you sure you want to delete this video?"}
                     onConfirm={onDelete}

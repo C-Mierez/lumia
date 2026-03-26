@@ -50,6 +50,7 @@ export default function EditBannerModal(props: EditBannerModalProps) {
             <>
                 <ConfirmationModal
                     {...removeModal}
+                    modal={false}
                     title={"Remove banner"}
                     description={"Are you sure you want to remove your channel banner?"}
                     onConfirm={() => {

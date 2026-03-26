@@ -9,6 +9,7 @@ interface ConfirmationModalProps extends ModalProps {
     title?: string;
     description: string;
     destructive?: boolean;
+    modal?: boolean;
     onConfirm: () => void;
     onCancel?: () => void;
 }

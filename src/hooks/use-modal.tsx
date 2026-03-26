@@ -45,4 +45,5 @@ export interface ModalProps {
     onOpenChange: (isOpen: boolean) => void;
     openModal: () => void;
     closeModal: () => void;
+    modal?: boolean;
 }
